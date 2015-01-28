@@ -19,7 +19,6 @@ function [meanTraj, meanStart] = getMeanTrajectory(dataCell,varargin)
 
 %CONSTANT
 FILTER_LESS_THAN = 0.4;
-binRange = [-20 620];
 
 %assert that contains only binned imaging data
 assert(all(getCellVals(dataCell,'imaging.imData')),'dataCell must contain only imaging data');
@@ -28,6 +27,8 @@ assert(isfield(dataCell{1}.imaging,'binnedDFFTraces'),'Imaging data must be binn
 %process varargin
 whichFactorSet = 2;
 traceType = 'dffFactor';
+binRange = [-20 620];
+
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -39,6 +40,8 @@ if nargin > 1 || ~isempty(varargin)
                 whichFactorSet = varargin{argInd+1};
             case 'tracetype'
                 traceType = varargin{argInd+1};
+            case 'binrange'
+                binRange = varargin{argInd+1};
         end
     end
 end
