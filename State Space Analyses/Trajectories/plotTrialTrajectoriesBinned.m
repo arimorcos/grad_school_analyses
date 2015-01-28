@@ -28,7 +28,7 @@ markersPerTrace = 2;
 timeColor = false;
 colorIndividually = false;
 binRange = [-20 620];
-subtractMeanVec = true;
+subtractMeanVec = false;
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
