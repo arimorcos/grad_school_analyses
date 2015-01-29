@@ -93,11 +93,15 @@ for condInd = 1:nConds
     
     %set line color
 %     plotH(condInd).Color = colors(condInd,:);
-    if uniqueConds{condInd,'segID'}
+    if uniqueConds{condInd,'segID'} %#ok<BDSCA>
         plotH(condInd).Color = 'r';
     else
         plotH(condInd).Color = 'b';
     end
+    
+    %set button down function
+    buttonFunc = @(x,y) disp(uniqueConds(condInd,:));
+    plotH(condInd).ButtonDownFcn = buttonFunc;
     
     %add arrow
 %     line2arrow(plotH(condInd));
