@@ -6,7 +6,7 @@ mouse = 'AM150'; date = '141128';
 
 %parameters
 trialFilter = [];
-shouldRedo = ~true;
+shouldRedo = true;
 elimInactive = ~true;
 shouldThresh = false;
 shouldZScore = false;
@@ -15,7 +15,7 @@ nSTD = 2.5;
 minFrames = 8;
 transThresh = 1;
 keepGroups = 1;
-skipIndFactors = [3];
+skipIndFactors = [2 3];
 
 dataCell = loadBehaviorData(mouse,date);
 

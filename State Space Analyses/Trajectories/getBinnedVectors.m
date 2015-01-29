@@ -24,7 +24,7 @@ assert(all(getCellVals(dataCell,'imaging.imData')),'dataCell must contain only i
 assert(isfield(dataCell{1}.imaging,'binnedDFFTraces'),'Imaging data must be binned');
 
 %process varargin
-whichFactorSet = 2;
+whichFactorSet = 1;
 traceType = 'dffFactor';
 binRange = [-20 620];
 

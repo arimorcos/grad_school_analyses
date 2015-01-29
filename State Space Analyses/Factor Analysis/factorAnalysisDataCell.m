@@ -15,7 +15,7 @@ function dataCell = factorAnalysisDataCell(dataCell,varargin)
 %
 %ASM 9/14
 
-nFactors = [3 10 15];
+nFactors = [5 10 15];
 shouldZScore = false;
 maxIter = 10000;
 shouldSmooth = true;
