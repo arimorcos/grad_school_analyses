@@ -1,15 +1,20 @@
-function plotMeanSegmentVectors(segVectors,whichFactors,toExclude)
+function plotMeanSegmentVectors(segVectors,whichFactors,colorBy,toExclude)
 %plotMeanSegmentVectors.m Plots mean segment vectors for each unique
 %condition
 %
 %INPUTS
 %segVectors - table output by getSegVectors
 %whichFactors - which factors to plot
+%colorBy - names of variables to color according to 
 %toExclude - variables to exclude in filtering
 %
 %ASM 1/15
 
-if nargin < 3
+%condition check
+%check that segVectors is a table
+assert(istable(segVectors),'segVectors must be a table');
+
+if nargin < 4
     toExclude = [];
 else
     assert(ischar(toExclude) || iscell(toExclude),'Must provide toExclude as a cell or a string');
@@ -17,10 +22,6 @@ else
         toExclude = {toExclude};
     end
 end
-
-%condition check
-%check that segVectors is a table
-assert(istable(segVectors),'segVectors must be a table');
 
 %check that varToUse matches variable in table
 for toCheck = toExclude
@@ -46,6 +47,16 @@ end
 %extract vector column and remove
 vectors = segVectors.vector;
 segVectors.vector = [];
+
+%process colorBy
+if nargin < 3
+    colorBy = segVectors.Properties.VariableNames;
+else
+    assert(ischar(colorBy) || iscell(colorBy),'Must provide colorBy as a cell or a string');
+    if ~iscell(colorBy)
+        colorBy = {colorBy};
+    end
+end
 
 %get nTrials
 nTrials = size(segVectors,1);
@@ -75,28 +86,43 @@ for condInd = 1:nConds
     
 end
 
+%generate unique color conditions 
+if all(ismember(varNames,colorBy))
+    colorConds = uniqueConds;
+else
+    colorVectors = segVectors(:,colorBy);
+    colorConds = unique(colorVectors,'rows');
+end
+nColorConds = size(colorConds,1);
+
 %create figure 
 figH = figure;
 axH = axes;
 hold(axH,'on');
 
 %get colors
-colors = distinguishable_colors(nConds);
+colorsToPlot = distinguishable_colors(nColorConds);
 
 %loop through and plot each vector 
-plotH = gobjects(nConds);
+plotH = gobjects(nConds,1);
+legObj = gobjects(nColorConds,1);
+seenColor = false(nColorConds,1);
 for condInd = 1:nConds
     
     %plot 
     plotH(condInd) = plot3([0 meanVectors(1,condInd)], [0 meanVectors(2,condInd)],...
         [0 meanVectors(3,condInd)]);
     
+    %find matching color 
+    colorInd = ismember(colorConds,uniqueConds(condInd,colorBy),'rows');
+    
     %set line color
-%     plotH(condInd).Color = colors(condInd,:);
-    if uniqueConds{condInd,'segID'} %#ok<BDSCA>
-        plotH(condInd).Color = 'r';
-    else
-        plotH(condInd).Color = 'b';
+    plotH(condInd).Color = colorsToPlot(colorInd,:);
+    
+    %store for legend
+    if ~seenColor(colorInd)
+        legObj(colorInd) = plotH(condInd);
+        seenColor(colorInd) = true;
     end
     
     %set button down function
@@ -121,3 +147,7 @@ axH.YLabel.String = sprintf('Factor %d',whichFactors(2));
 if length(whichFactors) == 3
     axH.ZLabel.String = sprintf('Factor %d',whichFactors(3));
 end
+
+%add legend
+legStrings = convertTableToLegendString(colorConds);
+legend(legObj, legStrings{:});
