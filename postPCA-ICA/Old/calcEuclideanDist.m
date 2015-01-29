@@ -1,5 +1,5 @@
-function euclideanDistance = calcEuclidianDist(point1, point2) 
-%calcEuclidianDist.m Calculates euclidian distance in 3d space
+function euclideanDistance = calcEuclideanDist(point1, point2) 
+%calcEuclideanDist.m Calculates euclidean distance in 3d space
 
 %add third dimension if necessary
 if length(point1) < 3 && length(point1) > 1

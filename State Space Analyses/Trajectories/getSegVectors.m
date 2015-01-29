@@ -17,6 +17,7 @@ function segVectorTable = getSegVectors(traces,mazePatterns,varargin)
 %
 %ASM 1/15
 
+offset = 1; %allows to use last bin of previous segment
 
 %process varargin
 binNums = [10 26 42 58 74 90 106];
@@ -65,7 +66,7 @@ for segNum = 1:nSeg
     trialInds = nTrials*(segNum-1)+1:nTrials*segNum;
     
     %extract and store
-    segTraces(:, :, trialInds) = traces(:,binNums(segNum):binNums(segNum+1)-1,:);
+    segTraces(:, :, trialInds) = traces(:,binNums(segNum)-offset:binNums(segNum+1)-1,:);
     
 end
 
