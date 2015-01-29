@@ -70,6 +70,7 @@ varNames = segVectors.Properties.VariableNames;
 
 %loop through each condition and generate mean vectors
 meanVectors = nan(length(whichFactors),nConds);
+stdVectors = nan(length(whichFactors),nConds);
 for condInd = 1:nConds
     
     %find matching indices
@@ -82,7 +83,10 @@ for condInd = 1:nConds
     tempVectors = cat(2,vectors{indMatch});
     
     %get mean vector 
-    meanVectors(:,condInd) = mean(tempVectors(whichFactors,:),2);
+    meanVectors(:,condInd) = nanmean(tempVectors(whichFactors,:),2);
+    
+    %get std vector 
+    stdVectors(:,condInd) = nanstd(tempVectors(whichFactors,:),0,2);
     
 end
 
@@ -127,10 +131,8 @@ for condInd = 1:nConds
     
     %set button down function
     buttonFunc = @(x,y) disp(uniqueConds(condInd,:));
-    plotH(condInd).ButtonDownFcn = buttonFunc;
-    
-    %add arrow
-%     line2arrow(plotH(condInd));
+    plotH(condInd).ButtonDownFcn = {@clickButtonFunc,meanVectors(:,condInd),...
+        stdVectors(:,condInd),uniqueConds(condInd,:)};
     
 end
 
@@ -151,3 +153,25 @@ end
 %add legend
 legStrings = convertTableToLegendString(colorConds);
 legend(legObj, legStrings{:});
+
+end
+
+function clickButtonFunc(src,evnt,meanVector,stdVector,dispCond)
+
+if evnt.Button == 1
+    disp(dispCond);
+elseif evnt.Button == 3
+    if isempty(src.UserData)
+        %generate ellipsoid
+        [ellX,ellY,ellZ] = ellipsoid(meanVector(1),meanVector(2),...
+            meanVector(3),stdVector(1),stdVector(2),...
+            stdVector(3));
+        surfH = surf(ellX,ellY,ellZ);
+        surfH.FaceAlpha = 0.5;
+        src.UserData = surfH;
+    elseif ishandle(src.UserData)
+        delete(src.UserData);
+        src.UserData = [];
+    end
+end
+end
