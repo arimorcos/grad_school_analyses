@@ -1,12 +1,12 @@
 % mouse = 'AM136'; date = '140820';
 % mouse = 'AM131'; date = '140911';
-mouse = 'AM150'; date = '141128';
-% mouse = 'AM150'; date = '141206';
+% mouse = 'AM150'; date = '141128';
+mouse = 'AM150'; date = '141206';
 % mouse = 'AM144'; date = '141203';
 
 %parameters
 trialFilter = [];
-shouldRedo = true;
+shouldRedo = ~true;
 elimInactive = ~true;
 shouldThresh = false;
 shouldZScore = false;
@@ -18,6 +18,9 @@ keepGroups = 1;
 skipIndFactors = [2 3];
 
 dataCell = loadBehaviorData(mouse,date);
+
+%add in previous result field
+dataCell = addPrevTrialResult(dataCell);
 
 %trial filter
 if exist('trialFilter','var') && ~isempty(trialFilter)
@@ -81,7 +84,7 @@ if ~isfield(dataCell{1}.imaging,'factorAn') || shouldRedo
 end
 
 
-imTrials = getTrials(dataCell,'maze.crutchTrial==0;imaging.imData==1;result.correct==1');
+imTrials = getTrials(dataCell,'maze.crutchTrial==0;imaging.imData==1');
 imTrials = imTrials(~findTurnAroundTrials(imTrials));
 %bin traces
 imTrials = binFramesByYPos(imTrials,5);
@@ -89,3 +92,4 @@ leftTrials = getTrials(imTrials,'maze.leftTrial==1');
 rightTrials = getTrials(imTrials,'maze.leftTrial==0');
 trials60 = getTrials(imTrials,'maze.numLeft==0,6');
 correctTrials = getTrials(imTrials,'result.correct==1');
+errorTrials = getTrials(imTrials,'result.correct==0');
