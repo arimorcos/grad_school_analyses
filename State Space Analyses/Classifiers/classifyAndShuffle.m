@@ -63,9 +63,15 @@ end
 shuffleAccuracy = nan(nShuffles,length(accuracy));
 shuffleGuess = nan(size(classGuess,1),size(classGuess,2),nShuffles);
 for shuffleInd = 1:nShuffles
+    %display progress
     dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
+    
+    %shuffle labels
+    shuffledClass = realClass(randsample(length(realClass),length(realClass)));
+    
+    %classify
     [shuffleAccuracy(shuffleInd,:),shuffleGuess(:,:,shuffleInd)] =...
-        getClassifierAccuracyNew(traces,realClass,...
+        getClassifierAccuracyNew(traces,shuffledClass,...
         'dontcomparesame',dontCompareSame,...
         'testoffset',testOffset);
 end
