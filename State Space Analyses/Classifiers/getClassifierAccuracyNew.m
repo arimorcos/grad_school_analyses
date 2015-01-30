@@ -84,8 +84,8 @@ for trialInd = allTrials
         testTrace = traces(:,testOffset+1:end,trialInd);
         trainTraces = traces(:,1:end-testOffset,trainInd);
     elseif testOffset < 0
-        testTrace = traces(:,1:end-testOffset,trialInd);
-        trainTraces = traces(:,testOffset+1:end,trainInd);
+        testTrace = traces(:,1:end+testOffset,trialInd);
+        trainTraces = traces(:,-testOffset+1:end,trainInd);
     else
         testTrace = traces(:,:,trialInd);
         trainTraces = traces(:,:,trainInd);

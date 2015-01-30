@@ -19,5 +19,5 @@ prevTrialCorrect = cat(2,NaN,trialCorrect(1:end-1));
 for i = 1:length(dataCell)
     dataCell{i}.result.prevTurn = prevTrialTurns(i);
     dataCell{i}.result.prevNumLeft = prevTrialNumLeft(i);
-    dataCell{i}.result.prevTrialCorrect = prevTrialCorrect(i);
+    dataCell{i}.result.prevCorrect = prevTrialCorrect(i);
 end
