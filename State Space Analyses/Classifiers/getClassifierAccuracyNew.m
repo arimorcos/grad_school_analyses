@@ -30,8 +30,10 @@ if nargin > 1 || ~isempty(varargin)
     for argInd = 1:2:length(varargin) %for each argument
         switch lower(varargin{argInd})
             case 'dontcomparesame'
-                shouldntCompareSame = true;
-                sameClass = varargin{argInd+1};
+                if ~isempty(varargin{argInd+1})
+                    shouldntCompareSame = true;
+                    sameClass = varargin{argInd+1};
+                end
             case 'testoffset'
                 testOffset = varargin{argInd+1};
         end
