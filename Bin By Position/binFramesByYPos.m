@@ -163,6 +163,10 @@ for planeInd = 1:nPlanes
                 %                 binnedDFFTraces(neuronInd,:,trialInd) = interpLowValTraces(binnedDFFTraces(neuronInd,:,trialInd),.1,'pchip');
                 binnedDFFTraces(neuronInd,:,trialInd) = interpNanTraces(binnedDFFTraces(neuronInd,:,trialInd),'linear');
             end
+            for dataVar = 1:size(binnedDataFrames,1)
+               binnedDataFrames(dataVar,:,trialInd) = interpNanTraces(...
+                   binnedDataFrames(dataVar,:,trialInd),'linear');
+            end
             if binFact
                 for factInd = 1:nFactSets
                     for neuronInd = 1:size(binnedDFFFact{factInd},1)
