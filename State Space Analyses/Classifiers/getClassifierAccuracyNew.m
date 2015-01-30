@@ -7,13 +7,19 @@ function [accuracy,classGuess,distances,classes] = getClassifierAccuracyNew(trac
 %realClass - 1 x nTrials array of class for each trial. Each value should
 %   be an integer
 %
+%OPTIONAL INPUTS
+%dontCompareSame - don't compare trials within the same category specified
+%   by an array provided after don't compare same
+%testOffset - offset test by nBins. Default is 0
+%
 %OUTPUTS
-%accuracy - 1 x nBins array of classifier accuracy as a percentage 
-%classGuess - nTrials x nBins array of classifier guesses 
+%accuracy - 1 x nBins array of classifier accuracy as a percentage
+%classGuess - nTrials x nBins array of classifier guesses
 %
 %ASM 9/14
 
 shouldntCompareSame = false;
+testOffset = 0;
 sameClass = [];
 
 %process varargin
@@ -24,14 +30,19 @@ if nargin > 1 || ~isempty(varargin)
     for argInd = 1:2:length(varargin) %for each argument
         switch lower(varargin{argInd})
             case 'dontcomparesame'
-               shouldntCompareSame = true;
-               sameClass = varargin{argInd+1};
+                shouldntCompareSame = true;
+                sameClass = varargin{argInd+1};
+            case 'testoffset'
+                testOffset = varargin{argInd+1};
         end
     end
 end
 
 %get number of trials and bins
 [nNeurons, nBins, nTrials] = size(traces);
+
+%alter nBins based on offset
+nBins = nBins - abs(testOffset);
 
 %get classes
 classes = unique(realClass);
@@ -67,8 +78,16 @@ for trialInd = allTrials
     end
     
     %get isolated traces
-    testTrace = traces(:,:,trialInd);
-    trainTraces = traces(:,:,trainInd);
+    if testOffset > 0
+        testTrace = traces(:,testOffset+1:end,trialInd);
+        trainTraces = traces(:,1:end-testOffset,trainInd);
+    elseif testOffset < 0
+        testTrace = traces(:,1:end-testOffset,trialInd);
+        trainTraces = traces(:,testOffset+1:end,trainInd);
+    else
+        testTrace = traces(:,:,trialInd);
+        trainTraces = traces(:,:,trainInd);
+    end
     tempClassIDs = realClass(trainInd);
     
     %initialize class means
@@ -89,7 +108,7 @@ for trialInd = allTrials
         
         %get distance for each bin
         tempDistances(classInd,:) = arrayfun(@(x) ...
-            calcEuclidianDist(testTrace(:,x),tempClassMeans(:,x,classInd)),1:nBins);
+            calcEuclideanDist(testTrace(:,x),tempClassMeans(:,x,classInd)),1:nBins);
         
     end
     
@@ -99,7 +118,7 @@ for trialInd = allTrials
     
     %store distances
     distances(:,:,trialInd) = tempDistances;
-   
+    
 end
 
 %calculate accuracy
