@@ -3,7 +3,6 @@ function trajSep = calcTrajSeparation(dataCell,conditions,varargin)
 %contained in conditions at every bin. 
 %
 %INPUTS
-%INPUTS
 %dataCell - dataCell containing imaging data
 %conditions - cell rray of condition strings
 %

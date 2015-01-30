@@ -79,6 +79,7 @@ for condInd = 1:nConditions
     plotH(condInd).Color = colorsToPlot(condInd,:);
     plotH(condInd).LineStyle = 'none';
     plotH(condInd).Marker = 'o';
+    plotH(condInd).LineWidth = 2;
 end
 
 %label axes
