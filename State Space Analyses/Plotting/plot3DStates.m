@@ -10,6 +10,7 @@ function figH = plot3DStates(dataCell,conditions,segment,varargin)
 %OPTIONAL INPUTS
 %whichFactorSet - which factor set to use
 %whichFactors - which factors to use
+%showViewAngle - show line with view angle points as well
 %
 %OUTPUTS
 %figH - figure handle
@@ -19,6 +20,7 @@ function figH = plot3DStates(dataCell,conditions,segment,varargin)
 %process varargin
 whichFactorSet = 2;
 whichFactors = 1:3;
+showViewAngle = false;
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -30,6 +32,8 @@ if nargin > 1 || ~isempty(varargin)
                 whichFactorSet = varargin{argInd+1};
             case 'whichfactors'
                 whichFactors = varargin{argInd+1};
+            case 'showviewangle'
+                showViewAngle = varargin{argInd+1};
         end
     end
 end
@@ -48,13 +52,15 @@ end
 
 %get segment traces
 condSegTraces = cell(1,nConditions);
+condVA = cell(1,nConditions);
 for condInd = 1:nConditions
-    condSegTraces{condInd} =...
+    [condSegTraces{condInd},~,~,~,~,~,~,~,condVA{condInd}] =...
         extractSegmentTraces(condSub{condInd},'traceType','dffFactor',...
         'whichFactor',whichFactorSet,'outputTrials',true);
     
     %subset factors and segment
     condSegTraces{condInd} = squeeze(condSegTraces{condInd}(whichFactors,segment,:));
+    condVA{condInd} = squeeze(condVA{condInd}(:,segment));
 end
 
 %get distinguishable colors
@@ -87,6 +93,28 @@ axH.XLabel.String = sprintf('Factor %d',whichFactors(1));
 axH.YLabel.String = sprintf('Factor %d',whichFactors(2));
 if length(whichFactors) == 3
     axH.ZLabel.String = sprintf('Factor %d',whichFactors(3));
+end
+
+%plot view angle 
+if showViewAngle 
+   %create colorbar to get easy position
+   cbH = colorbar;
+   newPos = cbH.Position;
+   delete(cbH);
+   
+   %create new axes using cb position
+   vaH = axes;
+   hold(vaH,'on');
+   vaH.Position = newPos;
+   vaH.XTick = [];
+   
+   %plot view angle
+   vaScatH = gobjects(nConditions,1);
+   for condInd = 1:nConditions
+       vaScatH(condInd) = scatter(condInd*ones(size(condVA{condInd}))/nConditions,condVA{condInd});
+       vaScatH(condInd).MarkerEdgeColor = colorsToPlot(condInd,:);
+       vaScatH(condInd).LineWidth = 2;
+   end
 end
 
 %Create legend

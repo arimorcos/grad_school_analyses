@@ -1,4 +1,5 @@
-function [segTraces,segId,netEv,segNum,numLeft,runSpeed,delayTraces,turn] = extractSegmentTraces(dataCell,varargin)
+function [segTraces,segId,netEv,segNum,numLeft,runSpeed,delayTraces,turn,viewAngle] =...
+    extractSegmentTraces(dataCell,varargin)
 %extractSegmentTraces.m Extracts traces for each segment and returns along
 %with segment identity (left/right or white/black), net evidence (left -
 %right or white - black) at that segment, and segment number
@@ -20,6 +21,7 @@ function [segTraces,segId,netEv,segNum,numLeft,runSpeed,delayTraces,turn] = extr
 %segNum - (nTrials*nSeg) x 1 array containing segment number
 %numLeft - (nTrials*nSeg) x 1 array containing number of left segments
 %runSpeed - (nTrials*nSeg) x 1 array containing time for each segment
+%viewAngle - (nTrials*nSeg) x 1 array containing view angle for each segment
 %
 %ASM 8/14
 
@@ -110,6 +112,8 @@ numLeft = repmat(sum(mazePatterns,2),nSeg,1);
 turn = repmat(turn,nSeg,1);
 runSpeed = zeros(size(segId));
 runInd = 1;
+viewAngle = nan(size(segNum));
+viewInd = 1;
 
 if useBins
     %get yPosBins
@@ -155,6 +159,10 @@ for segInd = 1:nSeg
             %concatenate
             segTraces = cat(2,segTraces,meanTraces);
         end
+        
+        %grab view angle
+        viewAngle(viewInd) = rad2deg(nanmean(dataCell{trialInd}.imaging.dataFrames{1}(4,segIndicesToUse)));
+        viewInd = viewInd + 1;
     end
     
 end
@@ -229,6 +237,7 @@ if outputTrials
     numLeft = cumsum(mazePatterns,2);
     runSpeed = reshape(runSpeed,nTrials,nSeg)';
     turn = reshape(turn,nTrials,nSeg);
+    viewAngle = reshape(viewAngle,nTrials,nSeg);
     
 end
     
