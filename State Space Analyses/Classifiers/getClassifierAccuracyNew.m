@@ -51,10 +51,10 @@ classes = unique(realClass);
 nClasses = length(classes);
 
 %initialize classGuess
-classGuess = zeros(nTrials,nBins);
+classGuess = nan(nTrials,nBins);
 
 %initialize distances
-distances = zeros(nClasses,nBins,nTrials);
+distances = nan(nClasses,nBins,nTrials);
 
 %initialize allTrials
 allTrials = 1:nTrials;
@@ -91,12 +91,13 @@ for trialInd = allTrials
         trainTraces = traces(:,:,trainInd);
     end
     tempClassIDs = realClass(trainInd);
+%     tempClassIDs = shuffleArray(tempClassIDs);
     
     %initialize class means
-    tempClassMeans = zeros(nNeurons,nBins,nClasses);
+    tempClassMeans = nan(nNeurons,nBins,nClasses);
     
     %initialize distances
-    tempDistances = zeros(nClasses,nBins);
+    tempDistances = nan(nClasses,nBins);
     
     %loop through each class and generate mean trace for each class type at
     %every bin, then calculate the distance to that mean

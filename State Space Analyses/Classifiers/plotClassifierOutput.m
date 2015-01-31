@@ -13,9 +13,7 @@ if nargin < 5 || isempty(segRanges)
     segRanges = 0:80:480;
 end
 if nargin < 4 || isempty(confInt)
-    confInt = .95;
-elseif confInt > 1
-    confInt = confInt/100;
+    confInt = 95;
 end
 
 %create figure
@@ -35,14 +33,12 @@ if ~isempty(shuffleAccuracy)
     nShuffles = size(shuffleAccuracy,1);
     
     %determine confidence interval range
-    lowConf = (1 - confInt)/2;
-    highConf = 1 - lowConf;
-    lowInd = round(lowConf*nShuffles);
-    highInd = round(highConf*nShuffles);
+    lowConf = (100 - confInt)/2;
+    highConf = 100 - lowConf;
     
     %get confidence intervals
     shuffleMedian = median(shuffleAccuracy);
-    confidenceIntervals = shuffleAccuracy([highInd lowInd],:);
+    confidenceIntervals = prctile(shuffleAccuracy,[highConf,lowConf]);
     confidenceIntervals = abs(bsxfun(@minus,confidenceIntervals,shuffleMedian));
     
     %plot shuffle

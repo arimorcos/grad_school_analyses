@@ -67,7 +67,7 @@ for shuffleInd = 1:nShuffles
     dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
     
     %shuffle labels
-    shuffledClass = realClass(randsample(length(realClass),length(realClass)));
+    shuffledClass = shuffleArray(realClass);
     
     %classify
     [shuffleAccuracy(shuffleInd,:),shuffleGuess(:,:,shuffleInd)] =...
