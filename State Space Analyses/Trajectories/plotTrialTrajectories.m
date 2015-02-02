@@ -25,6 +25,7 @@ whichFactors = 1:3;
 markersPerTrace = 2;
 timeColor = false;
 colorIndividually = false;
+highlightTrial = true;
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -42,6 +43,8 @@ if nargin > 1 || ~isempty(varargin)
                 timeColor = varargin{argInd+1};
             case 'colorindividually'
                 colorIndividually = varargin{argInd+1};
+            case 'highlighttrial'
+                highlightTrial = varargin{argInd+1};
         end
     end
 end
@@ -75,7 +78,7 @@ axH = axes;
 hold(axH,'on');
 axis square;
 
-%get marker Colors 
+%get marker Colors
 markerColors = jet(markersPerTrace);
 
 %plot
@@ -117,10 +120,10 @@ for condInd = 1:nConditions
             
             %%%%%add markers spaced out with colors for time
             
-            %get marker positions 
+            %get marker positions
             markerPos = linspace(1,nPoints,markersPerTrace);
             
-            %plot 
+            %plot
             scatH = scatter3(condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(1),markerPos),...
                 condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(2),markerPos),...
                 condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(3),markerPos));
@@ -132,7 +135,7 @@ for condInd = 1:nConditions
     
     %store legend label
     legendLabels(condInd) = plotH{condInd}(1);
-    
+       
 end
 
 %determine view
@@ -149,9 +152,64 @@ if length(whichFactors) == 3
     axH.ZLabel.String = sprintf('Factor %d',whichFactors(3));
 end
 
-%create legend 
-if nConditions > 1 
+%create legend
+if nConditions > 1
     legend(legendLabels,conditions,'Location','BestOutside');
 end
 
+if highlightTrial
+    
+    highlightProp.Handle = [];
+    highlightProp.currTrace = 0;
+    figH.UserData = highlightProp;
+    
+    %get all trials which match conditions
+    allConds = cat(2,condSub{:});
+    
+    %create callback to change highlighted trace
+    figH.KeyPressFcn = {@cb_keypress,allConds,conditions,whichFactorSet,...
+        whichFactors,legendLabels};
+    
+end
 
+end
+
+function cb_keypress(src,evnt,dataCell,conditions,whichFactorSet,whichFactors,legendLabels)
+%highlights single trace in black based on arrow keys
+
+%check if trace exists already
+if ishandle(src.UserData.Handle)
+    delete(src.UserData.Handle);
+end
+
+%get trace to plot
+switch evnt.Key
+    case 'rightarrow'
+        src.UserData.currTrace = src.UserData.currTrace + 1;
+        if src.UserData.currTrace > length(dataCell)
+            src.UserData.currTrace = 0;
+            return;
+        end
+    case 'leftarrow'
+        src.UserData.currTrace = src.UserData.currTrace - 1;
+        if src.UserData.currTrace <= 0
+            src.UserData.currTrace = 0;
+            return;
+        end
+end
+
+%plot trace
+src.UserData.Handle =...
+    plot3(dataCell{src.UserData.currTrace}.imaging.projDFF{whichFactorSet}(whichFactors(1),:),...
+    dataCell{src.UserData.currTrace}.imaging.projDFF{whichFactorSet}(whichFactors(2),:),...
+    dataCell{src.UserData.currTrace}.imaging.projDFF{whichFactorSet}(whichFactors(3),:));
+src.UserData.Handle.LineWidth = 2;
+src.UserData.Handle.Color = 'k';
+
+%update legend 
+
+delete(src.Children(1)); %delete current legend
+currCond = conditions(cellfun(@(x) findTrials(dataCell(src.UserData.currTrace),x),conditions));
+legend(cat(1,legendLabels,src.UserData.Handle),cat(2,conditions{:},currCond),'Location','BestOutside');
+
+end
