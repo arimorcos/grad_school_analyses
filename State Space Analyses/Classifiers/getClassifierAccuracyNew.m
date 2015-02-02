@@ -116,10 +116,12 @@ for testInd = allTrials
     [~,guessInd] = min(tempDistances);
     classGuess(testInd,:) = classes(guessInd);
     
-    %overwrite guess if means are within tolerance of one another 
-    distDiff = min(diff(tempDistances,[],1),[],1); %get the minimum difference between distances for each bin
-    shouldOverwrite = abs(distDiff) < abs(tolerance*range(traces(:))); %overwrite if greater than temporary distances
-    classGuess(testInd,shouldOverwrite) = realClass(randsample(nTrials,sum(shouldOverwrite),true));
+    %overwrite guess if means are within tolerance of one another
+%     if nNeurons == 1
+%         distDiff = min(diff(tempDistances,[],1),[],1); %get the minimum difference between distances for each bin
+%         shouldOverwrite = abs(distDiff) < abs(tolerance*range(traces(:))); %overwrite if greater than temporary distances
+%         classGuess(testInd,shouldOverwrite) = realClass(randsample(nTrials,sum(shouldOverwrite),true));
+%     end
     
     %store distances
     distances(:,:,testInd) = tempDistances;
