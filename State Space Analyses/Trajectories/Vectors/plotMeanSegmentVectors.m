@@ -130,7 +130,6 @@ for condInd = 1:nConds
     end
     
     %set button down function
-    buttonFunc = @(x,y) disp(uniqueConds(condInd,:));
     plotH(condInd).ButtonDownFcn = {@clickButtonFunc,meanVectors(:,condInd),...
         stdVectors(:,condInd),uniqueConds(condInd,:)};
     

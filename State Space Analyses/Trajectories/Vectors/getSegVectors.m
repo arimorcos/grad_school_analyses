@@ -60,13 +60,19 @@ nSegTrials = nTrials*nSeg;
 
 %reshape traces into nDim x nBins x nSegTrials
 segTraces = nan(nDim, nBinsPerSeg, nSegTrials);
+% prevPatt = cell(nSegTrials,1);
 for segNum = 1:nSeg
     
     %get trial indices
     trialInds = nTrials*(segNum-1)+1:nTrials*segNum;
     
     %extract and store
-    segTraces(:, :, trialInds) = traces(:,binNums(segNum)-offset:binNums(segNum+1)-1,:);
+    segTraces(:, :, trialInds) = traces(:,binNums(segNum)-offset:binNums(segNum+1)-1-offset,:);
+    
+    %get previous pattern
+%     prevPatterns = nan(size(mazePatterns));
+%     prevPatterns(:,(nSeg-segNum+2):nSeg) = mazePatterns(:,1:(segNum-1));
+%     prevPatt(trialInds) = num2cell(prevPatterns,2);
     
 end
 
@@ -80,6 +86,21 @@ segVectors = squeeze(segTraces(:,vectorBinRange(2),:) - segTraces(:,vectorBinRan
 %convert segVectors to 1 x nSegTrials cell array 
 segVectors = num2cell(segVectors,1)';
 
+%get prevSeg
+prevSeg = mazePatterns(:,1:nSeg-1);
+prevSeg = cat(2,-100*ones(nTrials,1),prevSeg);
+prevSeg = prevSeg(:);
+
+%get prevSeg
+prevSeg2 = mazePatterns(:,1:nSeg-2);
+prevSeg2 = cat(2,repmat(-100*ones(nTrials,1),1,2),prevSeg2);
+prevSeg2 = prevSeg2(:);
+
+%get leftTrial
+leftTrial = sum(mazePatterns,2) > nSeg/2;
+leftTrial = repmat(leftTrial,1,nSeg);
+leftTrial = leftTrial(:);
+
 %reshape mazePatterns and netEvidence 
 mazePatterns = mazePatterns(:);
 netEvidence = netEvidence(:);
@@ -89,5 +110,6 @@ segNum = repmat(1:nSeg,nTrials,1);
 segNum = segNum(:);
 
 %create table 
-segVectorTable = table(segVectors, mazePatterns, netEvidence, segNum,...
-    'VariableNames',{'vector','segID','netEv','segNum'});
+segVectorTable = table(segVectors, mazePatterns, netEvidence, segNum, prevSeg,...
+    prevSeg2, leftTrial,'VariableNames',{'vector','segID','netEv','segNum','prevSeg',...
+    'prevSeg2','leftTrial'});
