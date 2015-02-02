@@ -1,70 +1,79 @@
-function plotVectorMagnitude(segVectors,varToUse,varOp)
-%plotVectorMagnitude.m Plots vector magnitude as a function of provided
-%variable. 
+function plotVectorMagnitude(segVectors,groupBy)
+%plotMeanSegmentVectors.m Plots mean segment vectors for each unique
+%condition
 %
 %INPUTS
-%segVectors - segVectorTable outputted by getSegVectors
-%varToUse - name of variable to use as x-axis
+%segVectors - table output by getSegVectors
+%groupBy - names of variables to group according to 
 %
-%ASM 1/15
+%ASM 2/15
 
-if nargin < 3
-    varOp = [];
-end
-
-%check that segVectors is a table 
+%condition check
+%check that segVectors is a table
 assert(istable(segVectors),'segVectors must be a table');
 
-%check that varToUse matches variable in table
-assert(any(strcmpi(varToUse,segVectors.Properties.VariableNames)),...
-    '"%s" is not a valid variable name',varToUse);
-
-
-%get variable values
-varVals = segVectors.(varToUse);
-
-%perform operation if necessary 
-if isa(varOp,'function_handle')
-    varVals = varOp(varVals);
+%process groupBy
+if nargin < 2
+    groupBy = segVectors.Properties.VariableNames;
+else
+    assert(ischar(groupBy) || iscell(groupBy),'Must provide groupBy as a cell or a string');
+    if ~iscell(groupBy)
+        groupBy = {groupBy};
+    end
 end
 
-%extract unique conditions for given variable 
-uniqueVals = unique(varVals);
-nUniqueVals = length(uniqueVals);
+%extract vector column and remove
+vectors = segVectors.vector;
 
-%loop through each unique value and get corresponding dataset
-vectorSubs = cell(1,nUniqueVals);
-for valInd = 1:nUniqueVals
+%remove unnecessary variables
+segVectors = segVectors(:,groupBy);
+
+%get nTrials
+nTrials = size(segVectors,1);
+
+%find unique conditions
+uniqueConds = unique(segVectors,'rows');
+nConds = size(uniqueConds,1);
+
+%get remaining variable names
+varNames = segVectors.Properties.VariableNames;
+
+%loop through each condition and generate mean vectors
+meanMag = nan(1,nConds);
+semMag = nan(1,nConds);
+for condInd = 1:nConds
     
-    %extract relevant vectors 
-    tempVectors = segVectors{varVals == uniqueVals(valInd),'vector'};
+    %find matching indices
+    indMatch = true(nTrials,1); %assume all true
+    for var = varNames
+        indMatch(segVectors.(var{1}) ~= uniqueConds{condInd,var{1}}) = false; %remove if doesn't match condition
+    end
     
-    %concatenate and store
-    vectorSubs{valInd} = cat(2,tempVectors{:});
-    
+    %get magnitude
+    getMagnitude = @(x) sqrt(sum(x.^2));
+    vectorMags = cell2mat(cellfun(getMagnitude, vectors(indMatch), 'UniformOutput', false));
+
+    %compute mean and sem of each
+    meanMag(condInd) = nanmean(vectorMags);
+    semMag(condInd) = calcSEM(vectorMags);
 end
 
-%get magnitude of each vector 
-getMagnitude = @(x) sqrt(sum(x.^2));
-vectorMags = cellfun(getMagnitude, vectorSubs, 'UniformOutput', false);
-
-%compute mean and sem of each 
-meanMag = cellfun(@mean,vectorMags);
-semMag = cellfun(@calcSEM,vectorMags);
-
-%%%% plot
-
-%create figure
-figH = figure; 
+%create figure 
+figure;
 axH = axes;
+hold(axH,'on');
 
 %create bar chart 
 barH = barwitherr(semMag, meanMag);
 barH.error.LineWidth = 2;
 
 %set prober tick labels 
-axH.XTickLabel = uniqueVals;
+strLabels = convertTableToLegendString(uniqueConds);
+axH.XTick = 1:length(strLabels);
+axH.XTickLabel = strLabels;
+axH.XTickLabelRotation = -45;
 
 %label axes 
-axH.XLabel.String = varToUse;
 axH.YLabel.String = 'Vector Magnitude';
+
+end
