@@ -18,17 +18,16 @@ if nargin < 4
     toExclude = [];
 else
     assert(ischar(toExclude) || iscell(toExclude),'Must provide toExclude as a cell or a string');
-    if ~iscell(toExclude)
+    if ~iscell(toExclude) && ~strcmp(toExclude,'*')
         toExclude = {toExclude};
+        %check that varToUse matches variable in table
+        for toCheck = toExclude
+            assert(any(strcmp(toCheck,segVectors.Properties.VariableNames)),...
+                '%s is not a valid variable name',toCheck);
+        end
+        
     end
 end
-
-%check that varToUse matches variable in table
-for toCheck = toExclude
-    assert(any(strcmp(toCheck,segVectors.Properties.VariableNames)),...
-        '%s is not a valid variable name',toCheck);
-end
-
 
 %check whichFactors
 if length(whichFactors) == 2
@@ -38,15 +37,18 @@ else
     view3D = true;
 end
 
-
-%remove column of excluded variables
-for i = 1:length(toExclude)
-    segVectors.(toExclude{i}) = [];
-end
-
 %extract vector column and remove
 vectors = segVectors.vector;
 segVectors.vector = [];
+
+%remove column of excluded variables
+if iscell(toExclude)
+    for i = 1:length(toExclude)
+        segVectors.(toExclude{i}) = [];
+    end
+elseif strcmp(toExclude,'*')
+    segVectors = segVectors(:,colorBy);
+end
 
 %process colorBy
 if nargin < 3
@@ -71,6 +73,7 @@ varNames = segVectors.Properties.VariableNames;
 %loop through each condition and generate mean vectors
 meanVectors = nan(length(whichFactors),nConds);
 stdVectors = nan(length(whichFactors),nConds);
+condVectors = cell(1,nConds);
 for condInd = 1:nConds
     
     %find matching indices
@@ -80,13 +83,13 @@ for condInd = 1:nConds
     end
     
     %extract vectors
-    tempVectors = cat(2,vectors{indMatch});
+    condVectors{condInd} = cat(2,vectors{indMatch});
     
     %get mean vector 
-    meanVectors(:,condInd) = nanmean(tempVectors(whichFactors,:),2);
+    meanVectors(:,condInd) = nanmean(condVectors{condInd}(whichFactors,:),2);
     
     %get std vector 
-    stdVectors(:,condInd) = nanstd(tempVectors(whichFactors,:),0,2);
+    stdVectors(:,condInd) = nanstd(condVectors{condInd}(whichFactors,:),0,2);
     
 end
 
@@ -106,6 +109,9 @@ hold(axH,'on');
 
 %get colors
 colorsToPlot = distinguishable_colors(nColorConds);
+
+%get callback vectors
+callbackVectors = cellfun(@(x) x(whichFactors,:),condVectors,'UniformOutput',false);
 
 %loop through and plot each vector 
 plotH = gobjects(nConds,1);
@@ -130,10 +136,13 @@ for condInd = 1:nConds
     end
     
     %set button down function
-    plotH(condInd).ButtonDownFcn = {@clickButtonFunc,meanVectors(:,condInd),...
-        stdVectors(:,condInd),uniqueConds(condInd,:)};
+    plotH(condInd).ButtonDownFcn = {@lineClickButtonFunc,callbackVectors,condInd,...
+        uniqueConds(condInd,:)};
     
 end
+
+%add clickbutton function to entire axis 
+axH.ButtonDownFcn = {@axisClickButtonFunc,plotH};
 
 %determine view
 if view3D
@@ -155,22 +164,72 @@ legend(legObj, legStrings{:});
 
 end
 
-function clickButtonFunc(src,evnt,meanVector,stdVector,dispCond)
+function lineClickButtonFunc(src,evnt,condVectors,condInd,dispCond)
 
 if evnt.Button == 1
     disp(dispCond);
 elseif evnt.Button == 3
-    if isempty(src.UserData)
-        %generate ellipsoid
-        [ellX,ellY,ellZ] = ellipsoid(meanVector(1),meanVector(2),...
-            meanVector(3),stdVector(1),stdVector(2),...
-            stdVector(3));
-        surfH = surf(ellX,ellY,ellZ);
-        surfH.FaceAlpha = 0.5;
-        src.UserData = surfH;
-    elseif ishandle(src.UserData)
-        delete(src.UserData);
-        src.UserData = [];
+%     if isempty(src.UserData)
+%         %generate ellipsoid
+%         [ellX,ellY,ellZ] = ellipsoid(meanVector(1),meanVector(2),...
+%             meanVector(3),stdVector(1),stdVector(2),...
+%             stdVector(3));
+%         surfH = surf(ellX,ellY,ellZ);
+%         surfH.FaceAlpha = 0.5;
+%         src.UserData = surfH;
+%     elseif ishandle(src.UserData)
+%         delete(src.UserData);
+%         src.UserData = [];
+%     end
+
+    %turn off current vectors 
+    currLines = src.Parent.Children;
+    for lineInd = 1:length(currLines)
+        currLines(lineInd).Visible = 'off';
+        currLines(lineInd).HitTest = 'off';
     end
+    
+    %subset individual vectors 
+    condVectors = condVectors{condInd};
+    nVectors = size(condVectors,2);
+    
+    %generate colors
+    colors = distinguishable_colors(nVectors);
+    
+    %plot each vector 
+    for vecInd = 1:nVectors
+        plot3([0 condVectors(1,vecInd)], [0 condVectors(2,vecInd)],...
+            [0 condVectors(3,vecInd)],'Color',colors(vecInd,:));
+    end 
+    
+    %update title 
+    titleCond = convertTableToLegendString(dispCond);
+    title(sprintf('Currently displaying: %s',titleCond{1}));
 end
 end
+
+function axisClickButtonFunc(src,evnt,plotH)
+%check which button
+if evnt.Button ~= 3
+    return;
+end
+
+%find all children which do not match plotH 
+currLines = src.Children;
+deleteLines = currLines(~ismember(currLines,plotH));
+
+%delete those lines
+delete(deleteLines);
+
+%turn back on the old lines 
+for lineInd = 1:length(plotH)
+    plotH(lineInd).Visible = 'on';
+    plotH(lineInd).HitTest = 'on';
+end
+
+%clear title
+title('');
+
+
+end
+
