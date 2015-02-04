@@ -13,10 +13,10 @@ function meanSubTraj = getMeanSubtractedTrajectoriesSepPrevTurn(dataCell)
 %ASM 1/15
 
 %separate by prevTurn
-prevLeftInd = findTrials(dataCell,'prevTrial;result.leftTurn==1');
+prevLeftInd = findTrials(dataCell,'result.prevTurn==1');
 prevLeft = dataCell(prevLeftInd);
 
-prevRightInd = findTrials(dataCell,'prevTrial;result.leftTurn==0');
+prevRightInd = findTrials(dataCell,'result.prevTurn==0');
 prevRight = dataCell(prevRightInd);
 
 %calculate mean trajectories for each 
@@ -31,6 +31,6 @@ meanSubTraj = nan(size(meanLeftTraj,1),size(meanLeftTraj,2),...
 meanSubTraj(:,:,prevLeftInd) = meanLeftTraj;
 meanSubTraj(:,:,prevRightInd) = meanRightTraj;
 
-%crop to only those containing previous trial
-hasPrevTrial = findTrials(dataCell,'prevTrial;result.correct==0,1');
-meanSubTraj = meanSubTraj(:,:,hasPrevTrial);
+% %crop to only those containing previous trial
+% hasPrevTrial = findTrials(dataCell,'prevTrial;result.correct==0,1');
+% meanSubTraj = meanSubTraj(:,:,hasPrevTrial);

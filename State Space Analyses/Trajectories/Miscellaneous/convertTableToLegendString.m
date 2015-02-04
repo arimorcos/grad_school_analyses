@@ -30,5 +30,9 @@ for rowInd = 1:nRows
         legString{rowInd} = [legString{rowInd}, ' ', varNames{varInd}, ' = ',...
             num2str(inTable{rowInd,varNames{varInd}}), ';'];
     end
+    %remove last character (semicolon)
+    legString{rowInd}(end) = [];
 end
+
+
            
