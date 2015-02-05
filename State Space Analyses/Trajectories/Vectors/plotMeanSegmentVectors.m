@@ -1,4 +1,4 @@
-function plotMeanSegmentVectors(segVectors,whichFactors,colorBy,toExclude)
+function plotMeanSegmentVectors(segVectors,whichFactors,colorBy,alsoInclude)
 %plotMeanSegmentVectors.m Plots mean segment vectors for each unique
 %condition
 %
@@ -6,7 +6,7 @@ function plotMeanSegmentVectors(segVectors,whichFactors,colorBy,toExclude)
 %segVectors - table output by getSegVectors
 %whichFactors - which factors to plot
 %colorBy - names of variables to color according to 
-%toExclude - variables to exclude in filtering
+%alsoInclud - other variables to include in filtering
 %
 %ASM 1/15
 
@@ -15,17 +15,21 @@ function plotMeanSegmentVectors(segVectors,whichFactors,colorBy,toExclude)
 assert(istable(segVectors),'segVectors must be a table');
 
 if nargin < 4
-    toExclude = [];
+    alsoInclude = {};
 else
-    assert(ischar(toExclude) || iscell(toExclude),'Must provide toExclude as a cell or a string');
-    if ~iscell(toExclude) && ~strcmp(toExclude,'*')
-        toExclude = {toExclude};
-        %check that varToUse matches variable in table
-        for toCheck = toExclude
-            assert(any(strcmp(toCheck,segVectors.Properties.VariableNames)),...
-                '%s is not a valid variable name',toCheck);
-        end
-        
+    assert(ischar(alsoInclude) || iscell(alsoInclude),'Must provide alsoInclude as a cell or a string');
+    if ~iscell(alsoInclude)
+        alsoInclude = {alsoInclude};
+    end
+end
+
+%process colorBy
+if nargin < 3
+    colorBy = segVectors.Properties.VariableNames;
+else
+    assert(ischar(colorBy) || iscell(colorBy),'Must provide colorBy as a cell or a string');
+    if ~iscell(colorBy)
+        colorBy = {colorBy};
     end
 end
 
@@ -41,24 +45,8 @@ end
 vectors = segVectors.vector;
 segVectors.vector = [];
 
-%remove column of excluded variables
-if iscell(toExclude)
-    for i = 1:length(toExclude)
-        segVectors.(toExclude{i}) = [];
-    end
-elseif strcmp(toExclude,'*')
-    segVectors = segVectors(:,colorBy);
-end
-
-%process colorBy
-if nargin < 3
-    colorBy = segVectors.Properties.VariableNames;
-else
-    assert(ischar(colorBy) || iscell(colorBy),'Must provide colorBy as a cell or a string');
-    if ~iscell(colorBy)
-        colorBy = {colorBy};
-    end
-end
+%only take values in alsoInclude and colorBy
+segVectors = segVectors(:,cat(2,alsoInclude,colorBy));
 
 %get nTrials
 nTrials = size(segVectors,1);
