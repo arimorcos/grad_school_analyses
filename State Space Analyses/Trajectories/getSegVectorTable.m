@@ -6,8 +6,5 @@ function segVectorTable = getSegVectorTable(dataCell)
 %get mean subtracted trajectories
 meanSubTraj = getMeanSubtractedTrajectoriesSepPrevTurn(dataCell);
 
-%get maze patterns
-mazePatterns = getMazePatterns(dataCell);
-
 %get segVectorTable 
-segVectorTable = getSegVectors(meanSubTraj,mazePatterns);
+segVectorTable = getSegVectors(meanSubTraj,dataCell);

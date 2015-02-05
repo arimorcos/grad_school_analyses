@@ -1,4 +1,4 @@
-function segVectorTable = getSegVectors(traces,mazePatterns,varargin)
+function segVectorTable = getSegVectors(traces,dataCell,varargin)
 %getSegVectors.m Extracts segment vectors from traces array 
 %
 %INPUTS
@@ -38,13 +38,14 @@ if nargin > 1 || ~isempty(varargin)
 end
 
 %assert that trial numbers in maze patterns match those in traces
-assert(size(traces,3) == size(mazePatterns,1),['mazePatterns and traces must'...
+assert(size(traces,3) == size(dataCell,2),['mazePatterns and traces must'...
     ' contain the same number of trials']);
 
 %assert that vectorRange between 0 and 1 
 assert(all(vectorRange >= 0 & vectorRange <= 1),'vectorRange must be between 0 and 1');
 
-%get net evidence 
+%get net evidence
+mazePatterns = getMazePatterns(dataCell);
 netEvidence = getNetEvidence(mazePatterns);
 
 %get nTrials, nSeg, and nDim
@@ -97,9 +98,24 @@ prevSeg2 = cat(2,repmat(-100*ones(nTrials,1),1,2),prevSeg2);
 prevSeg2 = prevSeg2(:);
 
 %get leftTrial
-leftTrial = sum(mazePatterns,2) > nSeg/2;
+leftTrial = getCellVals(dataCell,'maze.leftTrial');
 leftTrial = repmat(leftTrial,1,nSeg);
 leftTrial = leftTrial(:);
+
+%get prevTurn
+prevTurn = getCellVals(dataCell,'result.prevTurn');
+prevTurn = repmat(prevTurn,1,nSeg);
+prevTurn = prevTurn(:);
+
+%get prevCorrect
+prevCorrect = getCellVals(dataCell,'result.prevCorrect');
+prevCorrect = repmat(prevCorrect,1,nSeg);
+prevCorrect = prevCorrect(:);
+
+%get prevCrutch
+prevCrutch = getCellVals(dataCell,'result.prevCrutch');
+prevCrutch = repmat(prevCrutch,1,nSeg);
+prevCrutch = prevCrutch(:);
 
 %reshape mazePatterns and netEvidence 
 mazePatterns = mazePatterns(:);
@@ -111,5 +127,6 @@ segNum = segNum(:);
 
 %create table 
 segVectorTable = table(segVectors, mazePatterns, netEvidence, segNum, prevSeg,...
-    prevSeg2, leftTrial,'VariableNames',{'vector','segID','netEv','segNum','prevSeg',...
-    'prevSeg2','leftTrial'});
+    prevSeg2, leftTrial, prevTurn, prevCorrect, prevCrutch,...
+    'VariableNames',{'vector','segID','netEv','segNum','prevSeg',...
+    'prevSeg2','leftTrial','prevTurn','prevCorrect','prevCrutch'});
