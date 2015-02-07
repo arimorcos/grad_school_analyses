@@ -1,8 +1,8 @@
 % mouse = 'AM136'; date = '140820';
 % mouse = 'AM131'; date = '140911';
 % mouse = 'AM150'; date = '141128';
-mouse = 'AM150'; date = '141206';
-% mouse = 'AM144'; date = '141203';
+% mouse = 'AM150'; date = '141206';
+mouse = 'AM144'; date = '141203';
 
 %parameters
 trialFilter = [];

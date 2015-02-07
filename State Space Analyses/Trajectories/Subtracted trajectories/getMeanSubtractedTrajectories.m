@@ -29,4 +29,4 @@ meanTraj = getMeanTrajectory(dataCell,'binRange',binsToUse);
 meanSubDiff = bsxfun(@minus, binVec, meanTraj);
 
 %recreate trajectories from diff 
-meanSubTraj = cumsum(cat(2,startVec,meanSubDiff),2);
+meanSubTraj = nancumsum(cat(2,startVec,meanSubDiff),2,2);
