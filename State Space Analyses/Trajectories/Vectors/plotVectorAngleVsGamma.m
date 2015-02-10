@@ -14,7 +14,7 @@ function plotVectorAngleVsGamma(segVectors,groupBy,whichFactors)
 assert(istable(segVectors),'segVectors must be a table');
 
 %process groupBy
-if nargin < 2
+if nargin < 2 || isempty(groupBy)
     groupBy = [];
 else
     assert(ischar(groupBy) || iscell(groupBy),'Must provide groupBy as a cell or a string');
@@ -73,6 +73,7 @@ if ~isempty(groupBy)
         groups(indMatch) = condInd;
     end
 else
+    nConds = 1;
     groups = ones(nTrials,1);
 end
 

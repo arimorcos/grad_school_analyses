@@ -29,7 +29,7 @@ errPlot = errorbar([mean(intraAll{nBack}),mean(interAll{nBack})],[std(interAll{n
 errPlot.LineStyle = 'none';
 errPlot.Marker = 'o';
 ax1.XTick = [1 2];
-ax1.XTickLabels = {'Intra', 'Inter'};
+ax1.XTickLabel = {'Intra', 'Inter'};
 axis(ax1,'square');
 ax1.YLabel.String = 'Euclidean Distance';
 

@@ -52,13 +52,31 @@ plotH(1).DisplayName = 'Right-Right Comparison';
 plotH(2).DisplayName = 'Left-Right Comparison';
 plotH(3).DisplayName = 'Left-Left Comparison';
 for i = 1:length(plotH)
-    plotH(i).MarkerSize = 10;
+    plotH(i).MarkerSize = 15;
     plotH(i).Color = colorsToPlot(i,:);
+end
+
+%add means 
+hold on;
+nBins = 20;
+binRanges = linspace(min(startDistVec),max(startDistVec),nBins+1);
+binMeans = binRanges(1:nBins) + diff(binRanges);
+uniqueLabels = unique(compLabel);
+meanVal = nan(length(plotH),nBins);
+for i = 1:length(plotH)
+    for binInd = 1:nBins
+        meanVal(i,binInd) = nanmean(trajCorrVec(startDistVec >= binRanges(binInd)...
+            & startDistVec < binRanges(binInd+1) & compLabel==uniqueLabels(i)));
+    end
+    plot(binMeans,meanVal(i,:),'Color',colorsToPlot(i,:),'LineWidth',2);
 end
 
 %label axes
 axH.XLabel.String = 'Start Point Distance';
 axH.YLabel.String = 'Trajectory Correlation';
+axH.FontSize = 20;
+axH.XLabel.FontSize = 30;
+axH.YLabel.FontSize = 30;
 
 end 
 
@@ -87,7 +105,7 @@ end
 startDistMat = nan(nTrials);
 for rowInd = 1:nTrials
     for colInd = rowInd+1:nTrials
-        startDistMat(rowInd,colInd) = calcEuclidianDist(traces(whichFactors,1,rowInd),traces(whichFactors,1,colInd));
+        startDistMat(rowInd,colInd) = calcEuclideanDist(traces(whichFactors,1,rowInd),traces(whichFactors,1,colInd));
     end
 end
 

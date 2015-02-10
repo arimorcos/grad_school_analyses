@@ -63,6 +63,9 @@ whichSeg = 0:5;
 segHistResponse = [];
 segHistId = [];
 predictFuture = false;
+traceType = 'dfffactor';
+whichFactorSet = 1;
+whichFactors = 1:5;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -127,8 +130,13 @@ if isempty(segHistId) && isempty(segHistResponse)
 
     %get segTraces
     [segTraces, segId, netEv, segNum, ~, ~, ~, turn] = extractSegmentTraces(dataCell,...
-        'outputTrials',true); %extracts mean response during each segment 
-
+        'outputTrials',true,'traceType',traceType,'whichFactor',whichFactorSet); %extracts mean response during each segment 
+    
+    %subset if factor analysis
+    if strcmpi(traceType,'dfffactor')
+        segTraces = segTraces(whichFactors,:,:);
+    end
+    
     %filter net evidence if should
     if ~isempty(filterNetEv)
         shouldKeepNetEvVector = ismember(netEv,filterNetEv);

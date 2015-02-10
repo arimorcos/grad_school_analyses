@@ -44,7 +44,7 @@ params.svmType = 'SVC';
 params.nu = 0.5;
 params.epsilon = 0.1;
 params.kFold = 0;
-traceType = 'dFF';
+traceType = 'dFFFactor';
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))

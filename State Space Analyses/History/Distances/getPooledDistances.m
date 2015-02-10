@@ -34,9 +34,10 @@ packetSize = 2;
 nShuffles = 100;
 shouldPlot = true;
 separateLeftRight = false;
-whichFactor = 2;
+whichFactorSet = 1;
 predictFuture = false;
-traceType = 'dFF';
+traceType = 'dFFfactor';
+whichFactors = 3:5;
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -50,8 +51,10 @@ if nargin > 1 || ~isempty(varargin)
                 nShuffles = varargin{argInd+1};
             case 'separateleftright'
                 separateLeftRight = varargin{argInd+1};
-            case 'whichfactor'
-                whichFactor = varargin{argInd+1};
+            case 'whichfactorset'
+                whichFactorSet = varargin{argInd+1};
+            case 'whichfactors'
+                whichFactors = varargin{argInd+1};
             case 'predictfuture'
                 predictFuture = varargin{argInd+1};
             case 'tracetype'
@@ -126,7 +129,7 @@ for segInd = 1:nSeg - packetSize - 1
             
             %get distances
             [tempIntraLeft,tempInterLeft] = getSubDistances(tempTrialSubLeft,...
-                1:packetSize-1,filterSeg,whichFactor,predictFuture,traceType);
+                1:packetSize-1,filterSeg,whichFactorSet,whichFactors,predictFuture,traceType);
             
             %store
             intraLeft = cellfun(@(x,y) cat(1,x,y),intraLeft,tempIntraLeft,...
@@ -143,7 +146,7 @@ for segInd = 1:nSeg - packetSize - 1
             
             %get distances
             [tempIntraRight,tempInterRight] = getSubDistances(tempTrialSubRight,...
-                1:packetSize-1,filterSeg,whichFactor,predictFuture,traceType);
+                1:packetSize-1,filterSeg,whichFactorSet,whichFactors,predictFuture,traceType);
             
             %store
             intraRight = cellfun(@(x,y) cat(1,x,y),intraRight,tempIntraRight,...
@@ -182,10 +185,14 @@ end
 end
 
 function [intraDist,interDist] = getSubDistances(trialSub,whichSeg,...
-    segInd,whichFactor,predictFuture,traceType)
+    segInd,whichFactorSet,whichFactors,predictFuture,traceType)
 %get segTraces
 [segTraces, segId, ~, segNum] = extractSegmentTraces(trialSub,...
-    'outputTrials',true,'tracetype',traceType,'whichFactor',whichFactor); %extracts mean response during each segment
+    'outputTrials',true,'tracetype',traceType,'whichFactor',whichFactorSet); %extracts mean response during each segment
+
+if strcmpi(traceType,'dfffactor')
+    segTraces = segTraces(whichFactors,:,:);
+end
 
 %filter segNum
 shouldKeepSegNumVector = ismember(segNum,segInd);
