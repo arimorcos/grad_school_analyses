@@ -106,7 +106,7 @@ barH.error.LineWidth = 2;
 
 %add statistics 
 criteria = [0.05 1e-2 1e-3];
-% criteria = criteria/sqrt(nchoosek(nConds,2)); %bonferonni correct
+criteria = criteria/sqrt(nchoosek(nConds,2)); %bonferonni correct
 statsH = sigstar(num2cell(statsPairs,2),pairPVal,[],[],criteria);
 
 %set prober tick labels 

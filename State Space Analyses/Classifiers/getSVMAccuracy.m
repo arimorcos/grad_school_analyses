@@ -16,7 +16,7 @@ function [accuracy,guess,classes,probEst] = getSVMAccuracy(traces,realClass,vara
 %svmType - svm type. Options are 'SVC,' 'e-SVR,' 'nu-SVR'
 %epsilon - epsilon for epsilon SVR
 %nu - nu for nu-SVR
-%kFold - number of cross validations. Default is 10;
+%kFold - number of cross validations. Default is 10
 %verbose - should output verbose arguments
 %trainFrac - fraction of data to train on if not cross validating. Default
 %   is 0.5.
