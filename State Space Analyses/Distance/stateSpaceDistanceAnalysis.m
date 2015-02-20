@@ -1,4 +1,4 @@
-function out = stateSpaceDistanceAnalysis(dataCell,conditions,usePCs,varThresh)
+function out = stateSpaceDistanceAnalysis(dataCell,conditions,usePCs)
 %stateSpaceDistanceAnalysis.m Calculates distance between trials of different
 %conditions in n-dimensional space and plots
 %
@@ -15,16 +15,12 @@ function out = stateSpaceDistanceAnalysis(dataCell,conditions,usePCs,varThresh)
 %out - structure containing all output data
 %
 %ASM 11/13
-
-if nargin < 4 || isempty(varThresh)
-    varThresh = 0.75;
-end
 if nargin < 3 || isempty(usePCs)
     usePCs = false;
 end
 
 %perform analysis
-out = calcStateSpaceDistance(dataCell,conditions,usePCs,varThresh);
+out = calcStateSpaceDistance(dataCell,conditions,usePCs);
 
 %save conditions
 out.conditions = conditions;
