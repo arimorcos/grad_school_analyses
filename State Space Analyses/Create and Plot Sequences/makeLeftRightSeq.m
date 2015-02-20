@@ -56,9 +56,15 @@ for i = 1:nCond
     
 end
 
+%crop out beginning and end 
+traces = cellfun(@(x) x(:,2:end-1),traces,'UniformOutput',false);
+bins = bins(2:end-1);
+
+
 %normalize cells individually
 colorLab = [];
 if ischar(normInd) && strcmpi(normInd,'cells')
+    traces = cellfun(@(x) bsxfun(@plus,x,abs(min(x,[],2))),traces,'UniformOutput',false);
     allTraces= cat(2,traces{:});
     maxTraces = max(allTraces,[],2);
 %     normTraces = cellfun(@(x) bsxfun(@rdivide,x,max(x,[],2)),traces,'UniformOutput',false);

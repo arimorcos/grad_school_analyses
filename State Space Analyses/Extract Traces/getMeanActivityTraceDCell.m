@@ -52,7 +52,7 @@ bins = imSub{1}.imaging.yPosBins;
 
 %get neuronal traces and threshold
 % dFFTraces = thresholdTraces(dataCell{1}.imaging.completeDFFTrace,actSub,2);
-[dFFTraces] = catBinnedTraces(actSub);
+[~,dFFTraces] = catBinnedTraces(actSub);
 
 %take mean of each neuron
 meanTraces = nanmean(dFFTraces,3);
