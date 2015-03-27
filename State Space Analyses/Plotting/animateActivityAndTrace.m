@@ -68,7 +68,7 @@ end
 
 %create figure
 figH = figure;
-figH.Color = 'w';
+figH.Color = 'none';
 
 %generate colors
 colors = distinguishable_colors(length(roiInd));
@@ -112,6 +112,7 @@ axTiffZoomIn.YLim = [min(roiCentroid(:,2)) - zoomRange max(roiCentroid(:,2)) + z
 
 %create animated line
 axTrace = subplot_tight(2,1,2,[0.09 0.06]);
+axTrace.Color = 'none';
 hold(axTrace,'on');
 axTrace.XLabel.String = 'Frame #';
 axTrace.YLabel.String = 'dF/F';
@@ -127,6 +128,8 @@ axTrace.FontName = 'Yu Gothic';
 %maximize figure
 maxfig(figH,1);
 drawnow;
+
+keyboard;
 
 pause(0.1);
 

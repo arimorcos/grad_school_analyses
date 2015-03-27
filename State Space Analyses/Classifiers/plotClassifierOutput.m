@@ -16,6 +16,12 @@ if nargin < 4 || isempty(confInt)
     confInt = 95;
 end
 
+%convert to 0 to 1
+if any(accuracy > 1)
+    accuracy = accuracy/100;
+    shuffleAccuracy = shuffleAccuracy/100;
+end
+
 %create figure
 figH = figure;
 axH = axes;
@@ -49,14 +55,14 @@ if ~isempty(shuffleAccuracy)
 end
 
 %plot chance line
-line([-1000 10000],[50 50],'Color','k','LineStyle','--');
+line([-1000 10000],[0.5 0.5],'Color','k','LineStyle','--');
 
 %set limits
 axH.XLim = [min(yPosBins) max(yPosBins)];
-axH.YLim = [0 100];
+axH.YLim = [0 1];
 
 %label axes
-axH.XLabel.String = 'Y Position (binned)';
+axH.XLabel.String = 'Maze Position (binned)';
 axH.YLabel.String = 'Classifier Accuracy';
 
 %set axes overall size
@@ -64,5 +70,5 @@ axH.FontSize = 20;
 
 %add on segment dividers
 for i = 1:length(segRanges)
-    line(repmat(segRanges(i),1,2),[0 100],'Color','k','LineStyle','--');
+    line(repmat(segRanges(i),1,2),[0 100],'Color',[34 139 34]/255,'LineStyle','--');
 end

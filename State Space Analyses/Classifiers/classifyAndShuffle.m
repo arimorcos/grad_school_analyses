@@ -1,6 +1,6 @@
 function varargout = classifyAndShuffle(traces,realClass,toReturn,varargin)
 %classifyAndShuffle.m Performs classification and a shuffle and returns
-%requested arguments 
+%requested arguments
 %
 %INPUTS
 %traces - nNeurons x nBins x nTrials array of traces
@@ -37,6 +37,7 @@ end
 testOffset = 0;
 dontCompareSame = [];
 nShuffles = 100;
+classifier = 'svm';
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -51,13 +52,20 @@ if nargin > 1 || ~isempty(varargin)
                 testOffset = varargin{argInd+1};
             case 'nshuffles'
                 nShuffles = varargin{argInd+1};
+            case 'classifier'
+                classifier = varargin{argInd+1};
         end
     end
 end
 
-%call get classifier accuracy 
-[accuracy,classGuess] = getClassifierAccuracyNew(traces,realClass,'dontcomparesame',dontCompareSame,...
-    'testoffset',testOffset);
+%call get classifier accuracy
+switch classifier
+    case 'svm'
+        [accuracy,classGuess] = getSVMAccuracy(traces,realClass,'dontcomparesame',dontCompareSame);
+    case 'leastdist'
+        [accuracy,classGuess] = getClassifierAccuracyNew(traces,realClass,'dontcomparesame',dontCompareSame,...
+            'testoffset',testOffset);
+end
 
 %shuffle
 shuffleAccuracy = nan(nShuffles,length(accuracy));
@@ -69,18 +77,33 @@ for shuffleInd = 1:nShuffles
     %shuffle labels
     shuffledClass = shuffleArray(realClass);
     
-    %classify
-    [shuffleAccuracy(shuffleInd,:),shuffleGuess(:,:,shuffleInd)] =...
-        getClassifierAccuracyNew(traces,shuffledClass,...
-        'dontcomparesame',dontCompareSame,...
-        'testoffset',testOffset);
-    
-    while any(shuffleAccuracy(shuffleInd,:) < 30)
-        lowInd = shuffleAccuracy(shuffleInd,:) < 30;
-        [shuffleAccuracy(shuffleInd,lowInd),shuffleGuess(:,lowInd,shuffleInd)] =...
-            getClassifierAccuracyNew(traces(:,lowInd,:),shuffleArray(shuffledClass),...
-            'dontcomparesame',dontCompareSame,...
-            'testoffset',testOffset);
+    switch classifier
+        case 'svm'
+            %classify
+            [shuffleAccuracy(shuffleInd,:),shuffleGuess(:,:,shuffleInd)] =...
+                getSVMAccuracy(traces,shuffledClass,...
+                'dontcomparesame',dontCompareSame);
+            
+            while any(shuffleAccuracy(shuffleInd,:) < 30)
+                lowInd = shuffleAccuracy(shuffleInd,:) < 30;
+                [shuffleAccuracy(shuffleInd,lowInd),shuffleGuess(:,lowInd,shuffleInd)] =...
+                    getSVMAccuracy(traces(:,lowInd,:),shuffleArray(shuffledClass),...
+                    'dontcomparesame',dontCompareSame);
+            end
+        case 'leastdist'
+            %classify
+            [shuffleAccuracy(shuffleInd,:),shuffleGuess(:,:,shuffleInd)] =...
+                getClassifierAccuracyNew(traces,shuffledClass,...
+                'dontcomparesame',dontCompareSame,...
+                'testoffset',testOffset);
+            
+            while any(shuffleAccuracy(shuffleInd,:) < 30)
+                lowInd = shuffleAccuracy(shuffleInd,:) < 30;
+                [shuffleAccuracy(shuffleInd,lowInd),shuffleGuess(:,lowInd,shuffleInd)] =...
+                    getClassifierAccuracyNew(traces(:,lowInd,:),shuffleArray(shuffledClass),...
+                    'dontcomparesame',dontCompareSame,...
+                    'testoffset',testOffset);
+            end
     end
 end
 

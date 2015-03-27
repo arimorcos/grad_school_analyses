@@ -1,5 +1,5 @@
 function [accuracy,guess,classes,probEst] = getSVMAccuracy(traces,realClass,varargin)
-%getSVMAccuracy Trains a cross-validated svm 
+%getSVMAccuracy Trains a cross-validated svm
 %
 %INPUTS
 %traces - nNeurons x nBins x nTrials array of traces
@@ -24,8 +24,8 @@ function [accuracy,guess,classes,probEst] = getSVMAccuracy(traces,realClass,vara
 %leaveOneOut - perform leave one out training
 %
 %OUTPUTS
-%accuracy - 1 x nBins array of classifier accuracy as a percentage 
-%guess - nTrials x nBins array of classifier guesses 
+%accuracy - 1 x nBins array of classifier accuracy as a percentage
+%guess - nTrials x nBins array of classifier guesses
 %classs - 1 x nClasses array of classes
 %
 %ASM 12/14
@@ -52,24 +52,24 @@ if nargin > 1 || ~isempty(varargin)
     for argInd = 1:2:length(varargin) %for each argument
         switch lower(varargin{argInd})
             case 'dontcomparesame'
-               shouldntCompareSame = true;
-               sameClass = varargin{argInd+1};
+                shouldntCompareSame = true;
+                sameClass = varargin{argInd+1};
             case 'c'
                 cParam = varargin{argInd+1};
             case 'gamma'
                 gamma = varargin{argInd+1};
             case 'kernel'
-                kernel = varargin{argInd+1};  
+                kernel = varargin{argInd+1};
             case 'svmtype'
                 svmType = varargin{argInd+1};
-            case 'nu' 
+            case 'nu'
                 nu = varargin{argInd+1};
-            case 'epsilon' 
+            case 'epsilon'
                 epsilon = varargin{argInd+1};
             case 'kfold'
                 kFold = varargin{argInd+1};
             case 'verbose'
-                quietMode = ~varargin{argInd+1}; 
+                quietMode = ~varargin{argInd+1};
             case 'trainfrac'
                 trainFrac = varargin{argInd+1};
             case 'shouldscale'
@@ -85,13 +85,13 @@ end
 switch kernel
     case 'linear'
         kernel_type = 0;
-    case 'polynomial' 
+    case 'polynomial'
         kernel_type = 1;
     case 'rbf'
         kernel_type = 2;
     case 'sigmoid'
         kernel_type = 3;
-    otherwise 
+    otherwise
         error('Kernel %s not recognized',kernel);
 end
 
@@ -112,15 +112,15 @@ if leaveOneOut
     kFold = 0;
 end
 
-%check realClass 
-if sum(size(realClass) > 1) > 1 %if more than one dimensional 
+%check realClass
+if sum(size(realClass) > 1) > 1 %if more than one dimensional
     error('realClass must be a one-dimensional vector');
 end
 if size(realClass,1) < size(realClass,2) %if row vector
     realClass = realClass';
 end
 classes = unique(realClass);
-%%%%%%%%%%%%%%%%% CREATE SVM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    
+%%%%%%%%%%%%%%%%% CREATE SVM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %generate options string
 svmOptions = sprintf('-s %d -t %d -g %1.10f -c %1.10f -n %1.10f -e %1.10f -b 1',...
@@ -131,78 +131,92 @@ if quietMode
     svmOptions = sprintf('%s -q',svmOptions);
 end
 
-%scale data
-if shouldScale
-    traces = scaleSVMData(traces);
-end
+%get nBins
+[~, nBins, nTrials] = size(traces);
 
-%train svm
-if kFold > 2 %if cross validation 
-    
-    %add cross validation flag
-    svmOptions = sprintf('%s -v %d', svmOptions, kFold);
-    
-    accuracy = svmtrain_libsvm(realClass, traces, svmOptions);
+%initialize
+accuracy = nan(nBins,1);
+if kFold > 2
     guess = [];
     probEst = [];
-elseif leaveOneOut
-    %get nTrials
-    nTrials = size(traces,1);
+else
+    guess = nan(nTrials, nBins);
+    probEst = nan(nTrials, nBins);
+end
+%loop through each bin
+for binInd = 1:nBins
     
-    %initialize
-    guess = nan(nTrials,1);
-    probEst = nan(nTrials,1);
+    %get binTraces
+    binTraces = squeeze(traces(:,binInd,:))';
     
-    %loop through every trial
-    for testInd = 1:nTrials
-        %get trainInd
-        trainInd = setdiff(1:nTrials,testInd);
+    %scale data
+    if shouldScale
+        binTraces = scaleSVMData(binTraces);
+    end
     
+    %convert realClass to double
+    realClass = double(realClass);
+    
+    %train svm
+    if kFold > 2 %if cross validation
+        
+        %add cross validation flag
+        svmOptions = sprintf('%s -v %d', svmOptions, kFold);
+        
+        accuracy(binInd) = svmtrain_libsvm(realClass, binTraces, svmOptions);
+    elseif leaveOneOut
+        
+        %loop through every trial
+        for testInd = 1:nTrials
+            %get trainInd
+            trainInd = setdiff(1:nTrials,testInd);
+            
+            %create training and testing subsets
+            trainSet = binTraces(trainInd,:);
+            testSet = binTraces(testInd,:);
+            trainClass = realClass(trainInd);
+            testClass = realClass(testInd);
+            
+            %train model
+            svmModel = svmtrain_libsvm(trainClass, trainSet, svmOptions);
+            
+            %test model
+            if quietMode
+                svmPredictOptions = '-q';
+            else
+                svmPredictOptions = '';
+            end
+            [guess(testInd,binInd),~,probEst(testInd,binInd)] = ...
+                svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
+        end
+        
+        %get accuracy
+        accuracy(binInd) = 100*sum(realClass == guess(:,binInd))/nTrials;
+    else
+        %get training and testing ind
+        trainInd = randsample(nTrials,round(nTrials*trainFrac));
+        testInd = setdiff(1:nTrials,trainInd);
+        
         %create training and testing subsets
-        trainSet = traces(trainInd,:);
-        testSet = traces(testInd,:);
+        trainSet = binTraces(trainInd,:);
+        testSet = binTraces(testInd,:);
         trainClass = realClass(trainInd);
         testClass = realClass(testInd);
-
+        
         %train model
         svmModel = svmtrain_libsvm(trainClass, trainSet, svmOptions);
-
+        
         %test model
         if quietMode
-            svmPredictOptions = '-q';    
+            svmPredictOptions = '-q';
         else
             svmPredictOptions = '';
         end
-        [guess(testInd),~,probEst(testInd)] = svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
+        [guess(:,binInd),~,probEst(:,binInd)] = svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
+        accuracy(binInd) = 100*sum(guess(binInd) == testClass)/numel(testClass);
     end
     
-    %get accuracy 
-    accuracy = 100*sum(realClass == guess)/nTrials;
-else
-    %get training and testing ind
-    nTrials = size(traces,1);
-    trainInd = randsample(nTrials,round(nTrials*trainFrac));
-    testInd = setdiff(1:nTrials,trainInd);
-    
-    %create training and testing subsets
-    trainSet = traces(trainInd,:);
-    testSet = traces(testInd,:);
-    trainClass = realClass(trainInd);
-    testClass = realClass(testInd);
-    
-    %train model
-    svmModel = svmtrain_libsvm(trainClass, trainSet, svmOptions);
-    
-    %test model
-    if quietMode
-        svmPredictOptions = '-q';    
-    else
-        svmPredictOptions = '';
-    end
-    [guess,~,probEst] = svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
-    accuracy = 100*sum(guess == testClass)/numel(testClass);
 end
-
 end
 
 function out = scaleSVMData(data)
