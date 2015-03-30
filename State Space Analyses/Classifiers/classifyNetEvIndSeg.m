@@ -89,7 +89,7 @@ for condInd = 1:length(conditions)
         for shuffleInd = 1:nShuffles
             dispProgress('Performing shuffle %d/%d',shuffleInd,shuffleInd,nShuffles);
             %generate random netEv conditions
-            randClass = shuffleLabels(realClass);
+            randClass = shuffleArray(realClass);
             
             [shuffleAccuracy(:,:,shuffleInd),shuffleGuess(:,:,:,shuffleInd),~,shuffleDistances{shuffleInd}] =...
                 getNetEvIndSegAcc(segTraces,nSeg,randClass,nBins,nTrials,useMode,range);
@@ -112,17 +112,6 @@ for condInd = 1:length(conditions)
     classifierOut(condInd).distClasses = distClasses;
     
 end
-
-
-
-function randClass = shuffleLabels(realClass)
-
-randClass = zeros(size(realClass));
-
-for i = 1:size(realClass,2) %for each segment
-    randClass(:,i) = randsample(realClass(:,i),size(realClass,1));
-end
-
 
 function [accuracy,classGuess,realClass,distances,distClasses] = getNetEvIndSegAcc(segTraces,nSeg,...
     realClass,nBins,nTrials,useMode,range)

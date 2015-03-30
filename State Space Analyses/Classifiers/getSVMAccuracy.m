@@ -33,7 +33,7 @@ function [accuracy,guess,classes,probEst] = getSVMAccuracy(traces,realClass,vara
 shouldntCompareSame = false;
 sameClass = [];
 cParam = 1;
-gamma = 1/size(traces,2);
+gamma = 1/size(traces,3);
 kernel = 'rbf';
 svmType = 'SVC';
 nu = 0.5;
@@ -41,6 +41,7 @@ epsilon = 0.1;
 kFold = 10;
 quietMode = true;
 trainFrac = 0.5;
+trainInd = [];
 shouldScale = true;
 leaveOneOut = false;
 
@@ -68,6 +69,8 @@ if nargin > 1 || ~isempty(varargin)
                 epsilon = varargin{argInd+1};
             case 'kfold'
                 kFold = varargin{argInd+1};
+            case 'trainind'
+                trainInd = varargin{argInd+1};
             case 'verbose'
                 quietMode = ~varargin{argInd+1};
             case 'trainfrac'
@@ -143,6 +146,15 @@ else
     guess = nan(nTrials, nBins);
     probEst = nan(nTrials, nBins);
 end
+
+if svmType ~= 0
+    nTest = round(nTrials*(1-trainFrac));
+    guess = nan(1,nBins);
+    accuracy = nan(nTest,nBins);
+    classes = nan(nTest,nBins);
+    probEst = nan(1,nBins);
+end
+
 %loop through each bin
 for binInd = 1:nBins
     
@@ -193,8 +205,10 @@ for binInd = 1:nBins
         %get accuracy
         accuracy(binInd) = 100*sum(realClass == guess(:,binInd))/nTrials;
     else
-        %get training and testing ind
-        trainInd = randsample(nTrials,round(nTrials*trainFrac));
+        if isempty(trainInd)
+            %get training and testing ind
+            trainInd = randsample(nTrials,round(nTrials*trainFrac));
+        end
         testInd = setdiff(1:nTrials,trainInd);
         
         %create training and testing subsets
@@ -212,8 +226,17 @@ for binInd = 1:nBins
         else
             svmPredictOptions = '';
         end
-        [guess(:,binInd),~,probEst(:,binInd)] = svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
-        accuracy(binInd) = 100*sum(guess(binInd) == testClass)/numel(testClass);
+        
+        if svmType == 0
+            [guess(:,binInd),~,probEst(:,binInd)] = svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
+            accuracy(binInd) = 100*sum(guess(binInd) == testClass)/numel(testClass);
+        else
+            [accuracy(:,binInd),vals,~] = svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
+            guess(binInd) = vals(2); %mean squared error
+            probEst(binInd) = vals(3); %R^2
+            classes(:,binInd) = testClass;
+        end
+        
     end
     
 end

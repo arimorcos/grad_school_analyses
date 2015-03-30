@@ -21,7 +21,7 @@ load(dataPath,'traces','realClass','yPosBins');
 
 % run classifier
 [accuracy,shuffleAccuracy] = classifyAndShuffle(...
-    traces, realClass, {'accuracy','shuffleaccuracy'});
+    traces, realClass, {'accuracy','shuffleaccuracy'},'nshuffles',nShuffles);
 
 %save data
 save(savePath,'accuracy','shuffleAccuracy','yPosBins');
