@@ -148,7 +148,7 @@ else
 end
 
 if svmType ~= 0
-    nTest = round(nTrials*(1-trainFrac));
+    nTest = floor(nTrials*(1-trainFrac));
     guess = nan(1,nBins);
     accuracy = nan(nTest,nBins);
     classes = nan(nTest,nBins);

@@ -45,17 +45,18 @@ end
 %plot 
 figH = figure;
 
-%%% MSE
-axMSE = subplot(2,1,1);
+%% Model MSE
+axMSE = subplot(2,2,1);
 hold(axMSE,'on');
 colors = distinguishable_colors(3);
 
 %plot actual data for mse
 xVal = 1:nSeg;
+scatH = gobjects(1,3);
 for condInd = 1:3
-    scatH = scatter(xVal + (condInd-1)*0.2,mse(:,condInd));
-    scatH.MarkerEdgeColor = colors(condInd,:);
-    scatH.MarkerFaceColor = colors(condInd,:);
+    scatH(condInd) = scatter(xVal + (condInd-1)*0.2,mse(:,condInd));
+    scatH(condInd).MarkerEdgeColor = colors(condInd,:);
+    scatH(condInd).MarkerFaceColor = colors(condInd,:);
 end
 
 %plot shuffle 
@@ -70,9 +71,15 @@ end
 axMSE.XTick = xVal + 0.3;
 axMSE.XTickLabel = xVal;
 axMSE.YLabel.String = 'Mean Squared Error';
+axMSE.Title.String = 'Model MSE';
+axMSE.XLabel.String = 'Segment Number';
 
-%%%%% CorrCoef 
-axCorrCoef = subplot(2,1,2);
+% add legend 
+legend(scatH,{'All Conditions','Left Conditions','Right Conditions'},...
+    'Location','NorthWest');
+
+%% CorrCoef 
+axCorrCoef = subplot(2,2,2);
 hold(axCorrCoef,'on');
 colors = distinguishable_colors(3);
 
@@ -98,7 +105,86 @@ axCorrCoef.XTick = xVal + 0.3;
 axCorrCoef.XTickLabel = xVal;
 axCorrCoef.YLabel.String = 'Squared Correlation Coefficient';
 axCorrCoef.XLabel.String = 'Segment Number';
+axCorrCoef.Title.String = 'R^2';
 
-% add legend 
-legend(scatH,{'All Conditions','Left Conditions','Right Conditions'},...
-    'Location','Best');
+%% Guess vs actual 
+axGuessVsActual = subplot(2,2,3);
+hold(axGuessVsActual,'on');
+colors = distinguishable_colors(nSeg);
+
+scatH = gobjects(nSeg,1);
+legEnt = cell(nSeg,1);
+% loop through each segment and plot
+for segInd = 1:nSeg
+    
+    uniqueVals = unique(classOut(1).testClass(:,segInd));
+    meanVal = nan(1,length(uniqueVals));
+    for i = 1:length(uniqueVals)
+        meanVal(i) = mean(classOut(1).guess(classOut(1).testClass(:,segInd)==uniqueVals(i),segInd));
+    end
+        
+%     scatH = scatter(classOut(1).testClass(:,segInd),classOut(1).guess(:,segInd));
+    scatH(segInd) = scatter(uniqueVals,meanVal);
+    scatH(segInd).MarkerEdgeColor = colors(segInd,:);
+    scatH(segInd).MarkerFaceColor = colors(segInd,:);
+    scatH(segInd).SizeData = 100;
+    
+    legEnt{segInd} = sprintf('Segment %d',segInd);
+end
+
+%plot unity line 
+plot([-nSeg nSeg], [-nSeg nSeg],'k--');
+axis square;
+
+legend(scatH,legEnt,'Location','NorthWest');
+axGuessVsActual.YLim = [-nSeg nSeg];
+axGuessVsActual.XLabel.String = 'Actual Net Evidence';
+axGuessVsActual.YLabel.String = 'Mean Guess';
+axGuessVsActual.Title.String = 'Mean Guess vs. actual net evidence';
+
+%% Fit MSE
+
+axGuessVsActualMSE = subplot(2,2,4);
+hold(axGuessVsActualMSE,'on');
+colors = distinguishable_colors(3);
+
+
+
+%plot actual data for mse
+xVal = 1:nSeg;
+scatH = gobjects(1,3);
+for condInd = 1:3
+    %get absolute difference 
+    absDiff = abs(classOut(condInd).guess - classOut(condInd).testClass);
+    
+    %take mean of squares 
+    mse = mean(absDiff.^2);
+    
+    scatH(condInd) = scatter(xVal + (condInd-1)*0.2,mse);
+    scatH(condInd).MarkerEdgeColor = colors(condInd,:);
+    scatH(condInd).MarkerFaceColor = colors(condInd,:);
+end
+
+%plot shuffle 
+for condInd = 1:3
+    
+    %get absolute difference 
+    absDiff = abs(classOut(condInd).shuffleGuess - classOut(condInd).shuffleTestClass);
+    
+    %take mean of squares 
+    mse = squeeze(mean(absDiff.^2))';
+    shuffleMed = median(mse);
+    confInt = prctile(mse,[lowConf, highConf]);
+    
+    errH = errorbar(xVal + (condInd-1)*0.2,shuffleMed,...
+        confInt(1,:),confInt(2,:));
+    errH.Color = colors(condInd,:);
+    errH.LineStyle = 'none';
+end
+
+%set labels 
+axGuessVsActualMSE.XTick = xVal + 0.3;
+axGuessVsActualMSE.XTickLabel = xVal;
+axGuessVsActualMSE.XLabel.String = 'Segment Number';
+axGuessVsActualMSE.YLabel.String = 'Mean Squared Error';
+axGuessVsActualMSE.Title.String = 'Guess vs. actual MSE';

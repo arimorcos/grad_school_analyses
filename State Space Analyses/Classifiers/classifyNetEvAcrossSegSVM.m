@@ -1,4 +1,4 @@
-function classifierOut = classifyNetEvIndSegSVM(dataCell,varargin)
+function classifierOut = classifyNetEvAcrossSegSVM(dataCell,varargin)
 %classifyNetEvIndSeg.m Classifies which net evidence condition a given bin
 %of each segment is. Classifies individual segments separately.
 %
@@ -67,49 +67,43 @@ for condInd = 1:length(conditions)
     
     %get nSeg
     nSeg = max(segNum);
+    nTrials = nTrials*nSeg;
     
     %get realClass
     switch lower(classMode)
         case 'netev'
-            realClass = reshape(netEv,nTrials,nSeg);
+            realClass = netEv;
         case 'numleft'
-            realClass = reshape(numLeft,nTrials,nSeg);
+            realClass = numLeft;
         case 'numright'
-            realClass = reshape(nSeg - numLeft,nTrials,nSeg);
-        otherwise
+            realClass = nSeg - numLeft;
+        otherwise 
             error('Can''t interpret class mode');
     end
-    
-    %get nBins
-    nBins = size(segTraces,2);
-    
+        
     %get nTest
     nTest = floor(nTrials*(1-trainFrac));
     
     %calculate actual accuracy
-    [guess, testClass, mse, corrCoef] = getNetEvIndSegData(segTraces,nSeg,...
-        realClass,nBins,nTrials,nTest,trainFrac);
+    [guess, testClass, mse, corrCoef] = getNetEvAcrossSegData(segTraces,...
+        realClass, trainFrac, segNum);
     
     %shuffle
     if shouldShuffle
         %initialize
-        shuffleMSE = nan(nSeg,1,nShuffles);
-        shuffleGuess = nan(nTest,nSeg,nShuffles);
-        shuffleTestClass = nan(nTest,nSeg,nShuffles);
+        shuffleMSE = nan(nShuffles,1);
+        shuffleGuess = nan(nTest,nShuffles);
+        shuffleTestClass = nan(nTest,nShuffles);
         shuffleCorrCoef = nan(size(shuffleMSE));
         
         for shuffleInd = 1:nShuffles
             dispProgress('Performing shuffle %d/%d',shuffleInd,shuffleInd,nShuffles);
             %generate random netEv conditions
-            randClass = nan(size(realClass));
-            for segInd = 1:nSeg
-                randClass(:,segInd) = shuffleArray(realClass(:,segInd));
-            end
+            randClass = shuffleArray(realClass);
             
-            [shuffleGuess(:,:,shuffleInd), shuffleTestClass(:,:,shuffleInd),...
-                shuffleMSE(:,:,shuffleInd),shuffleCorrCoef(:,:,shuffleInd)] =...
-                getNetEvIndSegData(segTraces,nSeg,randClass,nBins,nTrials,...
-                nTest,trainFrac);
+            [shuffleGuess(:,shuffleInd), shuffleTestClass(:,shuffleInd),...
+                shuffleMSE(shuffleInd),shuffleCorrCoef(shuffleInd)] =...
+                getNetEvAcrossSegData(segTraces,randClass,trainFrac, segNum);
         end
     else
         shuffleMSE = [];
@@ -130,24 +124,12 @@ for condInd = 1:length(conditions)
     classifierOut(condInd).classMode = classMode;
 end
 
-function [guess, testClass, mse, corrCoef] = getNetEvIndSegData(segTraces,nSeg,...
-    realClass,nBins,nTrials,nTest, trainFrac)
+function [guess, testClass, mse, corrCoef] = getNetEvAcrossSegData(segTraces,...
+    realClass, trainFrac, segNum)
 
-%initialize outputs
-mse = nan(nSeg,nBins);
-corrCoef = nan(size(mse));
-guess = nan(nTest,nSeg);
-testClass = nan(nTest,nSeg);
-
-%loop through each segment and get accuracy
-for segInd = 1:nSeg
-    %get trace indices
-    trialInd = nTrials*(segInd-1)+1:nTrials*segInd;
-    
-    %calculate accuracy
-    [guess(:,segInd),mse(segInd,:),testClass(:,segInd),corrCoef(segInd,:)] =...
-        getSVMAccuracy(segTraces(:,:,trialInd),realClass(:,segInd),...
-        'svmType', 'e-SVR', 'C',50,'epsilon',0.004,'gamma',0.04,'kFold',1,...
-        'trainFrac',trainFrac);
-end
+%calculate accuracy
+[guess,mse,testClass,corrCoef] =...
+    getSVMAccuracy(segTraces,realClass,...
+    'svmType', 'e-SVR', 'C',50,'epsilon',0.004,'gamma',0.04,'kFold',1,...
+    'trainFrac',trainFrac,'dontcomparesame', segNum);
 
