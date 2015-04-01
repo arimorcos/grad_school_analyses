@@ -128,11 +128,26 @@ scatH.LineWidth = 2;
 plot([-nSeg nSeg], [-nSeg nSeg],'k--');
 axis square;
 
-axGuessVsActual.YLim = [-nSeg nSeg];
-axGuessVsActual.XLim = [-nSeg nSeg];
-axGuessVsActual.XLabel.String = 'Actual Net Evidence';
+switch lower(classOut(1).classMode)
+    case 'netev'
+        axGuessVsActual.Title.String = 'Mean Guess vs. actual net evidence';
+        axGuessVsActual.XLabel.String = 'Actual Net Evidence';
+        axGuessVsActual.YLim = [-nSeg nSeg];
+        axGuessVsActual.XLim = [-nSeg nSeg];
+    case 'numleft'
+        axGuessVsActual.Title.String = 'Mean Guess vs. actual num left';
+        axGuessVsActual.XLabel.String = 'Actual Num Left';
+        axGuessVsActual.YLim = [0 nSeg];
+        axGuessVsActual.XLim = [0 nSeg];
+    case 'numright'
+        axGuessVsActual.Title.String = 'Mean Guess vs. actual num right';
+        axGuessVsActual.XLabel.String = 'Actual Num Right';
+        axGuessVsActual.YLim = [0 nSeg];
+        axGuessVsActual.XLim = [0 nSeg];
+end
+
 axGuessVsActual.YLabel.String = 'Mean Guess';
-axGuessVsActual.Title.String = 'Mean Guess vs. actual net evidence';
+
 
 %% Fit MSE
 
@@ -158,12 +173,13 @@ end
 for condInd = 1:3
     
     %get absolute difference
-    absDiff = abs(classOut(condInd).shuffleGuess - classOut(condInd).shuffleTestClass);
+    guessDiff = classOut(condInd).shuffleGuess - classOut(condInd).shuffleTestClass;
     
     %take mean of squares
-    mse = squeeze(mean(absDiff.^2))';
+    mse = squeeze(mean(guessDiff.^2))';
     shuffleMed = median(mse);
     confInt = prctile(mse,[lowConf, highConf]);
+    confInt = abs(confInt - shuffleMed);
     
     errH = errorbar(condInd,shuffleMed,...
         confInt(1),confInt(2));
@@ -177,3 +193,5 @@ axGuessVsActualMSE.XTick = 1:3;
 axGuessVsActualMSE.XTickLabel = {'All Trials','Left Net Evidence','Right Net Evidence'};
 axGuessVsActualMSE.YLabel.String = 'Mean Squared Error';
 axGuessVsActualMSE.Title.String = 'Guess vs. actual MSE';
+
+maxfig(figH,1);

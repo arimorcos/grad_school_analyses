@@ -136,11 +136,26 @@ end
 plot([-nSeg nSeg], [-nSeg nSeg],'k--');
 axis square;
 
+switch lower(classOut(1).classMode)
+    case 'netev'
+        axGuessVsActual.Title.String = 'Mean Guess vs. actual net evidence';
+        axGuessVsActual.XLabel.String = 'Actual Net Evidence';
+        axGuessVsActual.YLim = [-nSeg nSeg];
+        axGuessVsActual.XLim = [-nSeg nSeg];
+    case 'numleft'
+        axGuessVsActual.Title.String = 'Mean Guess vs. actual num left';
+        axGuessVsActual.XLabel.String = 'Actual Num Left';
+        axGuessVsActual.YLim = [0 nSeg];
+        axGuessVsActual.XLim = [0 nSeg];
+    case 'numright'
+        axGuessVsActual.Title.String = 'Mean Guess vs. actual num right';
+        axGuessVsActual.XLabel.String = 'Actual Num Right';
+        axGuessVsActual.YLim = [0 nSeg];
+        axGuessVsActual.XLim = [0 nSeg];
+end
+
 legend(scatH,legEnt,'Location','NorthWest');
-axGuessVsActual.YLim = [-nSeg nSeg];
-axGuessVsActual.XLabel.String = 'Actual Net Evidence';
 axGuessVsActual.YLabel.String = 'Mean Guess';
-axGuessVsActual.Title.String = 'Mean Guess vs. actual net evidence';
 
 %% Fit MSE
 
@@ -175,6 +190,7 @@ for condInd = 1:3
     mse = squeeze(mean(absDiff.^2))';
     shuffleMed = median(mse);
     confInt = prctile(mse,[lowConf, highConf]);
+    confInt = abs(bsxfun(@minus,confInt,shuffleMed));
     
     errH = errorbar(xVal + (condInd-1)*0.2,shuffleMed,...
         confInt(1,:),confInt(2,:));
@@ -188,3 +204,5 @@ axGuessVsActualMSE.XTickLabel = xVal;
 axGuessVsActualMSE.XLabel.String = 'Segment Number';
 axGuessVsActualMSE.YLabel.String = 'Mean Squared Error';
 axGuessVsActualMSE.Title.String = 'Guess vs. actual MSE';
+
+maxfig(figH,1);

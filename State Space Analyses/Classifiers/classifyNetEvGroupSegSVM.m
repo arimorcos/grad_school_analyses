@@ -22,6 +22,7 @@ range = [0.5 0.75];
 conditions = {'','result.leftTurn==1','result.leftTurn==0'};
 trainFrac = 0.5;
 classMode = 'netEv';
+trialMatch = false;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -44,6 +45,8 @@ if nargin > 1 || ~isempty(varargin)
                 range = varargin{argInd+1};
             case 'conditions'
                 conditions = varargin{argInd+1};
+            case 'trialmatch'
+                trialMatch = varargin{argInd+1};
         end
     end
 end
@@ -61,13 +64,27 @@ for condInd = 1:length(conditions)
     [segTraces,~,netEv,segNum,numLeft,~] = extractSegmentTraces(dataSub,'usebins',true,...
         'tracetype',traceType,'whichFactor',whichFactor);
     
+    %get nSeg
+    nSeg = max(segNum);
+    
+    %take subset if trial matching 
+    if trialMatch 
+        
+        %generate random indices from 1:nSeg*nTrials
+        keepInd = sort(randsample(nSeg*nTrials,nTrials));
+        
+        %filter 
+        segTraces = segTraces(:,:,keepInd);
+        netEv = netEv(keepInd);
+        segNum = segNum(keepInd);
+        numLeft = numLeft(keepInd);
+    else 
+        nTrials = nTrials*nSeg;
+    end
+    
     %take mean
     meanBinRange = round(range*size(segTraces,2));
     segTraces = mean(segTraces(:,meanBinRange(1):meanBinRange(2),:),2);
-    
-    %get nSeg
-    nSeg = max(segNum);
-    nTrials = nTrials*nSeg;
     
     %get nTest
     nTest = floor(nTrials*(1-trainFrac));
