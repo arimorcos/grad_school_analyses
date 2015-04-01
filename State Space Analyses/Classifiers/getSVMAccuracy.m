@@ -155,6 +155,9 @@ if svmType ~= 0
     probEst = nan(1,nBins);
 end
 
+%convert realClass to double
+realClass = double(realClass);
+
 %loop through each bin
 for binInd = 1:nBins
     
@@ -166,16 +169,13 @@ for binInd = 1:nBins
         binTraces = scaleSVMData(binTraces);
     end
     
-    %convert realClass to double
-    realClass = double(realClass);
-    
     %train svm
     if kFold > 2 %if cross validation
         
         %add cross validation flag
-        svmOptions = sprintf('%s -v %d', svmOptions, kFold);
+        tempSvmOptions = sprintf('%s -v %d', svmOptions, kFold);
         
-        accuracy(binInd) = svmtrain_libsvm(realClass, binTraces, svmOptions);
+        accuracy(binInd) = svmtrain_libsvm(realClass, binTraces, tempSvmOptions);
     elseif leaveOneOut
         
         %loop through every trial
