@@ -1,4 +1,4 @@
-function [segTraces,segId,netEv,segNum,numLeft,runSpeed,delayTraces,turn,viewAngle] =...
+function [segTraces,segId,netEv,segNum,numLeft,runSpeed,delayTraces,turn,viewAngle,whichBins] =...
     extractSegmentTraces(dataCell,varargin)
 %extractSegmentTraces.m Extracts traces for each segment and returns along
 %with segment identity (left/right or white/black), net evidence (left -
@@ -22,6 +22,7 @@ function [segTraces,segId,netEv,segNum,numLeft,runSpeed,delayTraces,turn,viewAng
 %numLeft - (nTrials*nSeg) x 1 array containing number of left segments
 %runSpeed - (nTrials*nSeg) x 1 array containing time for each segment
 %viewAngle - (nTrials*nSeg) x 1 array containing view angle for each segment
+%whichBins - nSeg+1 x 1 cell array containing binIDs
 %
 %ASM 8/14
 
@@ -114,6 +115,7 @@ runSpeed = zeros(size(segId));
 runInd = 1;
 viewAngle = nan(size(segNum));
 viewInd = 1;
+whichBins = cell(nSeg+1,1);
 
 if useBins
     %get yPosBins
@@ -129,6 +131,9 @@ for segInd = 1:nSeg
         if useBins
             %find range which corresponds to segment
             segIndicesToUse = yPosBins >= segRanges(segInd) & yPosBins < segRanges(segInd+1);
+            if isempty(whichBins{segInd})
+                whichBins{segInd} = find(segIndicesToUse);
+            end
             
             %get traces
             traces = getTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh);
@@ -184,6 +189,7 @@ if getDelay
         if useBins
             %find range which corresponds to segment
             segIndicesToUse = yPosBins >= segRanges(end);
+            whichBins{nSeg+1} = find(segIndicesToUse);
             
             %get traces
             traces = getTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh);

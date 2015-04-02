@@ -1,10 +1,9 @@
-function classifierOut = classifyNetEvGroupSegSVM(dataCell,varargin)
-%classifyNetEvIndSeg.m Classifies which net evidence condition a given bin
-%of each segment is. Classifies individual segments separately.
+function classifierOut = classifyDelaySVR(dataCell,varargin)
+%classifyDelaySVR.m Classifies which net evidence condition a given bin
+%of each segment is. Classifies during the delay period.
 %
 %INPUTS
 %dataCell - dataCell containing imaging information
-%shouldPlot - should plot data
 %
 %OUTPUTS
 %accuracy - nSeg x nBins array containing accuracy for each bin of each
@@ -18,11 +17,10 @@ nShuffles = 100;
 shouldShuffle = false;
 traceType = 'dff';
 whichFactor = 2;
-range = [0.5 0.75];
+range = [0 0.25];
 conditions = {'','result.leftTurn==1','result.leftTurn==0'};
 trainFrac = 0.5;
 classMode = 'netEv';
-trialMatch = false;
 binViewAngle = false;
 leftViewAngle = true;
 viewAngleRange = 5;
@@ -48,8 +46,6 @@ if nargin > 1 || ~isempty(varargin)
                 range = varargin{argInd+1};
             case 'conditions'
                 conditions = varargin{argInd+1};
-            case 'trialmatch'
-                trialMatch = varargin{argInd+1};
             case 'binviewangle'
                 binViewAngle = varargin{argInd+1};
             case 'leftviewangle'
@@ -70,37 +66,31 @@ for condInd = 1:length(conditions)
     nTrials = length(dataSub);
     
     %get segTraces
-    [segTraces,~,netEv,segNum,numLeft,~,~,~,viewAngle] = extractSegmentTraces(dataSub,'usebins',true,...
-        'tracetype',traceType,'whichFactor',whichFactor);
+    [~,~,netEv,segNum,numLeft,~,delayTraces,~,~,whichBins] = extractSegmentTraces(dataSub,'usebins',true,...
+        'tracetype',traceType,'whichFactor',whichFactor,'getDelay',true);
+    
+    %crop outputs
+    netEv = netEv(end-nTrials+1:end);
+    segNum = segNum(end-nTrials+1:end);
+    numLeft = numLeft(end-nTrials+1:end);
+    delayBins = whichBins{end};
     
     %get nSeg
     nSeg = max(segNum);
     
     %take mean
-    meanBinRange = round(range*size(segTraces,2));
-    segTraces = mean(segTraces(:,meanBinRange(1):meanBinRange(2),:),2);
-    
-    %take subset if trial matching 
-    if trialMatch 
-        
-        %generate random indices from 1:nSeg*nTrials
-        keepInd = sort(randsample(nSeg*nTrials,nTrials));
-        
-        %filter 
-        segTraces = segTraces(:,:,keepInd);
-        netEv = netEv(keepInd);
-        segNum = segNum(keepInd);
-        numLeft = numLeft(keepInd);
-    else 
-        nTrials = nTrials*nSeg;
-    end
+    meanBinRange = max(1,round(range*size(delayTraces,2)));
+    delayTraces = mean(delayTraces(:,meanBinRange(1):meanBinRange(2),:),2);
+    delayBins = delayBins(meanBinRange(1):meanBinRange(2));
     
     %get view angle
     if binViewAngle
+        %get binned dataframes
+        binnedDF = catBinnedDataFrames(dataSub);
         
-        if trialMatch
-            error('Cannot use binViewAngle and trialMatch together');
-        end
+        %crop to view angle and delayBins and convert to degrees nTrials x
+        %1
+        viewAngle = rad2deg(squeeze(mean(binnedDF(4,delayBins,:),2)));
         
         %take overall mean
         meanViewAngle = mean(viewAngle);
@@ -121,7 +111,7 @@ for condInd = 1:length(conditions)
             viewAngle <= (meanSection + viewAngleRange);
         
         %filter everything based on keepInd
-        segTraces = segTraces(:,:,keepInd);
+        delayTraces = delayTraces(:,:,keepInd);
         netEv = netEv(keepInd);
         segNum = segNum(keepInd);
         numLeft = numLeft(keepInd);
@@ -139,12 +129,12 @@ for condInd = 1:length(conditions)
             realClass = numLeft;
         case 'numright'
             realClass = nSeg - numLeft;
-        otherwise 
+        otherwise
             error('Can''t interpret class mode');
     end
     
     %calculate actual accuracy
-    [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
+    [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(delayTraces,...
         realClass, trainFrac);
     
     %shuffle
@@ -162,7 +152,7 @@ for condInd = 1:length(conditions)
             
             [shuffleGuess(:,shuffleInd), shuffleTestClass(:,shuffleInd),...
                 shuffleMSE(shuffleInd),shuffleCorrCoef(shuffleInd)] =...
-                getNetEvGroupSegData(segTraces,randClass,trainFrac);
+                getNetEvGroupSegData(delayTraces,randClass,trainFrac);
         end
     else
         shuffleMSE = [];
@@ -181,9 +171,6 @@ for condInd = 1:length(conditions)
     classifierOut(condInd).testClass = testClass;
     classifierOut(condInd).guess = guess;
     classifierOut(condInd).classMode = classMode;
-    classifierOut(condInd).binViewAngle = binViewAngle;
-    classifierOut(condInd).leftViewAngle = leftViewAngle;
-    classifierOut(condInd).viewAngleRange = viewAngleRange;
 end
 
 function [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
