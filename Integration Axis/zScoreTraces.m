@@ -10,8 +10,12 @@ function zTraces = zScoreTraces(traces)
 %
 %ASM 5/14
 
+%get mean of all trials for each neuron
+meanTraces = nanmean(reshape(traces,size(traces,1),[]),2);
+stdTraces = nanstd(reshape(traces,size(traces,1),[]),0,2);
+
 %subtract mean from traces
-meanSubTraces = bsxfun(@minus, traces, mean(mean(traces,3),2));
+meanSubTraces = bsxfun(@minus, traces, meanTraces);
 
 %divide by standard deviation
-zTraces = bsxfun(@rdivide, meanSubTraces, std(reshape(traces,size(traces,1),[]),0,2));
+zTraces = bsxfun(@rdivide, meanSubTraces, stdTraces);

@@ -20,7 +20,7 @@ binRange = [51 60];
 segRanges = [1:10:51; 10:10:60]'; %in bins
 
 %extract traces
-traces = catBinnedTraces(dataCell);
+[~,traces] = catBinnedTraces(dataCell);
 
 %z-score
 zTraces = zScoreTraces(traces);
@@ -30,10 +30,7 @@ zTraces = zTraces(:,binRange(1):binRange(2),:);
 
 %get cumEv
 mazePatterns = getMazePatterns(dataCell); %get maze patterns
-mazePatterns(mazePatterns == 0) = -1; %set 0 values to -1
-cumEvAllSeg = cumsum(mazePatterns,2); %take cumsum
-currSeg = find(segRanges(:,1) <= binRange(1),1,'last'); %find current segment
-netEv = cumEvAllSeg(:,currSeg);
+netEv = getNetEvidence(dataCell);
 
 %get matrix size
 [nNeurons,nBins,nTrials] = size(zTraces);

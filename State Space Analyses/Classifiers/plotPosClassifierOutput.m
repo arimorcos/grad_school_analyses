@@ -102,6 +102,22 @@ maxVal = max(cat(1,classOut.testClass,classOut.guess));
 plot([minVal maxVal], [minVal maxVal],'k--');
 axis square;
 
+%get binned means 
+nBins = 100;
+binVals = linspace(minVal,maxVal,nBins+1);
+meanVals = nan(nBins,1);
+xVals = binVals(1:nBins) + mean(diff(binVals))/2;
+for binInd = 1:nBins
+   keepInd = classOut.testClass > binVals(binInd) & classOut.testClass <= binVals(binInd+1);
+   meanVals(binInd) = mean(classOut.guess(keepInd));
+end
+
+%add to plot 
+scatMean = scatter(xVals,meanVals);
+scatMean.MarkerEdgeColor = 'r';
+scatMean.MarkerFaceColor = 'r';
+scatMean.Marker = 'o';
+
 axGuessVsActual.Title.String = 'Guess vs. actual position';
 axGuessVsActual.XLabel.String = 'Actual Position';
 axGuessVsActual.YLim = [minVal maxVal];
