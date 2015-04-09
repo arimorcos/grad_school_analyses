@@ -1,11 +1,13 @@
-% mouse = 'AM136'; date = '140820';
+mouse = 'AM136'; date = '140820';
 % mouse = 'AM131'; date = '140911';
 % mouse = 'AM150'; date = '141128';
 % mouse = 'AM150'; date = '141206';
-mouse = 'AM144'; date = '141203';
+% mouse = 'AM144'; date = '141203';
 % mouse = 'AM142'; date = '141218';
 
 %parameters
+loadProcessed = false;
+saveProcessed = true;
 trialFilter = [];
 shouldRedo = ~true;
 elimInactive = ~true;
@@ -17,6 +19,17 @@ minFrames = 8;
 transThresh = 1;
 keepGroups = 1;
 skipIndFactors = [2 3];
+
+if loadProcessed
+    path = sprintf('D:\\DATA\\Analyzed Data\\Mice\\%s_%s_processed.mat',mouse,date);
+    load(path);
+    leftTrials = getTrials(imTrials,'maze.leftTrial==1');
+    rightTrials = getTrials(imTrials,'maze.leftTrial==0');
+    trials60 = getTrials(imTrials,'maze.numLeft==0,6');
+    correctTrials = getTrials(imTrials,'result.correct==1');
+    errorTrials = getTrials(imTrials,'result.correct==0');
+    return;
+end
 
 dataCell = loadBehaviorData(mouse,date);
 
@@ -31,7 +44,7 @@ end
 %filter roiGroups
 dataCell = filterROIGroups(dataCell,keepGroups);
 
-%get roiGroups 
+%get roiGroups
 roiGroups = dataCell{find(findTrials(dataCell,'imaging.imData==1'),1)}.imaging.roiGroups{1};
 
 %check if factor analysis is present
@@ -46,21 +59,21 @@ if ~isfield(dataCell{1}.imaging,'factorAn') || shouldRedo
     
     %get traces
     dFFTraces = dataCell{1}.imaging.completeDFFTrace;
-%     dGRTraces = dataCell{1}.imaging.completeDGRTrace;
+    %     dGRTraces = dataCell{1}.imaging.completeDGRTrace;
     
     %filter
     dFFTraces = dFFTraces(ismember(roiGroups,keepGroups),:);
-
+    
     %     %threshold
     if shouldThresh
         dFFTraces = thresholdCompleteTrace(dFFTraces,nSTD,minFrames);
-%         dGRTraces = thresholdCompleteTrace(dGRTraces,nSTD,minFrames);
+        %         dGRTraces = thresholdCompleteTrace(dGRTraces,nSTD,minFrames);
     end
     
     %zscore
     if shouldZScore
         dFFTraces = zScoreTraces(dFFTraces);
-%         dGRTraces = zScoreTraces(dGRTraces);
+        %         dGRTraces = zScoreTraces(dGRTraces);
     end
     
     %eliminate cells with fewer than 0.2 transients per minute
@@ -73,13 +86,13 @@ if ~isfield(dataCell{1}.imaging,'factorAn') || shouldRedo
         nTransPerMinDFF = getNTransPerMin(dFFTraces,frameRate);
         for i = 1:length(nTransPerMinDFF)
             dFFTraces(nTransPerMinDFF{i} < transThresh,:) = [];
-%             dGRTraces(nTransPerMinDFF{i} < transThresh,:) = [];
+            %             dGRTraces(nTransPerMinDFF{i} < transThresh,:) = [];
         end
     end
     
     %copy back
     dataCell = standaloneCopyDFFToDataCell(dataCell,dFFTraces);
-   
+    
     %save
     save(getBehaviorPath(mouse,date),'dataCell');
 end
@@ -94,3 +107,7 @@ rightTrials = getTrials(imTrials,'maze.leftTrial==0');
 trials60 = getTrials(imTrials,'maze.numLeft==0,6');
 correctTrials = getTrials(imTrials,'result.correct==1');
 errorTrials = getTrials(imTrials,'result.correct==0');
+if saveProcessed
+    savePath = sprintf('D:\\DATA\\Analyzed Data\\Mice\\%s_%s_processed.mat',mouse,date);
+    save(savePath,'imTrials','dataCell');
+end

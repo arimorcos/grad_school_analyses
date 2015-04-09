@@ -1,4 +1,4 @@
-function clusterIDs = apClusterNeuronalStates(traces,varargin)
+function clusterIDs = apClusterNeuronalStates(traces,prct,varargin)
 %apClusterNeuronalStates.m Wrapper for affinity propagation 
 %
 %INPUTS
@@ -10,9 +10,12 @@ function clusterIDs = apClusterNeuronalStates(traces,varargin)
 %
 %ASM 4/15
 
+if nargin < 2 || isempty(prct)
+    prct = 10;
+end
+
 %create distance matrix 
 distMat = -1*squareform(pdist(traces'));
 
 %run apcluster
-clusterIDs = apcluster(distMat,prctile(distMat(:),10),varargin);
-% clusterIDs = apcluster(distMat,median(distMat(:)),varargin);
+clusterIDs = apcluster(distMat,prctile(distMat(:),prct),varargin);

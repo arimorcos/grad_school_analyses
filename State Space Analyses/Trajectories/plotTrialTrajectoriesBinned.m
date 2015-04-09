@@ -29,6 +29,7 @@ timeColor = false;
 colorIndividually = false;
 binRange = [-20 620];
 subtractMeanVec = false;
+clusters = [];
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -50,6 +51,8 @@ if nargin > 1 || ~isempty(varargin)
                 binRange = varargin{argInd+1};
             case 'subtractmeanvec'
                 subtractMeanVec = varargin{argInd+1};
+            case 'clusters'
+                clusters = varargin{argInd+1};
         end
     end
 end
@@ -66,7 +69,7 @@ for condInd = 1:nConditions
     condSub{condInd} = getTrials(dataCell,conditions{condInd});
 end
 
-%get mean subtracted traces 
+%get mean subtracted traces
 condTraces = cell(1,nConditions);
 if subtractMeanVec
     for condInd = 1:nConditions
@@ -90,13 +93,28 @@ else
     view3D = true;
 end
 
+%take mean if clusters
+if ~isempty(clusters)
+    %get number of clusters
+    uniqueClusters = unique(clusters);
+    nClusters = length(uniqueClusters);
+    
+    %get binned factors
+    binFactors = catBinnedFactors(condSub{1},whichFactorSet);
+    meanFactorTraces = nan(size(binFactors,1),size(binFactors,2),nClusters);
+    for clusterInd = 1:nClusters
+        meanFactorTraces(:,:,clusterInd) = nanmean(binFactors(:,:,clusters==uniqueClusters(clusterInd)),3);
+    end
+    
+end
+
 %create figure
 figH = figure;
 axH = axes;
 hold(axH,'on');
 axis square;
 
-%get marker Colors 
+%get marker Colors
 markerColors = jet(markersPerTrace);
 
 %plot
@@ -105,7 +123,11 @@ legendLabels = gobjects(nConditions,1);
 for condInd = 1:nConditions
     
     %get nTrialConds
-    nTrialsCond = length(condSub{condInd});
+    if ~isempty(clusters)
+        nTrialsCond = nClusters;
+    else
+        nTrialsCond = length(condSub{condInd});
+    end
     plotH{condInd} = gobjects(nTrialsCond);
     
     %loop through each trial and plot trace
@@ -123,6 +145,13 @@ for condInd = 1:nConditions
             plotData{1} = condSub{condInd}{trialInd}.imaging.binnedFactDFF{1}{whichFactorSet}(whichFactors(1),binsToUse);
             plotData{2} = condSub{condInd}{trialInd}.imaging.binnedFactDFF{1}{whichFactorSet}(whichFactors(2),binsToUse);
             plotData{3} = condSub{condInd}{trialInd}.imaging.binnedFactDFF{1}{whichFactorSet}(whichFactors(3),binsToUse);
+        end
+        
+        %overwrite plotData if clusters
+        if ~isempty(clusters)
+            plotData{1} = meanFactorTraces(whichFactors(1),binsToUse,trialInd);
+            plotData{2} = meanFactorTraces(whichFactors(2),binsToUse,trialInd);
+            plotData{3} = meanFactorTraces(whichFactors(3),binsToUse,trialInd);
         end
         
         if timeColor
@@ -147,10 +176,10 @@ for condInd = 1:nConditions
             
             %%%%%add markers spaced out with colors for time
             
-            %get marker positions 
+            %get marker positions
             markerPos = linspace(1,nPoints,markersPerTrace);
             
-            %plot 
+            %plot
             scatH = scatter3(plotData{1}(:,markerPos),plotData{2}(:,markerPos),...
                 plotData{3}(:,markerPos));
             scatH.Marker = 'o';
@@ -178,8 +207,8 @@ if length(whichFactors) == 3
     axH.ZLabel.String = sprintf('Factor %d',whichFactors(3));
 end
 
-%create legend 
-if nConditions > 1 
+%create legend
+if nConditions > 1
     legend(legendLabels,conditions,'Location','BestOutside');
 end
 

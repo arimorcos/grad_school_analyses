@@ -1,4 +1,4 @@
-function [mMat,cMat] = getClusteredMarkovMatrix(dataCell)
+function [mMat,cMat,clusterIDs] = getClusteredMarkovMatrix(dataCell,varargin)
 %getClusteredMarkovMatrix.m Creates a markov transition matrix from
 %clustered states for several points within the maze
 %
@@ -9,6 +9,7 @@ function [mMat,cMat] = getClusteredMarkovMatrix(dataCell)
 %mMat - nPoints-1 x 1 cell array of nClustersPointN x
 %   nClustersPointN+1 matrix of transition probabilities
 %cMat - structure containing cluster labels for different properties
+%clusterIDs - nTrials x nPoints array of cluster IDs
 %
 %ASM 4/15
 
@@ -16,6 +17,26 @@ segRanges = 0:80:480;
 nBinsAvg = 4;
 range = [0.5 0.75];
 nPoints = 10;
+clusterType = 'ap';
+
+%process varargin
+if nargin > 1 || ~isempty(varargin)
+    if isodd(length(varargin))
+        error('Must provide a name and value for each argument');
+    end
+    for argInd = 1:2:length(varargin) %for each argument
+        switch lower(varargin{argInd})
+            case 'segranges'
+                segRanges = varargin{argInd+1};
+            case 'nbinsavg'
+                nBinsAvg = varargin{argInd+1};
+            case 'range'
+                range = varargin{argInd+1};
+            case 'clustertype'
+                clusterType = varargin{argInd+1};
+        end
+    end
+end
 
 %get yPosBins
 yPosBins = dataCell{1}.imaging.yPosBins;
@@ -61,7 +82,14 @@ tracePoints(:,end,:) = mean(traces(:,end-nBinsAvg:end-1,:),2);
 %%%%%%%%%%%% cluster 
 clusterIDs = nan(nTrials,nPoints);
 for point = 1:nPoints
-   clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
+    switch lower(clusterType)
+        case 'ap'
+            clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
+        case 'dbscan'
+            clusterIDs(:,point) = dbscanClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
+        otherwise 
+            error('Cannot interpret cluster type: %s',clusterType);
+    end
 end
 
 %get number of unique
