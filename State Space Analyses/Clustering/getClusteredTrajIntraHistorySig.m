@@ -79,12 +79,18 @@ deltaCountR = getDeltaCount(LRRCluster,RLRCluster,totalNClusters);
 fprintf('L: %d    .... R: %d\n',deltaCountL, deltaCountR);
 
 %concatenate 
-allLClusters = cat(1,LRLCluster,RLLCluster);
-allRClusters = cat(1,RLRCluster,LRRCluster);
+allLClusters = sort(cat(1,LRLCluster,RLLCluster));
+allRClusters = sort(cat(1,RLRCluster,LRRCluster));
 
 %count
-nLRL = length(LRLCluster);
-nLRR = length(LRRCluster);
+nRL = nan(4,1);
+nRR = nan(4,1);
+for segNum = 3:6
+    nRL(segNum-2) = sum(LRLCluster >= clusterStarts(segNum-2) &...
+        LRLCluster < clusterStarts(segNum-1));
+    nRR(segNum-2) = sum(LRRCluster >= clusterStarts(segNum-2) &...
+        LRRCluster < clusterStarts(segNum-1));
+end
 
 %perform shuffle
 shuffleCountL = nan(nShuffles,1);
@@ -92,13 +98,29 @@ shuffleCountR = nan(nShuffles,1);
 for shuffleInd = 1:nShuffles
     
     %extract new clusters
-    tempLClusters = shuffleArray(allLClusters);
-    tempRClusters = shuffleArray(allRClusters);
+%     tempLClusters = sort(allLClusters);
+%     tempRClusters = s(allRClusters);
+    tempLR = [];
+    tempRR = [];
+    tempLL = [];
+    tempRL = [];
     
-    shuffleCountL(shuffleInd) = getDeltaCount(tempLClusters(1:nLRL),...
-        tempLClusters(nLRL+1:end),totalNClusters);
-    shuffleCountR(shuffleInd) = getDeltaCount(tempRClusters(1:nLRR),...
-        tempRClusters(nLRR+1:end),totalNClusters);
+    %create tempClusters segWise
+    for segInd = 3:6
+        currLClusters = shuffleArray(allLClusters(allLClusters >= clusterStarts(segInd-2) &...
+            allLClusters < clusterStarts(segInd-1)));
+        currRClusters = shuffleArray(allRClusters(allRClusters >= clusterStarts(segInd-2) &...
+            allRClusters < clusterStarts(segInd-1)));
+        tempRL = cat(1,tempRL,currLClusters(1:nRL(segInd-2)));
+        tempLL = cat(1,tempLL,currLClusters(nRL(segInd-2)+1:end));
+        tempRR = cat(1,tempRR,currRClusters(1:nRR(segInd-2)));
+        tempLR = cat(1,tempLR,currRClusters(nRR(segInd-2)+1:end));
+    end
+    
+    shuffleCountL(shuffleInd) = getDeltaCount(tempRL,...
+        tempLL,totalNClusters);
+    shuffleCountR(shuffleInd) = getDeltaCount(tempRR,...
+        tempLR,totalNClusters);
     
     %display progress
     dispProgress('Shuffling clusters %d/%d',shuffleInd,shuffleInd,nShuffles);

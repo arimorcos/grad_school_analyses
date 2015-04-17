@@ -1,15 +1,17 @@
-function [mMat,cMat,clusterIDs] = getClusteredMarkovMatrix(dataCell,varargin)
+function [mMat,cMat,clusterIDs,clusterCenters] = getClusteredMarkovMatrix(dataCell,varargin)
 %getClusteredMarkovMatrix.m Creates a markov transition matrix from
 %clustered states for several points within the maze
 %
 %INPUTS
 %dataCell - dataCell containing imaging data
 %
-%OUTPUTS 
+%OUTPUTS
 %mMat - nPoints-1 x 1 cell array of nClustersPointN x
 %   nClustersPointN+1 matrix of transition probabilities
 %cMat - structure containing cluster labels for different properties
 %clusterIDs - nTrials x nPoints array of cluster IDs
+%clusterCenters - nPoints x 1 cell array each containing a nNeurons x
+%   nClusters array of clusterCenters
 %
 %ASM 4/15
 
@@ -45,41 +47,13 @@ yPosBins = dataCell{1}.imaging.yPosBins;
 [~,traces] = catBinnedTraces(dataCell);
 
 %get nNeurons
-[nNeurons, ~, nTrials] = size(traces);
+[nNeurons,~,nTrials] = size(traces);
 
 %%%%%%%%% Create matrix of values at each point in the maze
 
-%initialize array 
-tracePoints = nan(nNeurons,nPoints,nTrials);
+tracePoints = getMazePoints(traces,yPosBins);
 
-%fill in pre-seg
-preSegInd = find(yPosBins < segRanges(1),1,'last') - nBinsAvg + 1:find(yPosBins < segRanges(1),1,'last');
-tracePoints(:,1,:) = mean(traces(:,preSegInd,:),2);
-
-%fill in each segment
-for segInd = 1:length(segRanges)-1
-    matchInd = find(yPosBins >= segRanges(segInd) & yPosBins < segRanges(segInd+1));
-    binRange = round(range*length(matchInd));
-    binRange = binRange + find(yPosBins >= segRanges(segInd),1,'first');
-    tracePoints(:,segInd+1,:) = mean(traces(:,binRange(1):binRange(2),:),2);
-end
-
-% fill in early delay
-offset = 4;
-earlyDelayInd = find(yPosBins > segRanges(end),1,'first') + offset:...
-    find(yPosBins > segRanges(end),1,'first') + offset + nBinsAvg;
-tracePoints(:,8,:) = mean(traces(:,earlyDelayInd,:),2);
-
-% fill in late delay
-offset = 10;
-lateDelayInd = find(yPosBins > segRanges(end),1,'first') + offset:...
-    find(yPosBins > segRanges(end),1,'first') + offset + nBinsAvg;
-tracePoints(:,9,:) = mean(traces(:,lateDelayInd,:),2);
-
-% fill in turn
-tracePoints(:,end,:) = mean(traces(:,end-nBinsAvg:end-1,:),2);
-
-%%%%%%%%%%%% cluster 
+%%%%%%%%%%%% cluster
 clusterIDs = nan(nTrials,nPoints);
 for point = 1:nPoints
     switch lower(clusterType)
@@ -87,7 +61,7 @@ for point = 1:nPoints
             clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
         case 'dbscan'
             clusterIDs(:,point) = dbscanClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
-        otherwise 
+        otherwise
             error('Cannot interpret cluster type: %s',clusterType);
     end
 end
@@ -96,9 +70,9 @@ end
 uniqueClusters = arrayfun(@(x) unique(clusterIDs(:,x)),1:nPoints,'UniformOutput',false);
 nUnique = cellfun(@length,uniqueClusters);
 
-%%%% get color labels 
+%%%% get color labels
 
-%net evidence 
+%net evidence
 netEv = getNetEvidence(dataCell);
 cMat.netEv = cell(nPoints,1);
 for point = 1:nPoints
@@ -147,20 +121,55 @@ for point = 1:nPoints
     end
 end
 
-%%%%% get transitions 
+%currSeg
+mazePatterns = getMazePatterns(dataCell);
+nSeg = size(mazePatterns,2);
+cMat.currSeg = cell(nPoints,1);
+for point = 1:nPoints
+    if point == 1 || point > nSeg + 1
+        cMat.currSeg{point} = 0.5*ones(nUnique(point),1);
+    else
+        cMat.currSeg{point} = nan(nUnique(point),1);
+        for cluster = 1:nUnique(point)
+            cMat.currSeg{point}(cluster) = mean(mazePatterns(clusterIDs(:,point) ==...
+                uniqueClusters{point}(cluster),point-1));
+        end
+    end
+    
+end
+
+%%%%% get transitions
 transMat = cell(nPoints-1,1);
 for point = 1:(nPoints-1)
     
-    %initialize transMat 
+    %initialize transMat
     transMat{point} = zeros(nUnique(point),nUnique(point+1));
     
-    % loop through each trial 
-    for trialInd = 1:nTrials 
+    % loop through each trial
+    for trialInd = 1:nTrials
         currID = find(clusterIDs(trialInd,point) == uniqueClusters{point});
         newID = find(clusterIDs(trialInd,point+1) == uniqueClusters{point+1});
         transMat{point}(currID,newID) = transMat{point}(currID,newID) + 1;
     end
 end
 
-%normalize to get mMat 
+%normalize to get mMat
 mMat = cellfun(@(x) x./nTrials,transMat,'UniformOutput',false);
+
+%get cluster centers
+clusterCenters = cell(nPoints,1);
+for point = 1:nPoints
+    
+    %get unique clusters
+    uniqueClusters = sort(unique(clusterIDs(:,point)));
+    nClusters = length(uniqueClusters);
+    
+    %initialize
+    clusterCenters{point} = nan(nNeurons,nClusters);
+    
+    for clusterInd = 1:nClusters
+        clusterCenters{point}(:,clusterInd) = ...
+            mean(tracePoints(:,point,clusterIDs(:,point) == ...
+            uniqueClusters(clusterInd)),3);
+    end
+end

@@ -2,8 +2,8 @@
 % mouse = 'AM131'; date = '140911';
 % mouse = 'AM150'; date = '141128';
 % mouse = 'AM150'; date = '141206';
-% mouse = 'AM144'; date = '141203';
-mouse = 'AM142'; date = '141218';
+mouse = 'AM144'; date = '141203';
+% mouse = 'AM142'; date = '141218';
 
 path = sprintf('W:\\Mice\\%s_%s_processed.mat',mouse,date);
 load(path);
