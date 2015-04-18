@@ -12,7 +12,7 @@ function clusters = clusterFullTrace(dataCell,clusterProb,dsamp)
 %
 %ASM 4/15
 if nargin < 3 || isempty(dsamp)
-    dsamp = 20;
+    dsamp = 4;
 end
 if nargin < 2 || isempty(clusterProb)
     clusterProb = 10;

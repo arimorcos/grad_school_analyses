@@ -36,6 +36,8 @@ else
     dataCell{1}.imaging.completeDFFTrace = dFFTraces;
 end
 
+dataCell{1}.imaging.completeDataFrames = dataFrames;
+
 if exist('dGRTraces','var')
     if isfield(dataCell{1}.imaging,'completeDGRTrace')
         dataCell{1}.imaging.completeDGRTrace = cat(1,dataCell{1}.imaging.completeDGRTrace,dGRTraces);
