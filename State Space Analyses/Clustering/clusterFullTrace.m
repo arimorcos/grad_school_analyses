@@ -35,5 +35,11 @@ for i = 1:size(meanTrace,2)
     meanTrace(:,i) = nanmean(completeTrace(:,frameInd(i,:)),2);
 end
 
-%cluster
-clusters = apClusterNeuronalStates(meanTrace,clusterProb);
+%create distance matrix
+distMat = -1*squareform(pdist(meanTrace'));
+
+whos('distMat');
+
+%run apcluster
+clusters = apcluster(distMat,prctile(distMat(:),clusterProb),...
+    'maxits',1e4,'plot');
