@@ -10,6 +10,7 @@ nClusters = length(uniqueClusters);
 %get leftTurns and correct
 leftTurn = getCellVals(dataCell,'result.leftTurn');
 correct = getCellVals(dataCell,'result.correct');
+prevTurn = getCellVals(dataCell,'result.prevTurn');
 
 %loop through each cluster
 meanMazePattern = nan(nClusters,size(mazePattern,2));
@@ -29,10 +30,11 @@ sumPattern = sum(meanMazePattern,2);
 meanMazePattern = meanMazePattern(sortOrder,:);
 fracLeft = fracLeft(sortOrder);
 fracCorrect = fracCorrect(sortOrder);
+prevTurn = prevTurn(sortOrder)';
 nTrials = nTrials(sortOrder);
 
 %create table 
-clusterInfo = table(meanMazePattern,fracLeft,fracCorrect,nTrials);
+clusterInfo = table(meanMazePattern,fracLeft,fracCorrect,prevTurn,nTrials);
 if nargout > 0 
     return;
 end
@@ -53,11 +55,15 @@ for clusterInd = 1:nClusters
     textH.FontSize = 20;
     
     %fracLeft 
-    textH = text(0.5,textY(clusterInd),num2str(fracLeft(clusterInd),'%.2f      '));
+    textH = text(0.45,textY(clusterInd),num2str(fracLeft(clusterInd),'%.2f      '));
     textH.FontSize = 20;
     
     %fracCorrect
-    textH = text(0.7,textY(clusterInd),num2str(fracCorrect(clusterInd),'%.2f      '));
+    textH = text(0.6,textY(clusterInd),num2str(fracCorrect(clusterInd),'%.2f      '));
+    textH.FontSize = 20;
+    
+    %prevTurn 
+    textH = text(0.75,textY(clusterInd),num2str(prevTurn(clusterInd),'%.2f      '));
     textH.FontSize = 20;
     
     %nTrials
@@ -70,12 +76,16 @@ textH = text(0.125,textY(end),'Mean Maze Pattern');
 textH.FontSize = 20;
 textH.FontWeight = 'Bold';
 
-textH = text(0.45,textY(end),'Frac Left');
+textH = text(0.4,textY(end),'Frac Left');
 textH.FontSize = 20;
 textH.FontWeight = 'Bold';
 
 
-textH = text(0.65,textY(end),'Frac Correct');
+textH = text(0.55,textY(end),'Frac Correct');
+textH.FontSize = 20;
+textH.FontWeight = 'Bold';
+
+textH = text(0.7,textY(end),'Prev Turn');
 textH.FontSize = 20;
 textH.FontWeight = 'Bold';
 
