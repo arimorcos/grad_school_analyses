@@ -121,6 +121,10 @@ if shouldPlot
     figH.Units = 'normalized';
     figH.OuterPosition = [0 0 1 1];
     [nRows, nCol] = calcNSubplotRows(nPoints);
+    sameR2 = nan(nPoints,1);
+    rup2 = nan(nPoints,1);
+    rlo2 = nan(nPoints,1);
+    sameP = nan(nPoints,1);
     for pointInd = 1:nPoints
         axH = subplot(nRows,nCol,pointInd);
         hold(axH,'on');
@@ -148,14 +152,16 @@ if shouldPlot
         fitH.Color = 'k';
         
         %get corrcoef
-        [sameR,p] = corrcoef(internalVecDist{pointInd},internalStartDist{pointInd});
-        sameP = p(2,1);
-        sameR2 = sameR(2,1)^2;
+        [sameR,p,rlo,rup] = corrcoef(internalVecDist{pointInd},internalStartDist{pointInd});
+        sameP(pointInd) = p(2,1);
+        sameR2(pointInd) = sameR(2,1)^2;
+        rlo2(pointInd) = rlo(2,1)^2;
+        rup2(pointInd) = rup(2,1)^2;
         
         %add text
         maxY = max(axH.YLim);
         minX = min(axH.XLim);
-        text(minX+0.05,maxY-0.01,sprintf('R^{2}: %.3f, p = %.1d',sameR2,sameP),...
+        text(minX+0.05,maxY-0.01,sprintf('R^{2}: %.3f, p = %.1d',sameR2(pointInd),sameP(pointInd)),...
             'VerticalAlignment','Top','HorizontalAlignment','Left',...
             'FontWeight','Bold','FontSize',15);
         
@@ -170,5 +176,29 @@ if shouldPlot
     xLab.FontSize = 30;
     yLab = suplabel(sprintf('Start Distance (%s)',startDistMetric),'x');
     yLab.FontSize = 30;
+    
+    %create new figure and plot 
+    figH = figure;
+    axH = axes;
+    errorbar(1:nPoints,sameR2,abs(sameR2-rlo2),abs(sameR2-rup2));
+    axH.YLim = [0 max(axH.YLim)+0.02];
+    axH.XTick = 1:nPoints;
+    axH.XTickLabel = pointLabels;
+    axH.XTickLabelRotation = -45;
+    axH.FontSize = 20;
+    axH.YLabel.String = 'R^{2}';
+    for pointInd = 1:nPoints
+        if sameP(pointInd) < 0.001
+            textH = text(pointInd,rup2(pointInd)+0.001,'***');
+        elseif sameP(pointInd) < 0.01
+            textH = text(pointInd,rup2(pointInd)+0.001,'**');
+        elseif sameP(pointInd) < 0.05
+            textH = text(pointInd,rup2(pointInd)+0.001,'*');
+        end
+        textH.FontSize = 30;
+        textH.HorizontalAlignment = 'Center';
+        textH.VerticalAlignment = 'bottom';
+    end
+    
     
 end
