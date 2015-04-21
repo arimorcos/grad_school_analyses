@@ -56,6 +56,10 @@ if ~strcmpi(sortBy,'none') && ~isempty(cMat)
         [~,sortOrder{point}] = sort(cMat.(sortBy){point});
         sortOrder{point} = flipud(sortOrder{point});
     end
+else
+    for point = 1:nPoints
+        sortOrder{point} = true(nUnique(point),1);
+    end
 end
 
 %get mean traces
