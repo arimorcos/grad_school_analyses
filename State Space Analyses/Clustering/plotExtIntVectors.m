@@ -18,7 +18,7 @@ shouldShuffle = true;
 nShuffles = 200;
 shouldPlot = true;
 startDistMetric = 'euclidean';
-vectorDistMetric = 'cosine';
+vectorDistMetric = 'euclidean';
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
         error('Must provide a name and value for each argument');
