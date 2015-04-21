@@ -172,9 +172,10 @@ if shouldPlot
         axis(axH,'square');
         axH.FontSize = 15;
     end
-    xLab = suplabel(sprintf('Vector distances (%s)',vectorDistMetric),'y');
+    supAxes=[.14 .14 .78 .78];
+    xLab = suplabel(sprintf('Vector distances (%s)',vectorDistMetric),'y',supAxes);
     xLab.FontSize = 30;
-    yLab = suplabel(sprintf('Start Distance (%s)',startDistMetric),'x');
+    yLab = suplabel(sprintf('Start Distance (%s)',startDistMetric),'x',supAxes);
     yLab.FontSize = 30;
     
     %create new figure and plot 
