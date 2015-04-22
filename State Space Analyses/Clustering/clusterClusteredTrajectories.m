@@ -25,5 +25,5 @@ clusterTraj = clusterTraj(:,whichPoints);
 distMat = -1*squareform(pdist(clusterTraj,'hamming'));
 
 %run apcluster
-clusterIDs = apcluster(distMat,prctile(distMat(:),prct));
+clusterIDs = apcluster(distMat,prctile(distMat(:),prct),'nonoise');
 
