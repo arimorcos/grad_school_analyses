@@ -1,4 +1,4 @@
-function clusterIDs = clusterClusteredTrajectories(clusterTraj,prct)
+function clusterIDs = clusterClusteredTrajectories(clusterTraj,whichPoints,prct)
 %clusterClusteredTrajectories.m Clusters trajectories output by
 %getClusteredMarkovMatrix.m 
 %
@@ -11,9 +11,15 @@ function clusterIDs = clusterClusteredTrajectories(clusterTraj,prct)
 %
 %ASM 4/15
 
-if nargin < 2 || isempty(prct)
+if nargin < 3 || isempty(prct)
     prct = 10;
 end
+if nargin < 2 || isempty(whichPoints)
+    whichPoints = 1:10;
+end
+
+%crop
+clusterTraj = clusterTraj(:,whichPoints);
 
 %use pdist with hamming distance 
 distMat = -1*squareform(pdist(clusterTraj,'hamming'));

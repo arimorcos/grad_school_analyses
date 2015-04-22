@@ -21,6 +21,7 @@ for clusterInd = 1:nClusters
     meanMazePattern(clusterInd,:) = mean(mazePattern(clusters==uniqueClusters(clusterInd),:));
     fracLeft(clusterInd) = mean(leftTurn(clusters==uniqueClusters(clusterInd)));
     fracCorrect(clusterInd) = mean(correct(clusters==uniqueClusters(clusterInd)));
+    prevTurn(clusterInd) = mean(prevTurn(clusters==uniqueClusters(clusterInd)));
     nTrials(clusterInd) = sum(clusters==uniqueClusters(clusterInd));
 end
 
