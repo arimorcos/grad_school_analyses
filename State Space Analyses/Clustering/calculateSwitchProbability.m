@@ -77,6 +77,7 @@ imagescnan(1:nTransitions,1:nTraj,plotSwitchProb,[0 1]);
 
 %label 
 axSwitch.XTick = 1:nTransitions;
+axSwitch.YTick = 1:nTraj;
 axSwitch.XTickLabel = pointLabels(2:end);
 axSwitch.XTickLabelRotation = -45;
 axSwitch.FontSize = 20;
@@ -95,7 +96,7 @@ axRightY = axes('Position',axSwitch.Position);
 axRightY.YAxisLocation = 'right';
 axRightY.YTick = 1:nTraj;
 axRightY.YLim = [0.5 nTraj+0.5];
-axRightY.YTickLabel = nTrajTrials(sortOrder);
+axRightY.YTickLabel = flipud(nTrajTrials(sortOrder));
 axRightY.XTick = [];
 uistack(axRightY,'bottom');
 axRightY.FontSize = 15;
@@ -107,7 +108,7 @@ for trajInd = 1:nTraj
     meanMazePattern(trajInd,:) = mean(mazePatterns(uniqueTraj(trajInd) == clusterTraj,:));
 end
 axMazePattern = axes('Position',[0.605 0.12 0.12 0.8]);
-imagesc(1:size(mazePatterns,2),1:nTraj,meanMazePattern(sortOrder,:));
+imagesc(1:size(mazePatterns,2),1:nTraj,meanMazePattern(sortOrder,:),[0 1]);
 colormap(axMazePattern,redblue);
 axMazePattern.YTickLabel = [];
 axMazePattern.XTick = 1:size(mazePatterns,2);
@@ -127,7 +128,7 @@ for trajInd = 1:nTraj
     behavFeatures(trajInd,3) = mean(correct(uniqueTraj(trajInd) == clusterTraj));
 end
 axBehavFeature = axes('Position',[0.76 0.12 0.15 0.8]);
-imagesc(1:3,1:nTraj,behavFeatures(sortOrder,:));
+imagesc(1:3,1:nTraj,behavFeatures(sortOrder,:),[0 1]);
 colormap(axBehavFeature,redblue);
 axBehavFeature.YTickLabel = [];
 axBehavFeature.XTick = 1:size(mazePatterns,2);
