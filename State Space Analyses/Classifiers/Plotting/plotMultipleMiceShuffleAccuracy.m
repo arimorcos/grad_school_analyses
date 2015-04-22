@@ -27,6 +27,7 @@ for mouseInd = 1:nMice
         case 'zScore'
             handles = plotAsZScoreShuffle(trace{mouseInd},shuffleTrace{mouseInd},xVals{mouseInd},handles);
         case 'dashBounds'
+            handles = plotWithDashedShuffle(trace{mouseInd},shuffleTrace{mouseInd},xVals{mouseInd},handles);
         otherwise
             error('Cannot interpret %s',plotType);
     end

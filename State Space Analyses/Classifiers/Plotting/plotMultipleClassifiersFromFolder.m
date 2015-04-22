@@ -1,4 +1,4 @@
-function handles = plotMultipleClassifiersFromFolder(folder,fileStr,plotType,title,xLab,yLab)
+function handles = plotMultipleClassifiersFromFolder(folder,fileStr,title,plotType,xLab,yLab)
 %plotMultipleClassifiersFromFolder.m Plots multiple classifiers based on a
 %specific folder path 
 %
@@ -16,8 +16,8 @@ function handles = plotMultipleClassifiersFromFolder(folder,fileStr,plotType,tit
 
 segRanges = 0:80:480;
 
-if nargin < 3 || isempty(plotType)
-    plotType = 'zScore';
+if nargin < 4 || isempty(plotType)
+    plotType = 'dashBounds';
 end
 if nargin < 6 || isempty(yLab)
     switch plotType
@@ -30,7 +30,7 @@ end
 if nargin < 5 || isempty(xLab)
     xLab = 'Y Position (binned)';
 end
-if nargin < 4 || isempty(title)
+if nargin < 3 || isempty(title)
     title = '';
 end
 
@@ -46,7 +46,7 @@ allAcc = cell(length(matchFiles),1);
 allShuffle = cell(size(allAcc));
 allxVals = cell(size(allAcc));
 for fileInd = 1:length(matchFiles)
-    currFileData = load(matchFiles{fileInd});
+    currFileData = load(fullfile(folder,matchFiles{fileInd}));
     allAcc{fileInd} = currFileData.accuracy(2:end-1);
     allShuffle{fileInd} = currFileData.shuffleAccuracy(:,2:end-1);
     allxVals{fileInd} = currFileData.yPosBins(2:end-1);
@@ -62,10 +62,11 @@ handles.ax.FontSize = 20;
 handles.ax.XLim = [min(cat(2,allxVals{:})) max(cat(2,allxVals{:}))];
 handles.ax.Title.String = title;
 
+
 %add segment dividers 
 handles.lineH = gobjects(length(segRanges),1);
 for segInd = 1:length(segRanges)
     handles.lineH(segInd) = line([segRanges(segInd) segRanges(segInd)],handles.ax.YLim);
-    handles.lineH(segInd).Color = 'g';
+    handles.lineH(segInd).Color = 'k';
     handles.lineH(segInd).LineStyle = '--';
 end

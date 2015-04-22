@@ -1,9 +1,9 @@
 function showClusteredNeurons(dataCell,clusterIDs,cMat,varargin)
 %showClusteredNeurons.m Shows the average z-scored activity of each neuron
-%in each cluster 
+%in each cluster
 %
 %INPUTS
-%traces - trace array 
+%traces - trace array
 %clusterIDs - clusterIDs output by getClusteredMarkovMatrix
 %cMat - CMat output by getClusteredMarkovMatrix
 %
@@ -12,6 +12,9 @@ function showClusteredNeurons(dataCell,clusterIDs,cMat,varargin)
 
 pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
     'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
+whichNeurons = [];
+showThresholded = false;
+zThresh = 0.5;
 sortBy = 'leftTurn';
 showAllPoints = true;
 whichPoints = 8;
@@ -31,6 +34,12 @@ if nargin > 1 || ~isempty(varargin)
                 showAllPoints = varargin{argInd+1};
             case 'whichpoints'
                 whichPoints = varargin{argInd+1};
+            case 'whichneurons'
+                whichNeurons = varargin{argInd+1};
+            case 'showthresholded'
+                showThresholded = varargin{argInd+1};;
+            case 'zthresh'
+                zThresh = varargin{argInd+1};
         end
     end
 end
@@ -41,9 +50,12 @@ clustTraces = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,'sortBy',...
 nPoints = length(clustTraces);
 nUnique = cellfun(@(x) size(x,2),clustTraces);
 nNeurons = size(clustTraces{1},1);
+if isempty(whichNeurons)
+    whichNeurons = 1:nNeurons;
+end
 
 
-%% plot 
+%% plot
 %create figure
 figH = figure;
 
@@ -52,7 +64,7 @@ if showAllPoints
 end
 nShowPoints = length(whichPoints);
 
-%get min and max value 
+%get min and max value
 % allTraces = cat(2,clustTraces{whichPoints});
 % minVal = min(allTraces(:));
 % maxVal = max(allTraces(:));
@@ -63,22 +75,43 @@ for point = 1:nShowPoints
     %create subplot
     axH = subplot(nRow,nCol,point);
     
-    %show 
-    imagescnan(1:nUnique(whichPoints(point)),1:nNeurons,clustTraces{whichPoints(point)});
-%     imagescnan(1:nUnique(point),1:nNeurons,clustTraces{point},[minVal maxVal]);
+    %get trace to show
+    if showThresholded
+        traceToShow = clustTraces{whichPoints(point)}(whichNeurons,:);
+        traceToShow = double(traceToShow >= zThresh);
+    else
+        traceToShow = clustTraces{whichPoints(point)}(whichNeurons,:);
+    end
     
-    %set ticks 
+    %show
+    imagescnan(1:nUnique(whichPoints(point)),1:length(whichNeurons),traceToShow);
+    %     imagescnan(1:nUnique(point),1:nNeurons,clustTraces{point},[minVal maxVal]);
+    
+    %if label ytick if necessary
+    if length(whichNeurons) < 20
+        axH.YTick = 1:length(whichNeurons);
+    end
+    
+    %set ticks
     axH.XTick = 1:nUnique(whichPoints(point));
     
     %label axes
     axH.Title.String = pointLabels{whichPoints(point)};
     cBar = colorbar;
-    cBar.Label.String = 'zScore';
+    if ~showThresholded
+        cBar.Label.String = 'zScore';
+    else
+        cBar.Label.String = 'Active';
+        cBar.Ticks = [0 1];
+    end
+    if nShowPoints < 3
+        axH.FontSize = 20;
+    end
     
 end
 
-%label super axes 
-supAxes=[.14 .14 .78 .8];
+%label super axes
+supAxes=[.14 .14 .78 .81];
 xLab = suplabel('Sorted cluster index','x',supAxes);
 xLab.FontSize = 30;
 yLab = suplabel('Neuron index','y',supAxes);

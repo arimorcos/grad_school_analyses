@@ -37,7 +37,7 @@ end
 testOffset = 0;
 dontCompareSame = [];
 nShuffles = 100;
-classifier = 'leastdist';
+classifier = 'svm';
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)

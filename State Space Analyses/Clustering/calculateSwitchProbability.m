@@ -66,7 +66,7 @@ figH = figure;
 figH.Units = 'normalized';
 figH.OuterPosition = [0 0 1 1];
 
-axSwitch = axes('Position',[0.05 0.12 0.43 0.8]);
+axSwitch = axes('Position',[0.05 0.18 0.43 0.76]);
 
 %sort trajectories 
 totalSwitchProb = sum(switchProb,2);
@@ -107,7 +107,7 @@ meanMazePattern = nan(nTraj,size(mazePatterns,2));
 for trajInd = 1:nTraj
     meanMazePattern(trajInd,:) = mean(mazePatterns(uniqueTraj(trajInd) == clusterTraj,:));
 end
-axMazePattern = axes('Position',[0.605 0.12 0.12 0.8]);
+axMazePattern = axes('Position',[0.605 0.18 0.12 0.76]);
 imagesc(1:size(mazePatterns,2),1:nTraj,meanMazePattern(sortOrder,:),[0 1]);
 colormap(axMazePattern,redblue);
 axMazePattern.YTickLabel = [];
@@ -122,23 +122,25 @@ behavFeatures = nan(nTraj,3);
 leftTurns = getCellVals(dataCell,'result.leftTurn');
 prevTurns = getCellVals(dataCell,'result.prevTurn');
 correct = getCellVals(dataCell,'result.correct');
+prevCorrect = getCellVals(dataCell,'result.prevCorrect');
 for trajInd = 1:nTraj    
     behavFeatures(trajInd,1) = mean(leftTurns(uniqueTraj(trajInd) == clusterTraj));
     behavFeatures(trajInd,2) = mean(prevTurns(uniqueTraj(trajInd) == clusterTraj));
     behavFeatures(trajInd,3) = mean(correct(uniqueTraj(trajInd) == clusterTraj));
+    behavFeatures(trajInd,4) = mean(prevCorrect(uniqueTraj(trajInd) == clusterTraj));
 end
-axBehavFeature = axes('Position',[0.76 0.12 0.15 0.8]);
-imagesc(1:3,1:nTraj,behavFeatures(sortOrder,:),[0 1]);
+axBehavFeature = axes('Position',[0.76 0.18 0.15 0.76]);
+imagesc(1:4,1:nTraj,behavFeatures(sortOrder,:),[0 1]);
 colormap(axBehavFeature,redblue);
 axBehavFeature.YTickLabel = [];
 axBehavFeature.XTick = 1:size(mazePatterns,2);
 axBehavFeature.FontSize = 20;
-axBehavFeature.XTickLabel = {'Current turn','Previous Turn','Correct'};
+axBehavFeature.XTickLabel = {'Current turn','Previous Turn','Correct','Previous Correct'};
 axBehavFeature.XTickLabelRotation = -45;
 axBehavFeature.Title.String = 'Behavioral Features';
 
 %add colorbar
-cBar = colorbar;
+cBar = colorbar('Position',[.92 0.18 0.02 0.76]);
 cBar.FontSize = 20;
 cBar.Label.String = 'Fraction left/correct';
 cBar.Label.FontSize = 30;

@@ -1,4 +1,4 @@
-function overlapIndex = calculateClusterOverlap(dataCell,clusterIDs,cMat,varargin)
+function [overlapIndex, nullOverlap] = calculateClusterOverlap(dataCell,clusterIDs,cMat,varargin)
 %calculateClusterOverlap.m Calculates the overlap in active neurons between
 %clusters using the threshold specified
 %
@@ -14,6 +14,8 @@ function overlapIndex = calculateClusterOverlap(dataCell,clusterIDs,cMat,varargi
 %OUTPUTS
 %overlapIndex - nPoints x 1 cell array containing nClusters x nClusters
 %   matrix of overlap indices
+%nullOverlap - nPoints x 1 cell array containing nClusters x nClusters
+%   matrix of null probability overlap indices
 %
 %ASM 4/15
 
@@ -63,4 +65,19 @@ for point = 1:nPoints
         end
     end
 end
+
+%% calculate null overlap index
+nullOverlap = cell(size(actNeurons));
+% for point = 1:nPoints
+%     nullOverlap{point} = ones(nUnique(point));
+%     for startCluster = 1:nUnique(point)
+%         for endCluster = startCluster+1:nUnique(point)
+%             actStart = find(actNeurons{point}(:,startCluster));
+%             actEnd = find(actNeurons{point}(:,endCluster));
+%             overlap = length(intersect(actEnd,actStart))/length(union(actEnd,actStart));
+%             nullOverlap{point}(startCluster,endCluster) = overlap;
+%             nullOverlap{point}(endCluster,startCluster) = overlap;
+%         end
+%     end
+% end
     
