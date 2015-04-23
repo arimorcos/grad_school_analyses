@@ -76,6 +76,7 @@ for point = 1:nShowPoints
     %label axes
     axH.Title.String = pointLabels{whichPoints(point)};
     axH.FontSize = 15;
+    axis(axH,'square');
     
 end
 

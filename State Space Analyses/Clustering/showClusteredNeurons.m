@@ -107,6 +107,7 @@ for point = 1:nShowPoints
     if nShowPoints < 3
         axH.FontSize = 20;
     end
+    axis(axH,'square');
     
 end
 
@@ -116,6 +117,8 @@ xLab = suplabel('Sorted cluster index','x',supAxes);
 xLab.FontSize = 30;
 yLab = suplabel('Neuron index','y',supAxes);
 yLab.FontSize = 30;
+% axH.YLabel.String = 'Neuron Index';
+% axH.YLabel.FontSize = 30;
 tLab = suplabel(sprintf('Sorted by %s',sortBy),'t',supAxes);
 tLab.FontSize = 30;
 

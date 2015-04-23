@@ -1,4 +1,4 @@
-function [meanDifference,shuffleDifference,probIncorrect] = calcHighwayCorrect(clusterIDs,dataCell,refPoint)
+function [probIncorrect,pVal] = calcHighwayCorrect(clusterIDs,dataCell,refPoint)
 %calcRelSwitchProb.m Calculates the relative probability of switching
 %between the two provided reference points
 %
@@ -103,8 +103,9 @@ axH = axes;
 hold(axH,'on');
 
 %plot
-plotH = plot(sort(probIncorrect));
+plotH = plot(1:nTraj,sort(probIncorrect));
 plotH.Marker = 'o';
+plotH.LineStyle = 'none';
 plotH.MarkerSize = 13;
 plotH.MarkerFaceColor = plotH.Color;
 plotH.LineWidth = 2;
@@ -115,6 +116,10 @@ nullH = line(axH.XLim,[nullProb nullProb]);
 nullH.Color = 'k';
 nullH.LineStyle = '--';
 nullH.LineWidth = 1.5;
+nullText = text(min(axH.XLim) + 0.5,nullProb+0.005,'Null probability');
+nullText.HorizontalAlignment = 'left';
+nullText.VerticalAlignment = 'bottom';
+nullText.FontSize = 20;
 
 %add text
 if useChiSquared
