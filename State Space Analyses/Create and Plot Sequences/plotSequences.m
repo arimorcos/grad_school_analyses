@@ -54,10 +54,14 @@ for i = 1:nTraces
     
     %create subplot
     if ~isempty(axToPlot) && nTraces == 1
-        axes(axToPlot)
+        axH = axes(axToPlot);
     else
-        subplot(nPlotRows,nPlotCol,i);
+        axH = subplot(nPlotRows,nPlotCol,i);
     end
+    
+    %scale
+    cmScale = 0.75;
+    binLabels = cmScale*binLabels;
     
     %plot
     if normInd
@@ -68,11 +72,13 @@ for i = 1:nTraces
     
     %colorbar
     if isempty(axToPlot)
+        axH.LabelFontSizeMultiplier = 1.5;
+        
         cAxis = colorbar;
         set(get(cAxis,'Label'),'String',colorLab);
         
         %set labels
-        xlabel('Y Position (binned)');
+        xlabel('Maze Position (cm)');
         ylabel('Cell # (sorted)');
         title(traceLabels{i});
         

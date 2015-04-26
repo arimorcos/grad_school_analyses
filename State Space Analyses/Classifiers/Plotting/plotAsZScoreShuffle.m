@@ -33,6 +33,10 @@ zTrace = (trace-shuffleMedian)./shuffleSTD;
 %turn on hold
 hold(handles.ax,'on');
 
+%convert to cm
+cmScale = 0.75;
+xVals = xVals*0.75;
+
 %plot zTrace 
 plotH = plot(xVals,zTrace);
 if isfield(handles,'plot')

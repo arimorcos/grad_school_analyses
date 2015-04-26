@@ -14,6 +14,8 @@ pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
 colorBy = 'netEv';
 sortBy = colorBy;
 modSort = false;
+showEdges = true;
+whichPoints = 1:10;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -32,6 +34,10 @@ if nargin > 1 || ~isempty(varargin)
             case 'sortby'
                 sortBy = varargin{argInd+1};
                 modSort = true;
+            case 'showedges'
+                showEdges = varargin{argInd+1};
+            case 'whichpoints'
+                whichPoints = varargin{argInd+1};
         end
     end
 end
@@ -110,7 +116,7 @@ if ~isempty(cMat)
         showColorbar = true;
     else
         warning('Cannot interpret colorBy. Coloring uniformly');
-        colors = repmat([0 0 1],sum(nClusters),1);
+        colors = repmat([1 1 1],sum(nClusters),1);
         showColorbar = false;
     end
 else
@@ -120,66 +126,73 @@ end
 
 %set axis properties
 axH.YTick = [];
-axH.XTickLabel = pointLabels;
+axH.XTickLabel = pointLabels(whichPoints);
 axH.XTickLabelRotation = -45;
 axH.TickLength = [0 0]; %remove inner ticks
-axH.XTick = 1:nPoints;
+axH.XTick = whichPoints;
 axH.FontSize = 20;
-axH.XLim = [0 nPoints+1];
+axH.XLim = [whichPoints(1) - 1 whichPoints(end) + 1];
 currYLim = axH.YLim;
 axH.YLim = [currYLim(1)-0.025*diff(currYLim) currYLim(2)+0.025*diff(currYLim)];
 
-%add edges
-totalWidth = 30;
-xOffset = 0;
-nEdges = cellfun(@numel,mMat);
-maxEdges = max(nEdges);
-edgeMat = nan(maxEdges,nPoints-1);
-for point = 1:(nPoints-1)
-    % get temporary matrix
-    tempMat = mMat{point};
-    edgeMat(1:numel(tempMat),point) = tempMat(:);
-end
-
-%find number which match
-nMatch = sum(~isnan(edgeMat(:)));
-allEdges = edgeMat(:);
-allEdges(isnan(allEdges)) = [];
-
-%initialize
-tempXVals = nan(2,nMatch);
-tempYVals = nan(size(tempXVals));
-
-%create line plotting matrix
-ind = 1;
-for point = 1:(nPoints - 1)
-    for transition = 1:maxEdges
-        if ~isnan(edgeMat(transition,point))
-            tempXVals(:,ind) = [point + xOffset; point + 1 - xOffset];
-            [xInd, yInd] = ind2sub(size(mMat{point}),transition);
-            tempYVals(:,ind) = [clusterLoc{point}(xInd); clusterLoc{point+1}(yInd)];
-            ind = ind + 1;
+if showEdges
+    %add edges
+    totalWidth = 30;
+    xOffset = 0;
+    nEdges = cellfun(@numel,mMat);
+    maxEdges = max(nEdges);
+    edgeMat = nan(maxEdges,nPoints-1);
+    for point = 1:(nPoints-1)
+        % get temporary matrix
+        tempMat = mMat{point};
+        edgeMat(1:numel(tempMat),point) = tempMat(:);
+    end
+    
+    %find number which match
+    nMatch = sum(~isnan(edgeMat(:)));
+    allEdges = edgeMat(:);
+    allEdges(isnan(allEdges)) = [];
+    
+    %initialize
+    tempXVals = nan(2,nMatch);
+    tempYVals = nan(size(tempXVals));
+    
+    %create line plotting matrix
+    ind = 1;
+    for point = whichPoints(1):whichPoints(end-1)
+        for transition = 1:maxEdges
+            if ~isnan(edgeMat(transition,point))
+                tempXVals(:,ind) = [point + xOffset; point + 1 - xOffset];
+                [xInd, yInd] = ind2sub(size(mMat{point}),transition);
+                tempYVals(:,ind) = [clusterLoc{point}(xInd); clusterLoc{point+1}(yInd)];
+                ind = ind + 1;
+            end
         end
     end
-end
-
-%plot
-edgeH = line(tempXVals,tempYVals);
-% uistack(edgeH,'bottom');
-for edge = 1:nMatch
-    if allEdges(edge) > 0
+    
+    %plot
+    edgeH = line(tempXVals,tempYVals);
+    % uistack(edgeH,'bottom');
+    for edge = 1:nMatch
+%         if allEdges(edge) > 0
+%             edgeH(edge).Color = 'k';
+%             edgeH(edge).LineWidth = allEdges(edge)*totalWidth;
+%         else
+%             delete(edgeH(edge));
+%         end
         edgeH(edge).Color = 'k';
-        edgeH(edge).LineWidth = allEdges(edge)*totalWidth;
-    else
-        delete(edgeH(edge));
+        edgeH(edge).LineWidth = 0.2*rand*totalWidth;
     end
 end
 
 %scatter nodes
-scatH = scatter(scatXVals,scatYVals,'filled');
-scatH.CData = colors;
+keepInd = ismember(scatXVals, whichPoints);
+scatH = scatter(scatXVals(keepInd),scatYVals(keepInd),'filled');
+scatH.CData = colors(keepInd,:);
 scatH.MarkerEdgeColor = 'k';
-scatH.SizeData = scatSizeData*sizeScale;
+scatSizeData(keepInd) = [0.5 1.5 0.5 1.5 0.75 1.25 0.8 1.4];
+scatH.SizeData = scatSizeData(keepInd)*sizeScale;
+% scatH.SizeData = 
 
 %add colorbar
 if showColorbar

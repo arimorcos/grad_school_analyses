@@ -3,7 +3,7 @@ function [actualMSE,shuffleMSE] = calculateWholeTrialOffset(dataCell,varargin)
 %arbitrary points. Defaults to maze start and late delay.
 %
 %INPUTS
-%dataCell - dataCell containing imaging data 
+%dataCell - dataCell containing imaging data
 %
 %ASM 4/15
 
@@ -13,9 +13,10 @@ shouldShuffle = true;
 confInt = 95;
 refPoints = [1 4];
 plotMSE = true;
-distType = 'seuclidean';
+distType = 'euclidean';
 pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
     'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
+accountForVectorSize = true;
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
         error('Must provide a name and value for each argument');
@@ -38,6 +39,8 @@ if nargin > 1 || ~isempty(varargin)
                 plotMSE = varargin{argInd+1};
             case 'pointlabels'
                 pointLabels = varargin{argInd+1};
+            case 'accountforvectorsize'
+                accountForVectorSize = varargin{argInd+1};
         end
     end
 end
@@ -51,38 +54,61 @@ yPosBins = dataCell{1}.imaging.yPosBins;
 %get tracePoints
 tracePoints = getMazePoints(traces,yPosBins);
 
-%get start and end points 
+%get start and end points
 startPoint = squeeze(tracePoints(:,refPoints(1),:))';
 endPoint = squeeze(tracePoints(:,refPoints(2),:))';
 
-%calculate pairwise distance between starting points 
+%calculate pairwise distance between starting points
 startDists = pdist(startPoint,distType);
 endDists = pdist(endPoint,distType);
 
-%calculate mse 
+%calculate mse
 actualMSE = getMSEDist(startDists,endDists);
 
-%shuffle 
+%shuffle
 if shouldShuffle
     shuffleMSE = nan(nShuffles,1);
-    for shuffleInd = 1:nShuffles
-        shuffleMSE(shuffleInd) = getMSEDist(shuffleArray(startDists),...
-            shuffleArray(endDists));
+    if accountForVectorSize
+        
+        %get vectors 
+        vectors = endPoint - startPoint;
+        trialInd = 1:size(vectors,1);
+        
+        for shuffleInd = 1:nShuffles
+            
+            %shuffle vectors 
+            shuffleVec = arrayfun(@(x) shuffleArray(vectors(x,:)),1:size(vectors,1),'UniformOutput',false);
+            shuffleVec = cat(1,shuffleVec{:});
+            shuffleVec = shuffleVec(shuffleArray(trialInd),:);
+%             shuffleVec = reshape(shuffleArray(vectors(:)),size(vectors));
+            shuffleEndPoint = startPoint + shuffleVec;
+            shuffleEndDist = pdist(shuffleEndPoint,distType);
+            
+            shuffleMSE(shuffleInd) = getMSEDist(startDists,...
+                shuffleEndDist);
+            dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
+        end
+    else
+        
+        for shuffleInd = 1:nShuffles
+            shuffleMSE(shuffleInd) = getMSEDist(shuffleArray(startDists),...
+                shuffleArray(endDists));
+        end
     end
 end
 
-%% plot 
+%% plot
 if ~shouldPlot
     return;
 end
 
-%create figure and axes 
+%create figure and axes
 figH = figure;
 
 %scatter plot
 if plotMSE
     axScatter = subplot(1,2,1);
-else 
+else
     axScatter = axes;
 end
 hold(axScatter,'on');
@@ -91,7 +117,7 @@ minDist = min(allDists(:));
 maxDist = max(allDists(:));
 scatH = scatter(startDists,endDists);
 
-%add line of unity 
+%add line of unity
 unityH = line([minDist maxDist],[minDist maxDist]);
 unityH.Color = 'k';
 unityH.LineStyle = '--';
@@ -106,7 +132,7 @@ axScatter.XLim = [minDist maxDist];
 axScatter.YLim = [minDist maxDist];
 axScatter.FontSize = 20;
 
-%calculate correlation coefficient 
+%calculate correlation coefficient
 [corr,pVal] = corrcoef(startDists,endDists);
 textH = text(minDist+0.4,maxDist-0.4,sprintf('R^{2}: %.3f, p = %.4d',corr(2,1)^2,pVal(2,1)));
 textH.FontSize = 20;
@@ -116,29 +142,29 @@ textH.HorizontalAlignment = 'Left';
 if ~plotMSE
     return;
 end
-% mse plot 
+% mse plot
 axMSE = subplot(1,2,2);
 hold(axMSE,'on');
 
-%get confidence intervals and shuffle median 
+%get confidence intervals and shuffle median
 shuffleMedian = median(shuffleMSE);
 highInd = (100-confInt)/2;
 lowInd = 100 - highInd;
 confVals = prctile(shuffleMSE,[lowInd, highInd]);
 confVals = abs(shuffleMedian - confVals);
 
-%scatter 
+%scatter
 scatMSE = scatter(1,actualMSE);
 scatMSE.MarkerFaceColor = 'b';
 scatMSE.MarkerEdgeColor = 'b';
 scatMSE.SizeData = 150;
 
-%errorbar 
+%errorbar
 errMSE = errorbar(1,shuffleMedian,confVals(1),confVals(2));
 errMSE.LineWidth = 2;
 errMSE.Color = 'r';
 
-%label axes 
+%label axes
 axis(axMSE,'square');
 axMSE.XTick = [];
 axMSE.YLabel.String = 'Mean Squared Error';
@@ -150,5 +176,6 @@ axMSE.XLim = [0.9 1.1];
 end
 
 function mse = getMSEDist(startDist,endDist)
-    mse = mean((endDist - startDist).^2);
+% mse = mean((endDist - startDist).^2);
+mse = mean(abs(endDist - startDist));
 end

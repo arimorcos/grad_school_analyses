@@ -1,4 +1,4 @@
-function handles = plotMultipleClassifiersFromFolder(folder,fileStr,title,plotType,xLab,yLab)
+function handles = plotMultipleClassifiersFromFolder(folder,fileStr,yLab,plotType,xLab,maxValue)
 %plotMultipleClassifiersFromFolder.m Plots multiple classifiers based on a
 %specific folder path 
 %
@@ -14,24 +14,25 @@ function handles = plotMultipleClassifiersFromFolder(folder,fileStr,title,plotTy
 %
 %ASM 4/15
 
-segRanges = 0:80:480;
+cmScale = 0.75;
+segRanges = cmScale*(0:80:480);
 
+if nargin < 5 || isempty(maxValue)
+    maxValue = false;
+end
 if nargin < 4 || isempty(plotType)
     plotType = 'dashBounds';
 end
-if nargin < 6 || isempty(yLab)
+if nargin < 5 || isempty(xLab)
+    xLab = 'Maze Position (cm)';
+end
+if nargin < 3 || isempty(yLab)
     switch plotType
         case 'zScore'
             yLab = 'Shuffle standard deviations above mean';
         case 'dashBounds'
             yLab = 'Classifier Accuracy';
     end
-end
-if nargin < 5 || isempty(xLab)
-    xLab = 'Y Position (binned)';
-end
-if nargin < 3 || isempty(title)
-    title = '';
 end
 
 %get list of files in folder 
@@ -53,20 +54,49 @@ for fileInd = 1:length(matchFiles)
 end
 
 %plot 
-handles = plotMultipleMiceShuffleAccuracy(allAcc,allShuffle,allxVals,plotType);
+handles = plotMultipleMiceShuffleAccuracy(allAcc,allShuffle,allxVals,plotType,maxValue);
 
 %label axes 
 handles.ax.XLabel.String = xLab;
 handles.ax.YLabel.String = yLab;
 handles.ax.FontSize = 20;
-handles.ax.XLim = [min(cat(2,allxVals{:})) max(cat(2,allxVals{:}))];
-handles.ax.Title.String = title;
-
+handles.ax.XLim = [min(cmScale*cat(2,allxVals{:})) max(cmScale*cat(2,allxVals{:}))];
 
 %add segment dividers 
 handles.lineH = gobjects(length(segRanges),1);
+handles.segText = gobjects(length(segRanges)-1,1);
 for segInd = 1:length(segRanges)
     handles.lineH(segInd) = line([segRanges(segInd) segRanges(segInd)],handles.ax.YLim);
     handles.lineH(segInd).Color = 'k';
     handles.lineH(segInd).LineStyle = '--';
 end
+
+%add segment label 
+handles.segLabel = text(handles.ax.XLim(1),...
+        handles.ax.YLim(2) + 0.02*range(handles.ax.YLim),'Segment: ');
+handles.segLabel.FontSize = 20;
+handles.segLabel.HorizontalAlignment = 'Right';
+handles.segLabel.VerticalAlignment = 'Bottom';
+handles.segLabel.FontWeight = 'bold';
+
+%add segment numbers
+for segInd = 1:length(segRanges)-1
+    handles.segText(segInd) = text(mean(segRanges(segInd:segInd+1)),...
+        handles.ax.YLim(2) + 0.02*range(handles.ax.YLim),sprintf('%d',segInd));
+    handles.segText(segInd).HorizontalAlignment = 'Center';
+    handles.segText(segInd).VerticalAlignment = 'Bottom';
+    handles.segText(segInd).FontSize = 20;
+    handles.segText(segInd).FontWeight = 'bold';
+end
+
+%set axis to square
+axis(handles.ax,'square');
+
+%add legend 
+handles.leg = legend([handles.plot(1) handles.shuffleHigh(1)],...
+    {'Actual accuracy',sprintf('Shuffle %d%% Confidence Intervals',95)},...
+    'Location','SouthEast');
+
+%maximize 
+handles.fig.Units = 'normalized';
+handles.fig.OuterPosition = [0 0 1 1];

@@ -35,20 +35,26 @@ suplabel('Count','y');
 figure;
 
 %plot meanNTransients
-subplot(1,3,1);
+ax1 = subplot(1,3,1);
 histogram(stats.meanNTransients,20,'Normalization','probability');
 xlabel('# Transients');
 ylabel('Fraction of active neurons');
 title('Mean # Transients');
+ax1.FontSize = 20;
+ax1.LabelFontSizeMultiplier = 1.5;
 
 %plot mean transient length (in sec)
-subplot(1,3,2);
+ax2 = subplot(1,3,2);
 histogram(stats.meanTransLength,20,'Normalization','probability');
 xlabel('Transient Length (sec)');
 title('Mean Transient Length (sec)');
+ax2.FontSize = 20;
+ax2.LabelFontSizeMultiplier = 1.5;
 
 %plot mean transient fraction 
-subplot(1,3,3)
+ax3 = subplot(1,3,3);
 histogram(stats.meanFracLength,20,'Normalization','probability');
 xlabel('Fraction of trial active');
 title('Mean trial fraction active');
+ax3.FontSize = 20;
+ax3.LabelFontSizeMultiplier = 1.5;

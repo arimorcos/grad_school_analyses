@@ -1,4 +1,4 @@
-function figH = plotClassifierOutGroupSegSVM(classOut)
+function figH = plotClassifierOutGroupSegSVM(classOut,plotAll)
 %plotClassifierOutIndSegSVM.m Plots the output of the individual segment
 %classifier
 %
@@ -9,6 +9,10 @@ function figH = plotClassifierOutGroupSegSVM(classOut)
 %figH - figure handle
 %
 %ASM 3/15
+
+if nargin < 2
+    plotAll = true;
+end
 
 confInt = 95;
 nSeg = 6;
@@ -46,65 +50,76 @@ end
 figH = figure;
 
 %% Model MSE
-axMSE = subplot(2,2,1);
-hold(axMSE,'on');
-colors = distinguishable_colors(3);
-
-%plot actual data for mse
-scatH = gobjects(1,3);
-for condInd = 1:3
-    scatH(condInd) = scatter(condInd,mse(condInd));
-    scatH(condInd).MarkerEdgeColor = colors(condInd,:);
-    scatH(condInd).MarkerFaceColor = colors(condInd,:);
+if plotAll
+    axMSE = subplot(2,2,1);
+    hold(axMSE,'on');
+    colors = distinguishable_colors(3);
+    
+    %plot actual data for mse
+    scatH = gobjects(1,3);
+    for condInd = 1:3
+        scatH(condInd) = scatter(condInd,mse(condInd));
+        scatH(condInd).MarkerEdgeColor = colors(condInd,:);
+        scatH(condInd).MarkerFaceColor = colors(condInd,:);
+    end
+    
+    %plot shuffle
+    for condInd = 1:3
+        errH = errorbar(condInd,shuffleMSE(condInd,1),...
+            shuffleMSE(condInd,2),shuffleMSE(condInd,3));
+        errH.Color = colors(condInd,:);
+        errH.LineWidth = 2;
+        errH.LineStyle = 'none';
+    end
+    
+    %set labels
+    axMSE.XTick = 1:3;
+    axMSE.XTickLabel = {'All Trials','Left Net Evidence','Right Net Evidence'};
+    axMSE.YLabel.String = 'Mean Squared Error';
+    axMSE.Title.String = 'Model MSE';
+    axMSE.XLabel.String = 'Segment Number';
+    axis square;
+    
+    %% CorrCoef
+    axCorrCoef = subplot(2,2,2);
+    hold(axCorrCoef,'on');
+    colors = distinguishable_colors(3);
+    
+    %plot actual data for mse
+    scatH = gobjects(1,3);
+    for condInd = 1:3
+        scatH(condInd) = scatter(condInd,corrCoef(condInd));
+        scatH(condInd).MarkerEdgeColor = colors(condInd,:);
+        scatH(condInd).MarkerFaceColor = colors(condInd,:);
+    end
+    
+    %plot shuffle
+    for condInd = 1:3
+        errH = errorbar(condInd,shuffleCorrCoef(condInd,1),...
+            shuffleCorrCoef(condInd,2),shuffleCorrCoef(condInd,3));
+        errH.Color = colors(condInd,:);
+        errH.LineWidth = 2;
+        errH.LineStyle = 'none';
+    end
+    
+    %set labels
+    axCorrCoef.XTick = 1:3;
+    axCorrCoef.XTickLabel = {'All Trials','Left Net Evidence','Right Net Evidence'};
+    axCorrCoef.YLabel.String = 'Squared Correlation Coefficient';
+    axCorrCoef.XLabel.String = 'Segment Number';
+    axCorrCoef.Title.String = 'R^2';
+    axis square;
+    
 end
-
-%plot shuffle
-for condInd = 1:3
-    errH = errorbar(condInd,shuffleMSE(condInd,1),...
-        shuffleMSE(condInd,2),shuffleMSE(condInd,3));
-    errH.Color = colors(condInd,:);
-    errH.LineWidth = 2;
-    errH.LineStyle = 'none';
-end
-
-%set labels
-axMSE.XTick = 1:3;
-axMSE.XTickLabel = {'All Trials','Left Net Evidence','Right Net Evidence'};
-axMSE.YLabel.String = 'Mean Squared Error';
-axMSE.Title.String = 'Model MSE';
-axMSE.XLabel.String = 'Segment Number';
-
-%% CorrCoef
-axCorrCoef = subplot(2,2,2);
-hold(axCorrCoef,'on');
-colors = distinguishable_colors(3);
-
-%plot actual data for mse
-scatH = gobjects(1,3);
-for condInd = 1:3
-    scatH(condInd) = scatter(condInd,corrCoef(condInd));
-    scatH(condInd).MarkerEdgeColor = colors(condInd,:);
-    scatH(condInd).MarkerFaceColor = colors(condInd,:);
-end
-
-%plot shuffle
-for condInd = 1:3
-    errH = errorbar(condInd,shuffleCorrCoef(condInd,1),...
-        shuffleCorrCoef(condInd,2),shuffleCorrCoef(condInd,3));
-    errH.Color = colors(condInd,:);
-    errH.LineWidth = 2;
-    errH.LineStyle = 'none';
-end
-
-%set labels
-axCorrCoef.XTick = 1:3;
-axCorrCoef.XTickLabel = {'All Trials','Left Net Evidence','Right Net Evidence'};
-axCorrCoef.YLabel.String = 'Squared Correlation Coefficient';
-axCorrCoef.XLabel.String = 'Segment Number';
-axCorrCoef.Title.String = 'R^2';
-
 %% Guess vs actual
-axGuessVsActual = subplot(2,2,3);
+if plotAll
+    axGuessVsActual = subplot(2,2,3);
+else
+    axGuessVsActual = axes;
+    axGuessVsActual.YLabel.FontSize = 30;
+    axGuessVsActual.XLabel.FontSize = 30;
+    axGuessVsActual.FontSize = 20;
+end
 hold(axGuessVsActual,'on');
 
 uniqueVals = unique(classOut(1).testClass);
@@ -124,7 +139,7 @@ scatH.LineStyle = 'none';
 scatH.MarkerSize = 10;
 scatH.LineWidth = 2;
 
-%plot unity line 
+%plot unity line
 plot([-nSeg nSeg], [-nSeg nSeg],'k--');
 axis square;
 
@@ -147,51 +162,55 @@ switch lower(classOut(1).classMode)
 end
 
 axGuessVsActual.YLabel.String = 'Mean Guess';
+if ~plotAll
+    axGuessVsActual.Title.String = '';
+end
 
 
 %% Fit MSE
-
-axGuessVsActualMSE = subplot(2,2,4);
-hold(axGuessVsActualMSE,'on');
-colors = distinguishable_colors(3);
-
-%plot actual data for mse
-scatH = gobjects(1,3);
-for condInd = 1:3
-    %get absolute difference
-    absDiff = abs(classOut(condInd).guess - classOut(condInd).testClass);
+if plotAll
+    axGuessVsActualMSE = subplot(2,2,4);
+    hold(axGuessVsActualMSE,'on');
+    colors = distinguishable_colors(3);
     
-    %take mean of squares
-    mse = mean(absDiff.^2);
+    %plot actual data for mse
+    scatH = gobjects(1,3);
+    for condInd = 1:3
+        %get absolute difference
+        absDiff = abs(classOut(condInd).guess - classOut(condInd).testClass);
+        
+        %take mean of squares
+        mse = mean(absDiff.^2);
+        
+        scatH(condInd) = scatter(condInd,mse);
+        scatH(condInd).MarkerEdgeColor = colors(condInd,:);
+        scatH(condInd).MarkerFaceColor = colors(condInd,:);
+    end
     
-    scatH(condInd) = scatter(condInd,mse);
-    scatH(condInd).MarkerEdgeColor = colors(condInd,:);
-    scatH(condInd).MarkerFaceColor = colors(condInd,:);
+    %plot shuffle
+    for condInd = 1:3
+        
+        %get absolute difference
+        guessDiff = classOut(condInd).shuffleGuess - classOut(condInd).shuffleTestClass;
+        
+        %take mean of squares
+        mse = squeeze(mean(guessDiff.^2))';
+        shuffleMed = median(mse);
+        confInt = prctile(mse,[lowConf, highConf]);
+        confInt = abs(confInt - shuffleMed);
+        
+        errH = errorbar(condInd,shuffleMed,...
+            confInt(1),confInt(2));
+        errH.Color = colors(condInd,:);
+        errH.LineWidth = 2;
+        errH.LineStyle = 'none';
+    end
+    
+    %set labels
+    axGuessVsActualMSE.XTick = 1:3;
+    axGuessVsActualMSE.XTickLabel = {'All Trials','Left Net Evidence','Right Net Evidence'};
+    axGuessVsActualMSE.YLabel.String = 'Mean Squared Error';
+    axGuessVsActualMSE.Title.String = 'Guess vs. actual MSE';
+    axis square;
 end
-
-%plot shuffle
-for condInd = 1:3
-    
-    %get absolute difference
-    guessDiff = classOut(condInd).shuffleGuess - classOut(condInd).shuffleTestClass;
-    
-    %take mean of squares
-    mse = squeeze(mean(guessDiff.^2))';
-    shuffleMed = median(mse);
-    confInt = prctile(mse,[lowConf, highConf]);
-    confInt = abs(confInt - shuffleMed);
-    
-    errH = errorbar(condInd,shuffleMed,...
-        confInt(1),confInt(2));
-    errH.Color = colors(condInd,:);
-    errH.LineWidth = 2;
-    errH.LineStyle = 'none';
-end
-
-%set labels
-axGuessVsActualMSE.XTick = 1:3;
-axGuessVsActualMSE.XTickLabel = {'All Trials','Left Net Evidence','Right Net Evidence'};
-axGuessVsActualMSE.YLabel.String = 'Mean Squared Error';
-axGuessVsActualMSE.Title.String = 'Guess vs. actual MSE';
-
 maxfig(figH,1);

@@ -28,14 +28,21 @@ hold(handles.ax,'on');
 highInd = (100-confInt)/2;
 lowInd = 100 - highInd;
 confVals = prctile(shuffleTrace,[lowInd, highInd]);
+if isrow(confVals)
+    confVals = confVals';
+end
+
+%convert xVals
+cmScale = 0.75;
+xVals = xVals*cmScale;
 
 %plot trace 
 plotH = plot(xVals,trace);
 plotH.LineWidth = 2;
 
 %plot shuffles 
-shuffleLow = plot(xVals,confVals(1,:));
-shuffleHigh = plot(xVals,confVals(2,:));
+shuffleLow = plot(xVals,confVals(2,:));
+shuffleHigh = plot(xVals,confVals(1,:));
 shuffleLow.LineStyle = '--';
 shuffleHigh.LineStyle = '--';
 
@@ -51,7 +58,11 @@ else
 %     handles.chanceLine = line([-1e3 1e3],[50 50]);
 %     handles.chanceLine.Color = 'k';
 %     handles.chanceLine.LineStyle = '--';
-    handles.ax.XLim = [min(xVals) max(xVals)];
+    if length(xVals) == 1
+%         handles.ax.XLim = [xVals - 0.5 xVals + 0.5];
+    else
+        handles.ax.XLim = [min(xVals) max(xVals)];
+    end
     handles.ax.YLim = [0 100];
 end
 
