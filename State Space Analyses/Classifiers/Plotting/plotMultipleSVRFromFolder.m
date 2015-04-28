@@ -31,7 +31,7 @@ for fileInd = 1:length(matchFiles)
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
     field = fieldnames(currFileData);
     if length(field) > 1 
-        allClassOut{fileInd} = currFileData.sinBinRunSpeed;
+        allClassOut{fileInd} = currFileData.allBinTMatch;
     else
         allClassOut{fileInd} = currFileData.(field{1});
     end

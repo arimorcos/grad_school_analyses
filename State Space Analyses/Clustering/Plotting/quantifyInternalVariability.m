@@ -1,4 +1,4 @@
-function [meanDiffProb,sigMat] = quantifyInternalVariability(dataCell,varargin)
+function [meanDiffProb,sigMat,deltaPoint] = quantifyInternalVariability(dataCell,varargin)
 %quantifyInternalVariability.m Quantifies the variability due to internal
 %at each segment. Asks given knowledge of the current cluster, can you
 %predict the the next cluster? What about the n+2 cluster?
@@ -12,6 +12,9 @@ function [meanDiffProb,sigMat] = quantifyInternalVariability(dataCell,varargin)
 %   null probability
 %sigMat - nPoints x nPoints array of significance. 0 - not significant, 1 -
 %   p < 0.05, 2 - p < 0.01, 3 - p < 0.001
+%deltaPoint - structure with two fields:
+%    summedProb - 1 x nPoints - 1 array of mean absolute difference
+%    sig - 1 x nPoints - 1 array of significance in same format
 %
 %ASM 4/15
 
@@ -34,10 +37,10 @@ end
 %get yPosBins
 yPosBins = dataCell{1}.imaging.yPosBins;
 
-%subset to 6-0 trials 
+%subset to 6-0 trials
 dataCell = getTrials(dataCell,'maze.numLeft==0,6');
 
-%get left and right trial indices 
+%get left and right trial indices
 leftTrials = getCellVals(dataCell,'maze.leftTrial');
 rightTrials = ~leftTrials;
 
@@ -62,11 +65,11 @@ for point = 1:nPoints
     clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
 end
 
-%%%%%%%%%% calculate probabilities 
+%%%%%%%%%% calculate probabilities
 meanDiffProb = countPredictions(clusterIDs);
 
 %%%%%% shuffle
-if shouldShuffle 
+if shouldShuffle
     shuffleProb = nan(nPoints,nPoints,nShuffles);
     for shuffleInd = 1:nShuffles
         
@@ -74,7 +77,7 @@ if shouldShuffle
         shuffleIDs = nan(size(clusterIDs));
         for point = 1:nPoints
             shuffleIDs(:,point) = shuffleArray(clusterIDs(:,point));
-        end       
+        end
         
         %get probabilities
         shuffleProb(:,:,shuffleInd) = countPredictions(shuffleIDs);
@@ -82,10 +85,10 @@ if shouldShuffle
         %display progress
         dispProgress('Shuffling cluster labels %d/%d',shuffleInd,shuffleInd,nShuffles);
     end
-
+    
 end
 
-%calculate significance 
+%calculate significance
 p95Bound = prctile(shuffleProb,[2.5 97.5],3);
 p99Bound = prctile(shuffleProb,[0.5 99.5],3);
 p999Bound = prctile(shuffleProb,[0.05 99.95],3);
@@ -94,16 +97,56 @@ sigMat = zeros(nPoints);
 sigMat(meanDiffProb > p95Bound(:,:,2)) = 1;
 sigMat(meanDiffProb > p99Bound(:,:,2)) = 2;
 sigMat(meanDiffProb > p999Bound(:,:,2)) = 3;
+
+%% calculate deltaPoint for out
+if nargout < 3
+    return;
 end
 
-% function predMat = predictClusters(clusterIDs,leftTrials,rightTrials)
-% %predictClusters.m Predicts future clusters given clusterIDs. Takes into
-% %account left and right trials
-% 
-% %subset to left trials 
-% leftMeanProbs 
-% 
-% end
+%get distance matrix
+pointDist = triu(squareform(pdist([1:10]')));
+
+%loop through each deltapoint
+meanProbDelta = nan(nPoints-1,1);
+
+meanProbDeltaSig = nan(nPoints-1,1);
+for delta = 1:(nPoints - 1)
+    
+    %get matchInd
+    matchInd = pointDist == delta;
+    
+    %sum meanDiffProb
+    meanProbDelta(delta) = mean(meanDiffProb(matchInd));
+    
+    %check shuffles
+    shuffleMeanProbDelta = zeros(nShuffles,1);
+    for shuffleInd = 1:nShuffles
+        tempShuffle = shuffleProb(:,:,shuffleInd);
+        shuffleMeanProbDelta(shuffleInd) = shuffleMeanProbDelta(shuffleInd) +...
+            mean(tempShuffle(matchInd));
+    end
+    
+    %calculate significance
+    p95BoundDelta = prctile(shuffleMeanProbDelta,[2.5 97.5]);
+    p99BoundDelta = prctile(shuffleMeanProbDelta,[0.5 99.5]);
+    p999BoundDelta = prctile(shuffleMeanProbDelta,[0.05 99.95]);
+    
+    if meanProbDelta(delta) > p95BoundDelta(2)
+        meanProbDeltaSig(delta) = 1;
+    end
+    if meanProbDelta(delta) > p99BoundDelta(2)
+        meanProbDeltaSig(delta) = 2;
+    end
+    if meanProbDelta(delta) > p999BoundDelta(2)
+        meanProbDeltaSig(delta) = 3;
+    end
+end
+
+deltaPoint.meanProb = meanProbDelta;
+deltaPoint.sig = meanProbDeltaSig;
+
+
+end
 
 function meanDiffProb = countPredictions(clusterIDs)
 
@@ -113,10 +156,10 @@ nPoints = size(clusterIDs,2);
 %initialize
 meanDiffProb = nan(nPoints);
 
-%get unique clusters 
+%get unique clusters
 uniqueClusters = arrayfun(@(x) unique(clusterIDs(:,x)),1:nPoints,'UniformOutput',false);
 
-% loop through each starting point 
+% loop through each starting point
 for startPoint = 1:nPoints
     for endPoint = startPoint+1:nPoints
         
@@ -126,17 +169,17 @@ for startPoint = 1:nPoints
         
         %loop through each current unique cluster and calculate the
         %difference between the probability of moving to the next cluster
-        %and the null probability 
+        %and the null probability
         [nextUnique,nextCount] = count_unique(clusterIDs(:,endPoint));
         nullProb = nextCount/size(clusterIDs,1);
         diffProb = [];
         weights = [];
-        for currCluster = 1:length(currUnique) %for each current cluster 
-            %get matching nextClusters 
+        for currCluster = 1:length(currUnique) %for each current cluster
+            %get matching nextClusters
             currNextClusters = clusterIDs(clusterIDs(:,startPoint) == ...
                 currUnique(currCluster),endPoint);
             
-            %get unique counts 
+            %get unique counts
             [uniqueCurrNextClusters,counts] = count_unique(currNextClusters);
             
             %pad counts with zeros to the length(nextUnique)
@@ -144,13 +187,13 @@ for startPoint = 1:nPoints
             countProb(ismember(nextUnique,uniqueCurrNextClusters)) = counts/length(currNextClusters);
             
             %get difference between count probabilities and null
-            %probability 
+            %probability
             diffProb = cat(1,diffProb,abs(countProb - nullProb));
             weights = cat(1,weights,repmat(currFrac(currCluster),length(countProb),1));
             
         end
         
-        %store 
+        %store
         meanDiffProb(startPoint,endPoint) = weights'*diffProb;
         
     end

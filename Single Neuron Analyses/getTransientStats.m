@@ -19,7 +19,7 @@ shouldSmooth = true;
 smoothLength = 3;
 traceType = 'dFF';
 segRange = [0 480];
-limitToSeg = true;
+limitToSeg = false;
 ignoreSilent = true;
 
 %process varargin
@@ -91,13 +91,13 @@ for trialInd = 1:nTrials
         %find transients
         [start,stop] = findContinuousRegions(tempTrace(neuronInd,:));
         
-        %get nTransients
-        nTransients(neuronInd,trialInd) = length(start);
-        
         %get transient length in time
         tempLengths = dataCell{trialInd}.imaging.dataFrames{1}(1,stop) - ...
             dataCell{trialInd}.imaging.dataFrames{1}(1,start);
         tempLengths = dnum2secs(tempLengths);
+        
+        %get nTransients
+        nTransients(neuronInd,trialInd) = length(start);
         
         %store 
         transientLength{neuronInd,trialInd} = tempLengths;
@@ -129,8 +129,11 @@ end
 allTransients = arrayfun(@(x) cat(2,transientLength{x,:}),1:nNeurons,'UniformOutput',false);
 
 %calculate transientLength as fraction of trial time
-fracLength = cellfun(@(x,ind) x/trialLength(ind),allTransients,...
-    num2cell(1:nNeurons),'UniformOutput',false);
+fracLength = cell(nNeurons,1);
+for neuronInd = 1:nNeurons
+    tempNeuron = cellfun(@(x,y) x/y,transientLength(neuronInd,:),num2cell(trialLength),'UniformOutput',false);
+    fracLength{neuronInd} = cat(2,tempNeuron{:});
+end
 
 %store in stats
 stats.nTransientsAll = nTransients;

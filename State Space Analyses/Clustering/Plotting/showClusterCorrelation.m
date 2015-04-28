@@ -1,4 +1,4 @@
-function showClusterCorrelation(dataCell,clusterIDs,cMat,varargin)
+function meanCorr = showClusterCorrelation(dataCell,clusterIDs,cMat,varargin)
 %showClusterCorrelation.m Shows the correlation between clusters
 %
 %INPUTS
@@ -45,6 +45,16 @@ clusterCorr = calculateClusterCorrelation(dataCell,clusterIDs,cMat,'sortBy',...
     sortBy);
 nPoints = length(clusterCorr);
 nClusters = cellfun(@length,clusterCorr);
+
+%% get mean off-diagonal
+meanCorr = nan(nPoints,1);
+for point = 1:nPoints
+    meanCorr(point) = mean(clusterCorr{point}(logical(tril(ones(size(clusterCorr{point})),-1))));
+end
+
+if nargout > 0 
+    return;
+end
 
 %% plot 
 %create figure

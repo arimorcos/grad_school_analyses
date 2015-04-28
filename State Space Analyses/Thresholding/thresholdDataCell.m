@@ -17,11 +17,11 @@ end
 
 %get traces
 dFFTraces = dataCell{1}.imaging.completeDFFTrace;
-dGRTraces = dataCell{1}.imaging.completeDGRTrace;
+% dGRTraces = dataCell{1}.imaging.completeDGRTrace;
 
 %threshold
 dFFThresh = thresholdCompleteTrace(dFFTraces,nSTD,minFrames);
-dGRThresh = thresholdCompleteTrace(dGRTraces,nSTD,minFrames);
+% dGRThresh = thresholdCompleteTrace(dGRTraces,nSTD,minFrames);
 
 %copy back
-dataCell = standaloneCopyDFFToDataCell(dataCell,dFFThresh,dGRThresh);
+dataCell = standaloneCopyDFFToDataCell(dataCell,dFFThresh);

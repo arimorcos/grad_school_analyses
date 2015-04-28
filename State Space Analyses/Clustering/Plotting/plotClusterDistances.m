@@ -38,12 +38,16 @@ axH.YTick = 1:nClusters;
 axH.XTickLabel = clusterVals{plotPoint};
 axH.YTickLabel = clusterVals{plotPoint};
 axH.XTickLabelRotation = -45;
+axH.FontSize = 20;
+axH.LabelFontSizeMultiplier = 1.5;
 
 %label 
 axH.XLabel.String = sortBy;
 axH.YLabel.String = sortBy;
 axH.Title.String = pointLabels{plotPoint};
+axis(axH,'square');
 
 %add colorbar 
 cBar = colorbar;
 cBar.Label.String = 'Euclidean distance';
+cBar.Label.FontSize = 30;

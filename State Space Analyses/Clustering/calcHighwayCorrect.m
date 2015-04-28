@@ -35,9 +35,13 @@ if useChiSquared
     %loop through each trajectory
     numIncorrect = nan(nTraj,1);
     probIncorrect = nan(nTraj,1);
+    whereIncorrect = nan(size(isCorrect));
     for trajInd = 1:nTraj
         %get match trials
         matchTrials = uniqueTraj(trajInd) == clusterTraj;
+        
+        %get incorrect and match 
+        whereIncorrect(matchTrials' & ~isCorrect) = trajInd;
         
         %calculate probability
         numIncorrect(trajInd) = sum(~isCorrect(matchTrials));
@@ -45,9 +49,11 @@ if useChiSquared
     end
     nullProb = totalIncorrect/nTrials;
     
-    [~,pVal] = chi2gof(numIncorrect,'expected',nullProb*trajCount,...
-        'eMin',0);
-    
+%     [~,pVal] = chi2gof(numIncorrect,'expected',nullProb*trajCount,...
+%         'eMin',0);
+    edges = 0.5:1:nTraj+0.5;
+    expectedCounts = (totalIncorrect/nTraj)*ones(nTraj,1);
+    [~,pVal] = chi2gof(whereIncorrect,'expected',expectedCounts,'edges',edges,'eMin',0);
 else
     %get mean difference
     [meanDifference, probIncorrect] = calcMeanDiffFromNull(clusterTraj,isCorrect);
@@ -71,6 +77,10 @@ else
     end
 end
 %% plot
+if nargout > 0
+    return;
+end
+
 if ~useChiSquared
     figH = figure;
     axH = axes;

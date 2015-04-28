@@ -57,8 +57,8 @@ for i = 1:nCond
 end
 
 %crop out beginning and end 
-traces = cellfun(@(x) x(:,2:end-1),traces,'UniformOutput',false);
-bins = bins(2:end-1);
+% traces = cellfun(@(x) x(:,2:end-1),traces,'UniformOutput',false);
+% bins = bins(2:end-1);
 
 
 %normalize cells individually

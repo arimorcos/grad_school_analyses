@@ -16,6 +16,7 @@ sortBy = colorBy;
 modSort = false;
 showEdges = true;
 whichPoints = 1:10;
+showNull = false;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -38,6 +39,8 @@ if nargin > 1 || ~isempty(varargin)
                 showEdges = varargin{argInd+1};
             case 'whichpoints'
                 whichPoints = varargin{argInd+1};
+            case 'shownull'
+                showNull = varargin{argInd+1};
         end
     end
 end
@@ -174,14 +177,25 @@ if showEdges
     edgeH = line(tempXVals,tempYVals);
     % uistack(edgeH,'bottom');
     for edge = 1:nMatch
-%         if allEdges(edge) > 0
-%             edgeH(edge).Color = 'k';
-%             edgeH(edge).LineWidth = allEdges(edge)*totalWidth;
-%         else
-%             delete(edgeH(edge));
-%         end
-        edgeH(edge).Color = 'k';
-        edgeH(edge).LineWidth = 0.2*rand*totalWidth;
+        if showNull
+            edgeH(edge).Color = 'k';
+            nodeInd = edgeH(edge).XData(1) == scatXVals &...
+                edgeH(edge).YData(1) == scatYVals;
+            nNext = sum(edgeH(edge).XData(1) == scatXVals);
+            if any(nodeInd)
+                edgeH(edge).LineWidth = scatSizeData(nodeInd)*totalWidth/nNext;
+            end
+        else
+            if allEdges(edge) > 0
+                edgeH(edge).Color = 'k';
+                edgeH(edge).LineWidth = allEdges(edge)*totalWidth;
+            else
+                delete(edgeH(edge));
+            end
+        end
+        
+        %         edgeH(edge).Color = 'k';
+        %         edgeH(edge).LineWidth = 0.2*rand*totalWidth;
     end
 end
 
@@ -190,9 +204,8 @@ keepInd = ismember(scatXVals, whichPoints);
 scatH = scatter(scatXVals(keepInd),scatYVals(keepInd),'filled');
 scatH.CData = colors(keepInd,:);
 scatH.MarkerEdgeColor = 'k';
-scatSizeData(keepInd) = [0.5 1.5 0.5 1.5 0.75 1.25 0.8 1.4];
+% scatSizeData(keepInd) = [0.5 1.5 0.5 1.5 0.75 1.25 0.8 1.4];
 scatH.SizeData = scatSizeData(keepInd)*sizeScale;
-% scatH.SizeData = 
 
 %add colorbar
 if showColorbar

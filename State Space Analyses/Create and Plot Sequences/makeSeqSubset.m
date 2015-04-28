@@ -24,6 +24,10 @@ end
 %get mean activity
 [meanTraces,~,bins] = getMeanActivityTraceDCell(dataCell,condition);
 
+%crop out beginning and end
+meanTraces = meanTraces(:,2:end-1);
+bins = bins(2:end-1);
+
 if nargin < 4 || isempty(gCells)
     gCells = 1:size(meanTraces,1);
 end

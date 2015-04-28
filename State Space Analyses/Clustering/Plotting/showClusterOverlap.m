@@ -1,4 +1,4 @@
-function showClusterOverlap(dataCell,clusterIDs,cMat,varargin)
+function meanOverlap = showClusterOverlap(dataCell,clusterIDs,cMat,varargin)
 %showClusterOverlap.m Shows the overlap in clusters 
 %
 %INPUTS
@@ -49,6 +49,16 @@ overlapIndex = calculateClusterOverlap(dataCell,clusterIDs,cMat,'sortBy',...
 nPoints = length(overlapIndex);
 nClusters = cellfun(@length,overlapIndex);
 
+%% get mean off-diagonal
+meanOverlap = nan(nPoints,1);
+for point = 1:nPoints
+    meanOverlap(point) = mean(overlapIndex{point}(logical(tril(ones(size(overlapIndex{point})),-1))));
+end
+
+if nargout > 0 
+    return;
+end
+
 %% plot 
 %create figure
 figH = figure;
@@ -96,8 +106,8 @@ xLab = suplabel('Sorted cluster index','x',supAxes);
 xLab.FontSize = 30;
 yLab = suplabel('Sorted cluster index','y',supAxes);
 yLab.FontSize = 30;
-tLab = suplabel(sprintf('Sorted by %s, zThresh: %.1f',sortBy,zThresh),'t',supAxes);
-tLab.FontSize = 30;
+% tLab = suplabel(sprintf('Sorted by %s, zThresh: %.1f',sortBy,zThresh),'t',supAxes);
+% tLab.FontSize = 30;
 
 
 

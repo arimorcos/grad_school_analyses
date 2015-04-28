@@ -18,6 +18,7 @@ downsample = 1;
 posControl = true; 
 posBin = 60;
 
+
 %process varargin
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))

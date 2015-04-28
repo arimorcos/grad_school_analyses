@@ -110,7 +110,7 @@ cmScale = 0.75;
 classOut.guess = classOut.guess*cmScale;
 classOut.testClass = classOut.testClass*cmScale;
 
-scatH = scatter(classOut.guess,classOut.testClass);
+scatH = scatter(classOut.testClass,classOut.guess);
 % scatH.MarkerEdgeColor = 'b';
 % scatH.MarkerFaceColor = 'b';
 scatH.Marker = 'o';

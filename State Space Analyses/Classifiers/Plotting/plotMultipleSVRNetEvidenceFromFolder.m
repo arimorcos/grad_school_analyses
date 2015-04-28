@@ -35,10 +35,12 @@ for fileInd = 1:length(matchFiles)
     end
 end
 
+%% net evidence actual vs. guess
+
 %plot
 handles = [];
 for mouseInd = 1:length(matchFiles)
-    handles = plotSVRNetEvidence(allClassOut{mouseInd},handles);
+    handles = plotSVRNetEvidence(allClassOut{mouseInd},handles,1);
 end
 
 %label axes
@@ -46,9 +48,41 @@ handles.ax.XLabel.FontSize = 30;
 handles.ax.YLabel.FontSize = 30;
 handles.ax.FontSize = 20;
 
+%maximize
+handles.fig.Units = 'normalized';
+handles.fig.OuterPosition = [0 0 1 1];
+
+%change labels
+currTick = handles.ax.XTickLabel;
+newTick = currTick;
+for tick = 1:length(newTick)
+    if str2double(newTick{tick}) > 0
+        newTick{tick} = sprintf('%dL',str2double(newTick{tick}));
+    elseif str2double(newTick{tick}) < 0
+        newTick{tick} = sprintf('%dR',-1*str2double(newTick{tick}));
+    end
+end
+handles.ax.XTickLabel = newTick;
+handles.ax.YTickLabel = newTick;
+
 %set axis to square
 axis(handles.ax,'square');
+
+%% mean squared error
+%plot
+handles = [];
+for mouseInd = 1:length(matchFiles)
+    handles = plotSVRNetEvidence(allClassOut{mouseInd},handles,2);
+end
+
+%label axes
+handles.ax.XLabel.FontSize = 30;
+handles.ax.YLabel.FontSize = 30;
+handles.ax.FontSize = 20;
 
 %maximize
 handles.fig.Units = 'normalized';
 handles.fig.OuterPosition = [0 0 1 1];
+
+%set axis to square
+axis(handles.ax,'square');

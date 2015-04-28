@@ -96,5 +96,11 @@ for i = 1:nTraces
     
 end
 
+if nTraces == 1;
+    axH.FontSize = 20;
+    axH.Title.String = '';
+    cAxis.Label.FontSize = 30;
+end
+
 
 

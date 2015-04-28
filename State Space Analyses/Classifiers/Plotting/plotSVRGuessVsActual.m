@@ -22,7 +22,7 @@ hold(handles.ax,'on');
 
 %convert to cm
 cmScale = 0.75;
-cmScale = 1;
+% cmScale = 1;
 classOut.guess = classOut.guess*cmScale;
 classOut.testClass = classOut.testClass*cmScale;
 
