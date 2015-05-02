@@ -1,26 +1,23 @@
-function [meanDiffProb,sigMat,deltaPoint] = quantifyInternalVariability(dataCell,varargin)
-%quantifyInternalVariability.m Quantifies the variability due to internal
-%at each segment. Asks given knowledge of the current cluster, can you
-%predict the the next cluster? What about the n+2 cluster?
+function [meanDiffProb,sigMat,deltaPoint] = quantifyBehavToNeuronalClusterProb(dataCell,varargin)
+%quantifyBehavToNeuronalClusterProb.m Quantifies the mean absolute
+%difference from the null probability for predciting the neuronal cluster
+%ID based on the behavioral clusterID both at the current time and at
+%future times
 %
 %INPUTS
 %dataCell - dataCell containing imaging data
 %
-%
-%OUTPUTS
-%meanDiffProb - nPoints x nPoints array of mean absolute difference from
-%   null probability
-%sigMat - nPoints x nPoints array of significance. 0 - not significant, 1 -
-%   p < 0.05, 2 - p < 0.01, 3 - p < 0.001
-%deltaPoint - structure with two fields:
-%    summedProb - 1 x nPoints - 1 array of mean absolute difference
-%    sig - 1 x nPoints - 1 array of significance in same format
+%OUPUTS
+%meanDiffProb - nPoints x nPoints array of mean difference from null
+%   probabilities of predicting neuronal cluster based on behavior
+%sigMat - nPoints x nPoints array of significance
 %
 %ASM 4/15
 
+%% process arguments
+
 shouldShuffle = true;
 nShuffles = 500;
-useBehavior = false;
 useBootstrapping = false;
 nBootstrap = 100;
 excludeTurn = false;
@@ -34,58 +31,26 @@ if nargin > 1 || ~isempty(varargin)
                 shouldShuffle = varargin{argInd+1};
             case 'nshuffles'
                 nShuffles = varargin{argInd+1};
-            case 'usebehavior'
-                useBehavior = varargin{argInd+1};
             case 'usebootstrapping'
                 useBootstrapping = varargin{argInd+1};
             case 'nbootstrap'
                 nBootstrap = varargin{argInd+1};
-                            case 'excludeturn'
+            case 'excludeturn'
                 excludeTurn = varargin{argInd+1};
         end
     end
 end
 
-%get yPosBins
-yPosBins = dataCell{1}.imaging.yPosBins;
+%% perform analysis
 
-%subset to 6-0 trials
-dataCell = getTrials(dataCell,'maze.numLeft==0,6');
 
-%get left and right trial indices
-leftTrials = getCellVals(dataCell,'maze.leftTrial');
-rightTrials = ~leftTrials;
-
-if useBehavior
-    traces = catBinnedDataFrames(dataCell);
-    keepVar = 2:6; %2 - xPos, 3 - yPos, 4 - view angle, 5 - xVel, 6 - yVel
-    traces = traces(keepVar,:,:);
-else
-    %get traces
-    [~,traces] = catBinnedTraces(dataCell);
-end
-
-%get nNeurons
-nTrials = size(traces,3);
-
-%get mazePatterns
-mazePatterns = getMazePatterns(dataCell);
-
-%%%%%%%%% Create matrix of values at each point in the maze
-
-tracePoints = getMazePoints(traces,yPosBins);
-nPoints = size(tracePoints,2);
-
-%%%%%%%%%%%% cluster
-clusterIDs = nan(nTrials,nPoints);
-for point = 1:nPoints
-    clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
-end
-
+%get clusters
+[behavClusterIDs,neurClusterIDs] = getClusters(dataCell);
 if excludeTurn 
-    clusterIDs = clusterIDs(:,1:8);
-    nPoints = 8;
+    behavClusterIDs = behavClusterIDs(:,1:8);
+    neurClusterIDs = neurClusterIDs(:,1:8);
 end
+[nTrials,nPoints] = size(behavClusterIDs);
 
 %%%%%%%%%% calculate probabilities
 if useBootstrapping
@@ -97,20 +62,24 @@ if useBootstrapping
         
         %select random trials
         randTrials = randsample(nTrials,nTrials,true);
-        meanDiffProb(:,:,bootInd) = countPredictions(clusterIDs(randTrials,:));
+        meanDiffProb(:,:,bootInd) = countPredictions(behavClusterIDs(randTrials,:),...
+            neurClusterIDs(randTrials,:));
         
         %%%%%% shuffle
         if shouldShuffle
             parfor shuffleInd = 1:nShuffles
                 
                 %shuffle clusterIDs
-                shuffleIDs = nan(size(clusterIDs));
+                behavShuffleIDs = nan(nTrials,nPoints);
+                neurShuffleIDs = nan(nTrials,nPoints);
                 for point = 1:nPoints
-                    shuffleIDs(:,point) = shuffleArray(clusterIDs(:,point));
+                    behavShuffleIDs(:,point) = shuffleArray(behavClusterIDs(randTrials,point)); %#ok<*PFBNS>
+                    neurShuffleIDs(:,point) = shuffleArray(neurClusterIDs(randTrials,point));
                 end
                 
                 %get probabilities
-                shuffleProb(:,:,shuffleInd,bootInd) = countPredictions(shuffleIDs(randTrials,:));
+                shuffleProb(:,:,shuffleInd,bootInd) = countPredictions(behavShuffleIDs,...
+                    neurClusterIDs);
             end
             
         end
@@ -126,7 +95,7 @@ if useBootstrapping
         sigMat(meanDiffProb(:,:,bootInd) > p999Bound(:,:,2)) = 3;
     end
 else
-    meanDiffProb = countPredictions(clusterIDs);
+    meanDiffProb = countPredictions(behavClusterIDs,neurClusterIDs);
     
     %%%%%% shuffle
     if shouldShuffle
@@ -134,13 +103,13 @@ else
         for shuffleInd = 1:nShuffles
             
             %shuffle clusterIDs
-            shuffleIDs = nan(size(clusterIDs));
+            behavhuffleIDs = nan(size(behavClusterIDs));
             for point = 1:nPoints
-                shuffleIDs(:,point) = shuffleArray(clusterIDs(:,point));
+                behavhuffleIDs(:,point) = shuffleArray(behavClusterIDs(:,point));
             end
             
             %get probabilities
-            shuffleProb(:,:,shuffleInd) = countPredictions(shuffleIDs);
+            shuffleProb(:,:,shuffleInd) = countPredictions(behavhuffleIDs,neurClusterIDs);
             
             %display progress
             dispProgress('Shuffling cluster labels %d/%d',shuffleInd,shuffleInd,nShuffles);
@@ -166,23 +135,32 @@ if nargout < 3
     return;
 end
 
+assignin('base','meanDiffProb',meanDiffProb);
+assignin('base','shuffleProb',shuffleProb);
+assignin('base','nPoints',nPoints);
+
+
 %get distance matrix
 pointDist = triu(squareform(pdist([1:nPoints]')));
 
 %loop through each deltapoint
-meanProbDelta = nan(nPoints-1,size(meanDiffProb,3));
+meanProbDelta = nan(nPoints,size(meanDiffProb,3));
 
-meanProbDeltaSig = nan(nPoints-1,size(meanDiffProb,3));
-nSTDAboveMedian = nan(nPoints-1,size(meanDiffProb,3));
-for delta = 1:(nPoints-1)
+meanProbDeltaSig = nan(nPoints,size(meanDiffProb,3));
+nSTDAboveMedian = nan(nPoints,size(meanDiffProb,3));
+for delta = 0:(nPoints-1)
     
     %get matchInd
-    matchInd = pointDist == delta;
+    if delta > 0
+        matchInd = pointDist == delta;
+    else
+        matchInd = sub2ind([nPoints nPoints],1:nPoints,1:nPoints);
+    end
     
     %sum meanDiffProb
     for bootInd = 1:size(meanDiffProb,3);
         tempDiffProb = meanDiffProb(:,:,bootInd);
-        meanProbDelta(delta,bootInd) = mean(tempDiffProb(matchInd));
+        meanProbDelta(delta+1,bootInd) = median(tempDiffProb(matchInd));
     end
     
     %check shuffles
@@ -190,7 +168,7 @@ for delta = 1:(nPoints-1)
     for bootInd = 1:size(meanDiffProb,3)
         for shuffleInd = 1:nShuffles
             tempShuffle = shuffleProb(:,:,shuffleInd,bootInd);
-            shuffleMeanProbDelta(shuffleInd,bootInd) = mean(tempShuffle(matchInd));
+            shuffleMeanProbDelta(shuffleInd,bootInd) = median(tempShuffle(matchInd));
         end
         
         %calculate significance
@@ -198,25 +176,24 @@ for delta = 1:(nPoints-1)
         p99BoundDelta = prctile(shuffleMeanProbDelta(:,bootInd),[0.5 99.5]);
         p999BoundDelta = prctile(shuffleMeanProbDelta(:,bootInd),[0.05 99.95]);
         
-        if meanProbDelta(delta,bootInd) > p95BoundDelta(2)
-            meanProbDeltaSig(delta,bootInd) = 1;
+        if meanProbDelta(delta+1,bootInd) > p95BoundDelta(2)
+            meanProbDeltaSig(delta+1,bootInd) = 1;
         end
-        if meanProbDelta(delta,bootInd) > p99BoundDelta(2)
-            meanProbDeltaSig(delta,bootInd) = 2;
+        if meanProbDelta(delta+1,bootInd) > p99BoundDelta(2)
+            meanProbDeltaSig(delta+1,bootInd) = 2;
         end
-        if meanProbDelta(delta,bootInd) > p999BoundDelta(2)
-            meanProbDeltaSig(delta,bootInd) = 3;
+        if meanProbDelta(delta+1,bootInd) > p999BoundDelta(2)
+            meanProbDeltaSig(delta+1,bootInd) = 3;
         end
         
         %get std of shuffle
         shuffleSTD = std(shuffleMeanProbDelta(:,bootInd));
         shuffleMedian = median(shuffleMeanProbDelta(:,bootInd));
         
-        %get nSTD above shuffle
-        nSTDAboveMedian(delta,bootInd) = (meanProbDelta(delta,bootInd)...
+        %get nstd above median
+        nSTDAboveMedian(delta+1,bootInd) = (meanProbDelta(delta+1,bootInd)...
             - shuffleMedian)/shuffleSTD;
     end
-    
 end
 
 deltaPoint.meanProb = mean(meanProbDelta,2);
@@ -225,37 +202,37 @@ deltaPoint.nSTDAboveMedian = mean(nSTDAboveMedian,2);
 deltaPoint.allMeanProb = meanProbDelta;
 deltaPoint.allSig = meanProbDeltaSig;
 deltaPoint.allNSTDAboveMedian = nSTDAboveMedian;
+
+
 end
 
-function meanDiffProb = countPredictions(clusterIDs)
+function meanDiffProb = countPredictions(behavClusters,neuroClusters)
 
 %get nPoints
-nPoints = size(clusterIDs,2);
+[nTrials,nPoints] = size(behavClusters);
 
 %initialize
 meanDiffProb = nan(nPoints);
 
-%get unique clusters
-uniqueClusters = arrayfun(@(x) unique(clusterIDs(:,x)),1:nPoints,'UniformOutput',false);
-
 % loop through each starting point
 for startPoint = 1:nPoints
-    for endPoint = startPoint+1:nPoints
+    for endPoint = startPoint:nPoints
         
-        %get current unique clusters
-        [currUnique,currCount] = count_unique(clusterIDs(:,startPoint));
-        currFrac = currCount/size(clusterIDs,1);
+        %get current unique behavior clusters
+        [currUnique,currCount] = count_unique(behavClusters(:,startPoint));
+        currFrac = currCount/nTrials;
         
-        %loop through each current unique cluster and calculate the
-        %difference between the probability of moving to the next cluster
+        %loop through each current unique behavior cluster and calculate the
+        %difference between the probability of moving to a given neuronal cluster
         %and the null probability
-        [nextUnique,nextCount] = count_unique(clusterIDs(:,endPoint));
-        nullProb = nextCount/size(clusterIDs,1);
+        [nextUnique,nextCount] = count_unique(neuroClusters(:,endPoint));
+        nullProb = nextCount/nTrials;
         diffProb = [];
         weights = [];
         for currCluster = 1:length(currUnique) %for each current cluster
-            %get matching nextClusters
-            currNextClusters = clusterIDs(clusterIDs(:,startPoint) == ...
+            %get a list of neuronal clusters at endPoint with the current
+            %behavioral cluster
+            currNextClusters = neuroClusters(behavClusters(:,startPoint) == ...
                 currUnique(currCluster),endPoint);
             
             %get unique counts
@@ -280,6 +257,32 @@ end
 
 end
 
+function [behavClusterIDs,neurClusterIDs] = getClusters(dataCell)
+%get yPosBins
+yPosBins = dataCell{1}.imaging.yPosBins;
 
+%get behavioral traces
+behavTraces = catBinnedDataFrames(dataCell);
+keepVar = 2:6; %2 - xPos, 3 - yPos, 4 - view angle, 5 - xVel, 6 - yVel
+behavTraces = behavTraces(keepVar,:,:);
 
+%get neuronal traces
+[~,neuronalTraces] = catBinnedTraces(dataCell);
 
+%get nNeurons
+nTrials = size(neuronalTraces,3);
+
+%%%%%%%%% Create matrix of values at each point in the maze
+
+neuronalTracePoints = getMazePoints(neuronalTraces,yPosBins);
+behavTracePoints = getMazePoints(behavTraces,yPosBins);
+nPoints = size(neuronalTracePoints,2);
+
+%%%%%%%%%%%% cluster
+behavClusterIDs = nan(nTrials,nPoints);
+neurClusterIDs = nan(nTrials,nPoints);
+for point = 1:nPoints
+    behavClusterIDs(:,point) = apClusterNeuronalStates(squeeze(behavTracePoints(:,point,:)));
+    neurClusterIDs(:,point) = apClusterNeuronalStates(squeeze(neuronalTracePoints(:,point,:)));
+end
+end

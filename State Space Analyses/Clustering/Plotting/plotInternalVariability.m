@@ -4,6 +4,10 @@ function plotInternalVariability(meanDiffProb,sigMat)
 pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
     'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
 
+if size(meanDiffProb,3) > 1 
+    meanDiffProb = mean(meanDiffProb,3);
+end
+
 %get nPoints
 nPoints = length(meanDiffProb);
 
@@ -46,8 +50,14 @@ axH.YLabel.String = 'Starting Cluster';
 axH.YLabel.FontSize = 30;
 axH.XLabel.String = 'Ending Cluster';
 axH.XLabel.FontSize = 30;
-axH.XLim = [1.51 nPoints+0.5];
-axH.YLim = [0.51 nPoints-0.51];
+if isnan(meanDiffProb(1))
+    axH.XLim = [1.51 nPoints+0.5];
+    axH.YLim = [0.51 nPoints-0.51];
+else
+    axH.XLim = [0.51 nPoints+0.5];
+    axH.YLim = [0.51 nPoints+0.5];
+end
+    
 
 %add colorbar
 cBar = colorbar;

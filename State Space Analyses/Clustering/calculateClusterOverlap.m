@@ -1,4 +1,4 @@
-function [overlapIndex, nullOverlap] = calculateClusterOverlap(dataCell,clusterIDs,cMat,varargin)
+function [overlapIndex, whichAct] = calculateClusterOverlap(dataCell,clusterIDs,cMat,varargin)
 %calculateClusterOverlap.m Calculates the overlap in active neurons between
 %clusters using the threshold specified
 %
@@ -22,6 +22,8 @@ function [overlapIndex, nullOverlap] = calculateClusterOverlap(dataCell,clusterI
 %% handle inputs
 sortBy = 'leftTurn';
 zThresh = 1;
+halfHalfDiag = true;
+nBootstrap = 100;
 %process varargin
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -33,21 +35,23 @@ if nargin > 1 || ~isempty(varargin)
                 sortBy = varargin{argInd+1};
             case 'zthresh'
                 zThresh = varargin{argInd+1};
+            case 'halfhalfdiag'
+                halfHalfDiag = varargin{argInd+1};
         end
     end
 end
 
 %% get clustered traces
-clustTraces = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,'sortBy',...
+[clustTraces,trialTraces,clustCounts] = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,'sortBy',...
     sortBy);
 nPoints = length(clustTraces);
 nUnique = cellfun(@(x) size(x,2),clustTraces);
-nNeurons = size(clustTraces{1},1);
-
 %% bin as active or inactive 
 actNeurons = cell(size(clustTraces));
+whichAct = cell(size(clustTraces));
 for point = 1:nPoints
     actNeurons{point} = clustTraces{point} >= zThresh;
+    whichAct{point} = find(any(actNeurons{point},2));
 end
 
 
@@ -64,10 +68,52 @@ for point = 1:nPoints
             overlapIndex{point}(endCluster,startCluster) = overlap;
         end
     end
+    
+    %calculate diagonal overlap index 
+    tempTraces = trialTraces{point};
+    tempCounts = cat(1,1,cumsum(clustCounts{point}));
+    for cluster = 1:nUnique(point)
+        currTrace = tempTraces(:,tempCounts(cluster):tempCounts(cluster+1));
+        bootOverlap = nan(nBootstrap,1);
+        nClustTrials = size(currTrace,2);
+        nChoose = round(nClustTrials/2);
+        for bootInd = 1:nBootstrap
+            chooseTrials = false(nClustTrials,1);
+            chooseTrials(randsample(nClustTrials,nChoose)) = true;
+            firstHalfAct = find(mean(currTrace(:,chooseTrials),2) >= zThresh);
+            secondHalfAct = find(mean(currTrace(:,~chooseTrials),2) >= zThresh);
+            bootOverlap(bootInd) = length(intersect(firstHalfAct,secondHalfAct))/...
+                length(union(firstHalfAct,secondHalfAct));
+        end
+        overlapIndex{point}(cluster,cluster) = nanmean(bootOverlap);
+    end
+    
+    %calculate diagonal overlap index 
+%     tempTraces = trialTraces{point};
+%     tempCounts = cat(1,1,cumsum(clustCounts{point}));
+%     for cluster = 1:nUnique(point)
+%         currTrace = tempTraces(:,tempCounts(cluster):tempCounts(cluster+1));
+%         activeTrace = currTrace >= zThresh;
+%         nClustTrials = size(activeTrace,2);
+%         index = 1;
+%         if nClustTrials == 1
+%             overlapIndex{point}(cluster,cluster) = NaN;
+%             continue;
+%         end
+%         tempOverlap = nan(nchoosek(nClustTrials,2),1);
+%         for startTrial = 1:nClustTrials
+%             for endTrial = startTrial+1:nClustTrials
+%                 tempTrace = activeTrace(:,[startTrial, endTrial]);
+%                 nSame = sum(tempTrace,2);
+%                 tempOverlap(index) = sum(nSame == 2)/sum(nSame >= 1);
+%             end
+%         end
+%         overlapIndex{point}(cluster,cluster) = nanmean(tempOverlap);
+%     end
 end
 
 %% calculate null overlap index
-nullOverlap = cell(size(actNeurons));
+% nullOverlap = cell(size(actNeurons));
 % for point = 1:nPoints
 %     nullOverlap{point} = ones(nUnique(point));
 %     for startCluster = 1:nUnique(point)

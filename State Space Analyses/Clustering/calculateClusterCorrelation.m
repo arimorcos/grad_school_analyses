@@ -31,7 +31,7 @@ if nargin > 1 || ~isempty(varargin)
 end
 
 %% get clustered traces
-clustTraces = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,'sortBy',...
+[clustTraces,trialTraces,clustCounts] = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,'sortBy',...
     sortBy);
 nPoints = length(clustTraces);
 nUnique = cellfun(@(x) size(x,2),clustTraces);
@@ -50,6 +50,15 @@ for point = 1:nPoints
             clusterCorr{point}(endCluster,startCluster) = corr(2,1);
         end
     end
+    
+    %calculate diagonal overlap index 
+    tempTraces = trialTraces{point};
+    tempCounts = cat(1,1,cumsum(clustCounts{point}));
+    for cluster = 1:nUnique(point)
+        currTrace = tempTraces(:,tempCounts(cluster):tempCounts(cluster+1));
+        clusterCorr{point}(cluster,cluster) = nanmean(pdist(currTrace','correlation'));
+    end
+    
 end
 
     

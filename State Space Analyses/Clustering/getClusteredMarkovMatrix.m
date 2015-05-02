@@ -18,6 +18,7 @@ function [mMat,cMat,clusterIDs,clusterCenters] = getClusteredMarkovMatrix(dataCe
 nPoints = 10;
 clusterType = 'ap';
 shuffleIDs = false;
+useBehavior = false;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -30,6 +31,8 @@ if nargin > 1 || ~isempty(varargin)
                 clusterType = varargin{argInd+1};
             case 'shuffleids'
                 shuffleIDs = varargin{argInd+1};
+            case 'usebehavior'
+                useBehavior = varargin{argInd+1};
         end
     end
 end
@@ -37,8 +40,14 @@ end
 %get yPosBins
 yPosBins = dataCell{1}.imaging.yPosBins;
 
-%get tracs
-[~,traces] = catBinnedTraces(dataCell);
+if useBehavior
+    traces = catBinnedDataFrames(dataCell);
+    keepVar = 2:6; %2 - xPos, 3 - yPos, 4 - view angle, 5 - xVel, 6 - yVel
+    traces = traces(keepVar,:,:);
+else
+    %get traces
+    [~,traces] = catBinnedTraces(dataCell);
+end
 
 %get nNeurons
 nTrials = size(traces,3);
@@ -59,12 +68,12 @@ for point = 1:nPoints
             error('Cannot interpret cluster type: %s',clusterType);
     end
     
-    if shuffleIDs 
+    if shuffleIDs
         clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
     end
 end
 
-%get colors for matrix 
+%get colors for matrix
 cMat = getClusterCMat(clusterIDs,dataCell);
 
 %get transition matrix

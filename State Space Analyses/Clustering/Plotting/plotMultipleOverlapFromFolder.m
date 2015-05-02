@@ -27,11 +27,13 @@ files = allNames(~isDirs);
 matchFiles = files(~cellfun(@isempty,regexp(files,fileStr)));
 
 %loop through each file and create array 
-plotData = nan(length(matchFiles),nPoints);
+plotDataDiag = nan(length(matchFiles),nPoints);
+plotDataOffDiag = nan(length(matchFiles),nPoints);
 for fileInd = 1:length(matchFiles)
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
     field = fieldnames(currFileData);
-    plotData(fileInd,:) = currFileData.(field{1});  
+    plotDataOffDiag(fileInd,:) = currFileData.(field{1}).offDiag; 
+    plotDataDiag(fileInd,:) = currFileData.(field{1}).diag; 
 end
 
 %nFiles
@@ -49,12 +51,20 @@ colors = distinguishable_colors(nFiles);
 
 %loop through and plot 
 for file = 1:nFiles
-    plotH = plot(1:nPoints,plotData(file,:));
-    plotH.Color = colors(file,:);
-    plotH.Marker = 'o';
-    plotH.MarkerSize = 10;
-    plotH.LineWidth = 2;
-    plotH.MarkerFaceColor = colors(file,:);
+    plotOffDiag = plot(1:nPoints,plotDataOffDiag(file,:));
+    plotOffDiag.Color = colors(file,:);
+    plotOffDiag.Marker = 'o';
+    plotOffDiag.MarkerSize = 10;
+    plotOffDiag.LineWidth = 2;
+    plotOffDiag.MarkerFaceColor = colors(file,:);
+    
+    plotDiag = plot(1:nPoints,plotDataDiag(file,:));
+    plotDiag.Color = colors(file,:);
+    plotDiag.Marker = 's';
+    plotDiag.MarkerSize = 10;
+    plotDiag.LineWidth = 2;
+    plotDiag.LineStyle = '--';
+    plotDiag.MarkerFaceColor = colors(file,:);
 end
 
 %set axis to square
@@ -74,6 +84,9 @@ handles.ax.FontSize = 20;
 handles.ax.XTick = 1:nPoints;
 handles.ax.XLim = [0.5 nPoints + 0.5];
 handles.ax.YLim = [0 1];
+
+%add legend 
+legend([plotOffDiag,plotDiag],{'Inter-Cluster','Intra-Cluster'},'Location','NorthEastOutside');
 
 %maximize 
 handles.fig.Units = 'normalized';

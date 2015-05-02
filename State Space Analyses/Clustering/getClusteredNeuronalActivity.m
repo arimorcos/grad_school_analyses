@@ -1,4 +1,4 @@
-function clustTraces = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,varargin)
+function [clustTraces,trialTraces,clustCounts] = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,varargin)
 %getClusteredNeuronalActivity.m Gets the average z-scored activity of each neuron
 %in each cluster 
 %
@@ -64,17 +64,27 @@ end
 
 %get mean traces
 clustTraces = cell(nPoints,1);
+trialTraces = cell(nPoints,1);
+clustCounts = cell(nPoints,1);
 for point = 1:nPoints
     clustTraces{point} = nan(nNeurons,nUnique(point));
+    trialTraces{point} = cell(nUnique(point),1);
     for cluster = 1:nUnique(point)
         %get matching indices 
         keepInd = clusterIDs(:,point) == uniqueClusters{point}(cluster);
         
         %take average 
         clustTraces{point}(:,cluster) = mean(mazePoints(:,point,keepInd),3);
+        
+        %take trial traces
+        trialTraces{point}{cluster} = squeeze(mazePoints(:,point,keepInd));
     end
+    [~,clustCounts{point}] = count_unique(clusterIDs(:,point));
+    clustCounts{point} = clustCounts{point}(sortOrder{point});
     %sort 
     clustTraces{point} = clustTraces{point}(:,sortOrder{point});
+    trialTraces{point} = cat(2,trialTraces{point}{sortOrder{point}});
+%     trialTraces{point} = cat(2,trialTraces{point}{:});
 end
 
 

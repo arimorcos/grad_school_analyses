@@ -67,6 +67,9 @@ if ~strcmpi(sortBy,'none') && ~isempty(cMat)
         end
         fields = fieldnames(cMat);
         for field = 1:length(fields)
+            if strcmpi('dPoints',fields{field})
+                continue;
+            end
             cMat.(fields{field}){point} = cMat.(fields{field}){point}(tempSortOrder);
         end
     end
@@ -115,7 +118,8 @@ if ~isempty(cMat)
         [~,ind] = min(abs(valDist),[],2);
         colorPoss = redblue(255);
         colormap(colorPoss);
-        colors = colorPoss(ind,:);
+        actualColorPoss = colorPoss;
+        colors = actualColorPoss(ind,:);
         showColorbar = true;
     else
         warning('Cannot interpret colorBy. Coloring uniformly');
@@ -210,7 +214,9 @@ scatH.SizeData = scatSizeData(keepInd)*sizeScale;
 %add colorbar
 if showColorbar
     cBar = colorbar;
-    caxis([min(values) max(values)]);
+    if length(unique(values)) > 1
+        caxis([min(values) max(values)]);
+    end
     cBar.Label.String = colorBy;
 end
 

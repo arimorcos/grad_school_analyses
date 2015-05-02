@@ -47,9 +47,11 @@ nPoints = length(clusterCorr);
 nClusters = cellfun(@length,clusterCorr);
 
 %% get mean off-diagonal
-meanCorr = nan(nPoints,1);
+meanCorr.offDiag = nan(nPoints,1);
+meanCorr.diag = nan(nPoints,1);
 for point = 1:nPoints
-    meanCorr(point) = mean(clusterCorr{point}(logical(tril(ones(size(clusterCorr{point})),-1))));
+    meanCorr.offDiag(point) = nanmean(clusterCorr{point}(logical(tril(ones(size(clusterCorr{point})),-1))));
+    meanCorr.diag(point) = nanmean(diag(clusterCorr{point}));
 end
 
 if nargout > 0 

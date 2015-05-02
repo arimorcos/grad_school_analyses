@@ -50,9 +50,11 @@ nPoints = length(overlapIndex);
 nClusters = cellfun(@length,overlapIndex);
 
 %% get mean off-diagonal
-meanOverlap = nan(nPoints,1);
+meanOverlap.offDiag = nan(nPoints,1);
+meanOverlap.diag = nan(nPoints,1);
 for point = 1:nPoints
-    meanOverlap(point) = mean(overlapIndex{point}(logical(tril(ones(size(overlapIndex{point})),-1))));
+    meanOverlap.offDiag(point) = nanmean(overlapIndex{point}(logical(tril(ones(size(overlapIndex{point})),-1))));
+    meanOverlap.diag(point) = nanmean(diag(overlapIndex{point}));
 end
 
 if nargout > 0 
