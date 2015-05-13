@@ -21,6 +21,12 @@ nPoints = size(clusterIDs,2);
 uniqueClusters = arrayfun(@(x) unique(clusterIDs(:,x)),1:nPoints,'UniformOutput',false);
 nUnique = cellfun(@length,uniqueClusters);
 
+%get counts 
+cMat.counts = cell(nPoints,1);
+for point = 1:nPoints
+    [~,cMat.counts{point}] = count_unique(clusterIDs(:,point));
+end
+
 %% get color labels
 
 %net evidence

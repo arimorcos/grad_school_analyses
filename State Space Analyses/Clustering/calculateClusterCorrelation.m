@@ -17,6 +17,7 @@ function [clusterCorr] = calculateClusterCorrelation(dataCell,clusterIDs,cMat,va
 
 %% handle inputs
 sortBy = 'leftTurn';
+shouldShuffle = false;
 %process varargin
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -26,16 +27,28 @@ if nargin > 1 || ~isempty(varargin)
         switch lower(varargin{argInd})
             case 'sortby'
                 sortBy = varargin{argInd+1};
+            case 'shouldshuffle'
+                shouldShuffle = varargin{argInd+1};                
         end
     end
 end
 
 %% get clustered traces
 [clustTraces,trialTraces,clustCounts] = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,'sortBy',...
-    sortBy);
+    sortBy,'shouldShuffle',shouldShuffle);
 nPoints = length(clustTraces);
 nUnique = cellfun(@(x) size(x,2),clustTraces);
-
+%shuffle 
+% if shouldShuffle 
+%     for point = 1:nPoints
+%         for cluster = 1:nUnique(point)
+%             clustTraces{point}(:,cluster) = shuffleArray(clustTraces{point}(:,cluster));
+%         end
+%         for trial = 1:size(trialTraces,2)
+%             trialTraces{point}(:,trial) = shuffleArray(trialTraces{point}(:,trial));
+%         end
+%     end
+% end
 
 %% calculate correlation coefficient  
 clusterCorr = cell(size(clustTraces));
@@ -50,13 +63,46 @@ for point = 1:nPoints
             clusterCorr{point}(endCluster,startCluster) = corr(2,1);
         end
     end
+
+%     tempTraces = trialTraces{point};
+%     tempCounts = cat(1,1,cumsum(clustCounts{point}));
+%     for startCluster = 1:nUnique(point)
+%         for endCluster = startCluster+1:nUnique(point)
+%             startActivity = tempTraces(:,tempCounts(startCluster):tempCounts(startCluster+1));
+%             endActivity = tempTraces(:,tempCounts(endCluster):tempCounts(endCluster+1));
+%             corr = 1-pdist2(startActivity',endActivity','correlation');
+%             corr = nanmean(corr(:));
+%             clusterCorr{point}(startCluster,endCluster) = corr;
+%             clusterCorr{point}(endCluster,startCluster) = corr;
+%         end
+%     end
+    
+% %     %calculate diagonal overlap index 
+%     tempTraces = trialTraces{point};
+%     tempCounts = cat(1,1,cumsum(clustCounts{point}));
+%     for cluster = 1:nUnique(point)
+%         currTrace = tempTraces(:,tempCounts(cluster):tempCounts(cluster+1));
+%         clusterCorr{point}(cluster,cluster) = nanmean(1-pdist(currTrace','correlation'));
+%     end
     
     %calculate diagonal overlap index 
+    nBootstrap = 20;
     tempTraces = trialTraces{point};
     tempCounts = cat(1,1,cumsum(clustCounts{point}));
     for cluster = 1:nUnique(point)
         currTrace = tempTraces(:,tempCounts(cluster):tempCounts(cluster+1));
-        clusterCorr{point}(cluster,cluster) = nanmean(pdist(currTrace','correlation'));
+        bootCorr = nan(nBootstrap,1);
+        nClustTrials = size(currTrace,2);
+        nChoose = round(nClustTrials/2);
+        for bootInd = 1:nBootstrap
+            chooseTrials = false(nClustTrials,1);
+            chooseTrials(randsample(nClustTrials,nChoose)) = true;
+            firstHalfAct = mean(currTrace(:,chooseTrials),2);
+            secondHalfAct = mean(currTrace(:,~chooseTrials),2);
+            tempCorr = corrcoef(firstHalfAct,secondHalfAct);
+            bootCorr(bootInd) = tempCorr(2,1);
+        end
+        clusterCorr{point}(cluster,cluster) = nanmean(bootCorr);
     end
     
 end

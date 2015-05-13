@@ -1,4 +1,4 @@
-pfunction plotDeltaPointInternal(deltaPoint)
+function plotDeltaPointInternal(deltaPoint)
 
 handles.fig = figure;
 handles.ax = axes;

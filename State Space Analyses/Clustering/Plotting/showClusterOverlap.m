@@ -21,6 +21,7 @@ sortBy = 'leftTurn';
 showAllPoints = true;
 whichPoints = 8;
 zThresh = 1;
+nShuffles = 200;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -50,14 +51,31 @@ nPoints = length(overlapIndex);
 nClusters = cellfun(@length,overlapIndex);
 
 %% get mean off-diagonal
-meanOverlap.offDiag = nan(nPoints,1);
-meanOverlap.diag = nan(nPoints,1);
-for point = 1:nPoints
-    meanOverlap.offDiag(point) = nanmean(overlapIndex{point}(logical(tril(ones(size(overlapIndex{point})),-1))));
-    meanOverlap.diag(point) = nanmean(diag(overlapIndex{point}));
-end
-
-if nargout > 0 
+if nargout > 0
+    meanOverlap.offDiag = nan(nPoints,1);
+    meanOverlap.diag = nan(nPoints,1);
+    for point = 1:nPoints
+        meanOverlap.offDiag(point) = nanmean(overlapIndex{point}(logical(tril(ones(size(overlapIndex{point})),-1))));
+        meanOverlap.diag(point) = nanmean(diag(overlapIndex{point}));
+    end
+    
+    %shuffle 
+    shuffleOffDiag = nan(nShuffles,nPoints);
+    shuffleDiag = nan(nShuffles,nPoints);
+    parfor shuffleInd = 1:nShuffles
+        shuffleIndex = calculateClusterOverlap(dataCell,clusterIDs,cMat,'sortBy',...
+            sortBy,'zThresh',zThresh,'shouldShuffle',true);
+        for point = 1:nPoints
+            shuffleOffDiag(shuffleInd,point) = nanmean(shuffleIndex{point}(logical(tril(ones(size(shuffleIndex{point})),-1))));
+            shuffleDiag(shuffleInd,point) = nanmean(diag(shuffleIndex{point}));
+        end
+        %         dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
+        fprintf('Shuffle %d/%d\n',shuffleInd,nShuffles);
+    end
+    
+    %store 
+    meanOverlap.shuffleOffDiag = shuffleOffDiag;
+    meanOverlap.shuffleDiag = shuffleDiag; 
     return;
 end
 

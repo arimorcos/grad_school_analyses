@@ -17,6 +17,8 @@ modSort = false;
 showEdges = true;
 whichPoints = 1:10;
 showNull = false;
+showTrial = [];
+clusterIDs = [];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -41,22 +43,30 @@ if nargin > 1 || ~isempty(varargin)
                 whichPoints = varargin{argInd+1};
             case 'shownull'
                 showNull = varargin{argInd+1};
+            case 'showtrial'
+                showTrial = varargin{argInd+1};
+            case 'clusterids'
+                clusterIDs = varargin{argInd+1};
         end
     end
 end
 
 %get nPoints
-nPoints = length(mMat) + 1;
+nPoints = length(cMat.leftTurn);
 
 %get nClusters in each point
-nClusters = nan(nPoints,1);
-nClusters(1) = size(mMat{1},1);
-for point = 2:nPoints
-    nClusters(point) = size(mMat{point-1},2);
-end
+% nClusters = nan(nPoints,1);
+% nClusters(1) = size(mMat{1},1);
+% for point = 2:nPoints
+%     nClusters(point) = size(mMat{point-1},2);
+% end
+nClusters = cellfun(@length,cMat.leftTurn);
 
 %sort points
 if ~strcmpi(sortBy,'none') && ~isempty(cMat)
+    if ~isempty(clusterIDs)
+        sortedClusters = cell(nPoints,1);
+    end
     for point = 1:nPoints
         [~,tempSortOrder] = sort(cMat.(sortBy){point});
         if point < nPoints
@@ -71,6 +81,10 @@ if ~strcmpi(sortBy,'none') && ~isempty(cMat)
                 continue;
             end
             cMat.(fields{field}){point} = cMat.(fields{field}){point}(tempSortOrder);
+        end
+        if ~isempty(clusterIDs)
+            uniqueClusters = unique(clusterIDs(:,point));
+            sortedClusters{point} = uniqueClusters(tempSortOrder);
         end
     end
 end
@@ -101,11 +115,12 @@ for point = 1:nPoints
     scatYVals(clusterInds) = clusterLoc{point};
     
     %get size
-    if point == 1
-        trialFrac = sum(mMat{point},2);
-    else
-        trialFrac = sum(mMat{point-1});
-    end
+%     if point == 1
+%         trialFrac = sum(mMat{point},2);
+%     else
+%         trialFrac = sum(mMat{point-1});
+%     end
+    trialFrac = cMat.counts{point}/sum(cMat.counts{point});
     scatSizeData(clusterInds) = trialFrac;
 end
 
@@ -141,6 +156,22 @@ axH.FontSize = 20;
 axH.XLim = [whichPoints(1) - 1 whichPoints(end) + 1];
 currYLim = axH.YLim;
 axH.YLim = [currYLim(1)-0.025*diff(currYLim) currYLim(2)+0.025*diff(currYLim)];
+
+if ~isempty(showTrial)
+    showEdges = false;
+    trialColors = lines(length(showTrial));
+    for trial = 1:length(showTrial)
+        currTrial = clusterIDs(showTrial(trial),:);
+        for transition = 1:nPoints-1
+            startID = currTrial(transition) == sortedClusters{transition};
+            endID = currTrial(transition+1) == sortedClusters{transition+1};
+            lineH = line([transition transition+1],...
+                [clusterLoc{transition}(startID) clusterLoc{transition+1}(endID)]);
+            lineH.LineWidth = 3;
+            lineH.Color = trialColors(trial,:);
+        end
+    end
+end
 
 if showEdges
     %add edges
@@ -220,3 +251,6 @@ if showColorbar
     cBar.Label.String = colorBy;
 end
 
+%mazimieze 
+figH.Units = 'normalized';
+figH.OuterPosition = [0 0 1 1];

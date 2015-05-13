@@ -13,6 +13,7 @@ pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
 
 %nBins 
 nBins = 5;
+filter = 5;
 
 %get nPoints
 nPoints = length(cMat.netEv);
@@ -65,9 +66,13 @@ for plotInd = 1:nPlots
     clusterFrac = sum(clusterCounts,2)/sum(clusterCounts(:));
     colors = distinguishable_colors(nClusters);
     for clusterInd = 1:nClusters
+        if sum(clusterCounts(clusterInd,:)) < filter
+            continue;
+        end
         plotH = plot(edges(1:end-1) + diff(edges),normCounts(clusterInd,:));
-        plotH.LineWidth = totalWidth*clusterFrac(clusterInd);
-        plotH.Color = colors(clusterInd,:);        
+%         plotH.LineWidth = totalWidth*clusterFrac(clusterInd);
+        plotH.Color = colors(clusterInd,:);     
+        plotH.LineWidth = 2;
     end
     
     %set axis properties 
@@ -76,8 +81,16 @@ for plotInd = 1:nPlots
     axH.Title.String = pointLabels{whichPlot(plotInd)};
 end
 
-%add labels 
-xLab = suplabel(param,'x');
-xLab.FontSize = 30;
-yLab = suplabel('Frequency','y');
-yLab.FontSize=  30;
+%add labels
+if nPlots > 1
+    xLab = suplabel(param,'x');
+    xLab.FontSize = 30;
+    yLab = suplabel('Frequency','y');
+    yLab.FontSize=  30;
+else
+    axH.LabelFontSizeMultiplier = 1.5;
+    axH.FontSize = 20;
+    axH.XLabel.String = 'View Angle (degrees)';
+    axH.YLabel.String = 'Frequency';
+    axH.Title.FontSize = 30;
+end

@@ -16,9 +16,12 @@ function h = addBracket(xRange,yPos,label)
 h.horizLine = line(xRange,[yPos yPos]);
 h.horizLine.Color = 'k';
 
+%currAx 
+axH = gca;
+
 %plot ticks 
-h.leftTick = line([xRange(1) xRange(1)], [.95*yPos yPos]);
-h.rightTick = line([xRange(2) xRange(2)], [.95*yPos yPos]);
+h.leftTick = line([xRange(1) xRange(1)], [yPos - 0.01*range(axH.YLim) yPos]);
+h.rightTick = line([xRange(2) xRange(2)], [yPos - 0.01*range(axH.YLim) yPos]);
 h.rightTick.Color = 'k';
 h.leftTick.Color = 'k';
 

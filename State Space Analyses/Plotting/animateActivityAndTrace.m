@@ -14,6 +14,8 @@ function animateActivityAndTrace(tiff,roiInfo,traces,roiInd,vidPath)
 %
 %ASM 2/15
 
+frameRate = 60;
+
 if nargin < 5 
     vidPath = [];
 end
@@ -68,7 +70,9 @@ end
 
 %create figure
 figH = figure;
-figH.Color = 'none';
+if ~isempty(vidPath)
+    figH.Color = 'w';
+end
 
 %generate colors
 colors = distinguishable_colors(length(roiInd));
@@ -129,7 +133,9 @@ axTrace.FontName = 'Yu Gothic';
 maxfig(figH,1);
 drawnow;
 
-keyboard;
+if ~isempty(vidPath)
+    keyboard;
+end
 
 pause(0.1);
 
@@ -141,6 +147,8 @@ if ~isempty(vidPath)
     vidWrite = VideoWriter(vidPath);
     open(vidWrite);
 end
+
+lastTic = tic;
 
 %play movie
 for frameInd = 1:nFrames
@@ -163,7 +171,9 @@ for frameInd = 1:nFrames
         writeVideo(vidWrite,currFrame);
     else 
         %pause for a moment
-        pause(0.02);
+        while toc(lastTic) < 1/frameRate            
+        end
+        lastTic = tic;
     end
     
 end

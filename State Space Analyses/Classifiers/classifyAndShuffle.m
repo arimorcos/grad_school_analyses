@@ -70,7 +70,7 @@ end
 %shuffle
 shuffleAccuracy = nan(nShuffles,length(accuracy));
 shuffleGuess = nan(size(classGuess,1),size(classGuess,2),nShuffles);
-for shuffleInd = 1:nShuffles
+parfor shuffleInd = 1:nShuffles
     %display progress
     dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
     
@@ -84,12 +84,12 @@ for shuffleInd = 1:nShuffles
                 getSVMAccuracy(traces,shuffledClass,...
                 'dontcomparesame',dontCompareSame);
             
-            while any(shuffleAccuracy(shuffleInd,:) < 30)
-                lowInd = shuffleAccuracy(shuffleInd,:) < 30;
-                [shuffleAccuracy(shuffleInd,lowInd),shuffleGuess(:,lowInd,shuffleInd)] =...
-                    getSVMAccuracy(traces(:,lowInd,:),shuffleArray(shuffledClass),...
-                    'dontcomparesame',dontCompareSame);
-            end
+%             while any(shuffleAccuracy(shuffleInd,:) < 30)
+%                 lowInd = shuffleAccuracy(shuffleInd,:) < 30;
+%                 [shuffleAccuracy(shuffleInd,lowInd),shuffleGuess(:,lowInd,shuffleInd)] =...
+%                     getSVMAccuracy(traces(:,lowInd,:),shuffleArray(shuffledClass),...
+%                     'dontcomparesame',dontCompareSame);
+%             end
         case 'leastdist'
             %classify
             [shuffleAccuracy(shuffleInd,:),shuffleGuess(:,:,shuffleInd)] =...
@@ -97,13 +97,13 @@ for shuffleInd = 1:nShuffles
                 'dontcomparesame',dontCompareSame,...
                 'testoffset',testOffset);
             
-            while any(shuffleAccuracy(shuffleInd,:) < 30)
-                lowInd = shuffleAccuracy(shuffleInd,:) < 30;
-                [shuffleAccuracy(shuffleInd,lowInd),shuffleGuess(:,lowInd,shuffleInd)] =...
-                    getClassifierAccuracyNew(traces(:,lowInd,:),shuffleArray(shuffledClass),...
-                    'dontcomparesame',dontCompareSame,...
-                    'testoffset',testOffset);
-            end
+%             while any(shuffleAccuracy(shuffleInd,:) < 30)
+%                 lowInd = shuffleAccuracy(shuffleInd,:) < 30;
+%                 [shuffleAccuracy(shuffleInd,lowInd),shuffleGuess(:,lowInd,shuffleInd)] =...
+%                     getClassifierAccuracyNew(traces(:,lowInd,:),shuffleArray(shuffledClass),...
+%                     'dontcomparesame',dontCompareSame,...
+%                     'testoffset',testOffset);
+%             end
     end
 end
 

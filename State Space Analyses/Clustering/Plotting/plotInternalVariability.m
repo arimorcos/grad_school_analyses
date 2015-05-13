@@ -1,4 +1,4 @@
-function plotInternalVariability(meanDiffProb,sigMat)
+function plotInternalVariability(meanDiffProb,sigMat,acc)
 %plotInternalVariability.m Plots the output of quantifyInternalVariability
 
 pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
@@ -6,6 +6,10 @@ pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
 
 if size(meanDiffProb,3) > 1 
     meanDiffProb = mean(meanDiffProb,3);
+end
+
+if nargin < 3 || isempty(acc)
+    acc = false;
 end
 
 %get nPoints
@@ -61,5 +65,9 @@ end
 
 %add colorbar
 cBar = colorbar;
-cBar.Label.String = 'Mean absolute difference from null probability';
+if acc
+    cBar.Label.String = 'Accuracy';
+else
+    cBar.Label.String = 'Mean absolute difference from null probability';
+end
 cBar.Label.FontSize = 20;

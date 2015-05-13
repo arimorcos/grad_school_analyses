@@ -24,6 +24,7 @@ useBehavior = false;
 useBootstrapping = false;
 nBootstrap = 100;
 excludeTurn = false;
+shuffleInitial = false;
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
         error('Must provide a name and value for each argument');
@@ -40,8 +41,10 @@ if nargin > 1 || ~isempty(varargin)
                 useBootstrapping = varargin{argInd+1};
             case 'nbootstrap'
                 nBootstrap = varargin{argInd+1};
-                            case 'excludeturn'
+            case 'excludeturn'
                 excludeTurn = varargin{argInd+1};
+            case 'shuffleinitial'
+                shuffleInitial = varargin{argInd+1};
         end
     end
 end
@@ -80,9 +83,12 @@ nPoints = size(tracePoints,2);
 clusterIDs = nan(nTrials,nPoints);
 for point = 1:nPoints
     clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
+    if shuffleInitial
+        clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
+    end
 end
 
-if excludeTurn 
+if excludeTurn
     clusterIDs = clusterIDs(:,1:8);
     nPoints = 8;
 end
@@ -91,6 +97,7 @@ end
 if useBootstrapping
     meanDiffProb = nan(nPoints,nPoints,nBootstrap);
     shuffleProb = nan(nPoints,nPoints,nShuffles,nBootstrap);
+    nSTDAboveMedian = nan(size(meanDiffProb));
     for bootInd = 1:nBootstrap
         %display progress
         dispProgress('Bootstrapping %d/%d',bootInd,bootInd,nBootstrap);
@@ -124,6 +131,13 @@ if useBootstrapping
         sigMat(meanDiffProb(:,:,bootInd) > p95Bound(:,:,2)) = 1;
         sigMat(meanDiffProb(:,:,bootInd) > p99Bound(:,:,2)) = 2;
         sigMat(meanDiffProb(:,:,bootInd) > p999Bound(:,:,2)) = 3;
+        
+        %get std and median
+        stdShuffle = std(shuffleProb(:,:,:,bootInd),0,3);
+        medianShuffle = median(shuffleProb(:,:,:,bootInd),3);
+        
+        %get nSTD
+        nSTDAboveMedian(:,:,bootInd) = (meanDiffProb(:,:,bootInd) - medianShuffle)./stdShuffle;
     end
 else
     meanDiffProb = countPredictions(clusterIDs);
@@ -131,7 +145,7 @@ else
     %%%%%% shuffle
     if shouldShuffle
         shuffleProb = nan(nPoints,nPoints,nShuffles);
-        for shuffleInd = 1:nShuffles
+        parfor shuffleInd = 1:nShuffles
             
             %shuffle clusterIDs
             shuffleIDs = nan(size(clusterIDs));
@@ -143,7 +157,7 @@ else
             shuffleProb(:,:,shuffleInd) = countPredictions(shuffleIDs);
             
             %display progress
-            dispProgress('Shuffling cluster labels %d/%d',shuffleInd,shuffleInd,nShuffles);
+%             dispProgress('Shuffling cluster labels %d/%d',shuffleInd,shuffleInd,nShuffles);
         end
         
     end
@@ -154,11 +168,16 @@ else
     p999Bound = prctile(shuffleProb,[0.05 99.95],3);
     
     sigMat = zeros(nPoints);
-    for bootInd = 1:size(meanDiffProb,3)
-        sigMat(meanDiffProb(:,:,bootInd) > p95Bound(:,:,2)) = 1;
-        sigMat(meanDiffProb(:,:,bootInd) > p99Bound(:,:,2)) = 2;
-        sigMat(meanDiffProb(:,:,bootInd) > p999Bound(:,:,2)) = 3;
-    end
+    sigMat(meanDiffProb > p95Bound(:,:,2)) = 1;
+    sigMat(meanDiffProb > p99Bound(:,:,2)) = 2;
+    sigMat(meanDiffProb > p999Bound(:,:,2)) = 3;
+    
+    %get std and median
+    stdShuffle = std(shuffleProb,0,3);
+    medianShuffle = median(shuffleProb,3);
+    
+    %get nSTD
+    nSTDAboveMedian = (meanDiffProb - medianShuffle)./stdShuffle;
 end
 
 %% calculate deltaPoint for out
@@ -173,7 +192,8 @@ pointDist = triu(squareform(pdist([1:nPoints]')));
 meanProbDelta = nan(nPoints-1,size(meanDiffProb,3));
 
 meanProbDeltaSig = nan(nPoints-1,size(meanDiffProb,3));
-nSTDAboveMedian = nan(nPoints-1,size(meanDiffProb,3));
+meanNSTDAboveMedian = nan(nPoints-1,size(meanDiffProb,3));
+totalNSTDAboveMedian = nan(nPoints-1,size(meanDiffProb,3));
 for delta = 1:(nPoints-1)
     
     %get matchInd
@@ -182,7 +202,9 @@ for delta = 1:(nPoints-1)
     %sum meanDiffProb
     for bootInd = 1:size(meanDiffProb,3);
         tempDiffProb = meanDiffProb(:,:,bootInd);
-        meanProbDelta(delta,bootInd) = mean(tempDiffProb(matchInd));
+        meanProbDelta(delta,bootInd) = nanmean(tempDiffProb(matchInd));
+        tempNSTD = nSTDAboveMedian(:,:,bootInd);
+        meanNSTDAboveMedian(delta,bootInd) = nanmean(tempNSTD(matchInd));
     end
     
     %check shuffles
@@ -190,7 +212,7 @@ for delta = 1:(nPoints-1)
     for bootInd = 1:size(meanDiffProb,3)
         for shuffleInd = 1:nShuffles
             tempShuffle = shuffleProb(:,:,shuffleInd,bootInd);
-            shuffleMeanProbDelta(shuffleInd,bootInd) = mean(tempShuffle(matchInd));
+            shuffleMeanProbDelta(shuffleInd,bootInd) = median(tempShuffle(matchInd));
         end
         
         %calculate significance
@@ -213,7 +235,7 @@ for delta = 1:(nPoints-1)
         shuffleMedian = median(shuffleMeanProbDelta(:,bootInd));
         
         %get nSTD above shuffle
-        nSTDAboveMedian(delta,bootInd) = (meanProbDelta(delta,bootInd)...
+        totalNSTDAboveMedian(delta,bootInd) = (meanProbDelta(delta,bootInd)...
             - shuffleMedian)/shuffleSTD;
     end
     
@@ -221,10 +243,14 @@ end
 
 deltaPoint.meanProb = mean(meanProbDelta,2);
 deltaPoint.sig = mode(meanProbDeltaSig,2);
-deltaPoint.nSTDAboveMedian = mean(nSTDAboveMedian,2);
+deltaPoint.nSTDAboveMedian = mean(meanNSTDAboveMedian,2);
+deltaPoint.totalNSTDAboveMedian = mean(totalNSTDAboveMedian,2);
 deltaPoint.allMeanProb = meanProbDelta;
 deltaPoint.allSig = meanProbDeltaSig;
-deltaPoint.allNSTDAboveMedian = nSTDAboveMedian;
+deltaPoint.allTotalNSTDAboveMedian = totalNSTDAboveMedian;
+deltaPoint.allNSTDAboveMedian = meanNSTDAboveMedian;
+deltaPoint.fullMat.nSTDAboveMedian = nSTDAboveMedian;
+deltaPoint.fullMat.meanDiffProb = meanDiffProb;
 end
 
 function meanDiffProb = countPredictions(clusterIDs)

@@ -1,4 +1,5 @@
-function [overlapIndex, whichAct] = calculateClusterOverlap(dataCell,clusterIDs,cMat,varargin)
+function [overlapIndex, whichAct,whichOverlap, whichNonOverlap] =...
+    calculateClusterOverlap(dataCell,clusterIDs,cMat,varargin)
 %calculateClusterOverlap.m Calculates the overlap in active neurons between
 %clusters using the threshold specified
 %
@@ -22,7 +23,7 @@ function [overlapIndex, whichAct] = calculateClusterOverlap(dataCell,clusterIDs,
 %% handle inputs
 sortBy = 'leftTurn';
 zThresh = 1;
-halfHalfDiag = true;
+shouldShuffle = false;
 nBootstrap = 100;
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -35,17 +36,30 @@ if nargin > 1 || ~isempty(varargin)
                 sortBy = varargin{argInd+1};
             case 'zthresh'
                 zThresh = varargin{argInd+1};
-            case 'halfhalfdiag'
-                halfHalfDiag = varargin{argInd+1};
+            case 'shouldshuffle'
+                shouldShuffle = varargin{argInd+1};
         end
     end
 end
 
 %% get clustered traces
 [clustTraces,trialTraces,clustCounts] = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,'sortBy',...
-    sortBy);
+    sortBy,'shouldShuffle',false);
 nPoints = length(clustTraces);
 nUnique = cellfun(@(x) size(x,2),clustTraces);
+%shuffle 
+if shouldShuffle 
+    for point = 1:nPoints
+        for cluster = 1:nUnique(point)
+            clustTraces{point}(:,cluster) = shuffleArray(clustTraces{point}(:,cluster));
+        end
+        for trial = 1:size(trialTraces{1},2)
+            trialTraces{point}(:,trial) = shuffleArray(trialTraces{point}(:,trial));
+        end
+    end
+end
+
+
 %% bin as active or inactive 
 actNeurons = cell(size(clustTraces));
 whichAct = cell(size(clustTraces));
@@ -57,8 +71,12 @@ end
 
 %% calculate overlap index 
 overlapIndex = cell(size(actNeurons));
+whichOverlap = cell(size(actNeurons));
+whichNonOverlap = cell(size(actNeurons));
 for point = 1:nPoints
     overlapIndex{point} = ones(nUnique(point));
+    whichOverlap{point} = cell(nUnique(point));
+    whichNonOverlap{point} = cell(nUnique(point));
     for startCluster = 1:nUnique(point)
         for endCluster = startCluster+1:nUnique(point)
             actStart = find(actNeurons{point}(:,startCluster));
@@ -66,6 +84,8 @@ for point = 1:nPoints
             overlap = length(intersect(actEnd,actStart))/length(union(actEnd,actStart));
             overlapIndex{point}(startCluster,endCluster) = overlap;
             overlapIndex{point}(endCluster,startCluster) = overlap;
+            whichOverlap{point}{startCluster,endCluster} = intersect(actEnd,actStart);
+            whichNonOverlap{point}{startCluster,endCluster} = setxor(actEnd,actStart);
         end
     end
     

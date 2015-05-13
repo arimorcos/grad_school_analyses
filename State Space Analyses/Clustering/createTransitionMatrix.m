@@ -1,4 +1,4 @@
-function mMat = createTransitionMatrix(clusterIDs)
+function mMat = createTransitionMatrix(clusterIDs,limit)
 %createTransitionMatrix.m Given a set of cluster ids and unique clusters,
 %creates a transition matrix 
 %
@@ -11,6 +11,10 @@ function mMat = createTransitionMatrix(clusterIDs)
 %
 %ASM 4/15
 
+if nargin < 2 
+    limit = [];
+end
+
 %% get relevant variables 
 [nTrials, nPoints] = size(clusterIDs);
 
@@ -18,6 +22,12 @@ function mMat = createTransitionMatrix(clusterIDs)
 uniqueClusters = arrayfun(@(x) unique(clusterIDs(:,x)),1:nPoints,'UniformOutput',false);
 nUnique = cellfun(@length,uniqueClusters);
 
+%% limit
+if ~isempty(limit)
+    keepInd = clusterIDs(:,1) == limit;
+    clusterIDs = clusterIDs(keepInd,:);
+    nTrials = sum(keepInd);
+end
 
 %% get transitions
 transMat = cell(nPoints-1,1);

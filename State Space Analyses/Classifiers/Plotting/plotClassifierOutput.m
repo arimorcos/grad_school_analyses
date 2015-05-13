@@ -26,6 +26,7 @@ end
 figH = figure;
 axH = axes;
 hold(axH,'on');
+axis(axH,'square');
 
 %plot accuracy
 accPlot = plot(yPosBins,accuracy);

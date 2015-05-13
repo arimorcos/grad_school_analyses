@@ -115,7 +115,11 @@ hold(axH,'on');
 axis square;
 
 %get marker Colors
-markerColors = jet(markersPerTrace);
+if markersPerTrace == 2
+    markerColors = [0 0 0 ; 0 1 0];
+else
+    markerColors = jet(markersPerTrace);
+end
 
 %plot
 plotH = cell(nConditions,1);

@@ -58,7 +58,7 @@ distances = nan(nClasses,nBins,nTrials);
 allTrials = 1:nTrials;
 
 %loop through each trial
-for testInd = allTrials
+parfor testInd = allTrials
     
     %get train indices
     trainInd = allTrials;

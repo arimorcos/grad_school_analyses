@@ -2,15 +2,15 @@ function meanCorr = showClusterCorrelation(dataCell,clusterIDs,cMat,varargin)
 %showClusterCorrelation.m Shows the correlation between clusters
 %
 %INPUTS
-%traces - trace array 
+%traces - trace array
 %clusterIDs - clusterIDs output by getClusteredMarkovMatrix
 %cMat - CMat output by getClusteredMarkovMatrix
 %
 %OPTIONAL INPUTS
-%pointLabels - point labels 
-%sortBy - variable to sort clusters by 
+%pointLabels - point labels
+%sortBy - variable to sort clusters by
 %zThresh - threshold as standard deviations above mean to count as active
-%showAllPoints - should show all 
+%showAllPoints - should show all
 %whichPoints - which points to show if not all
 %
 %ASM 4/15
@@ -20,6 +20,8 @@ pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
 sortBy = 'leftTurn';
 showAllPoints = true;
 whichPoints = 8;
+nShuffles = 200;
+
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -47,18 +49,35 @@ nPoints = length(clusterCorr);
 nClusters = cellfun(@length,clusterCorr);
 
 %% get mean off-diagonal
-meanCorr.offDiag = nan(nPoints,1);
-meanCorr.diag = nan(nPoints,1);
-for point = 1:nPoints
-    meanCorr.offDiag(point) = nanmean(clusterCorr{point}(logical(tril(ones(size(clusterCorr{point})),-1))));
-    meanCorr.diag(point) = nanmean(diag(clusterCorr{point}));
-end
-
-if nargout > 0 
+if nargout > 0
+    meanCorr.offDiag = nan(nPoints,1);
+    meanCorr.diag = nan(nPoints,1);
+    for point = 1:nPoints
+        meanCorr.offDiag(point) = nanmean(clusterCorr{point}(logical(tril(ones(size(clusterCorr{point})),-1))));
+        meanCorr.diag(point) = nanmean(diag(clusterCorr{point}));
+    end
+    
+    %shuffle
+    shuffleOffDiag = nan(nShuffles,nPoints);
+    shuffleDiag = nan(nShuffles,nPoints);
+    parfor shuffleInd = 1:nShuffles
+        shuffleCorr = calculateClusterCorrelation(dataCell,clusterIDs,cMat,'sortBy',...
+            sortBy,'shouldShuffle',true);
+        for point = 1:nPoints
+            shuffleOffDiag(shuffleInd,point) = nanmean(shuffleCorr{point}(logical(tril(ones(size(shuffleCorr{point})),-1))));
+            shuffleDiag(shuffleInd,point) = nanmean(diag(shuffleCorr{point}));
+        end
+        %         dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
+        fprintf('Shuffle %d/%d\n',shuffleInd,nShuffles);
+    end
+    
+    %store
+    meanCorr.shuffleOffDiag = shuffleOffDiag;
+    meanCorr.shuffleDiag = shuffleDiag;
     return;
 end
 
-%% plot 
+%% plot
 %create figure
 figH = figure;
 
@@ -79,11 +98,11 @@ for point = 1:nShowPoints
     %create subplot
     axH = subplot(nRow,nCol,point);
     
-    %show 
+    %show
     imagescnan(1:nClusters(whichPoints(point)),1:nClusters(whichPoints(point)),...
         clusterCorr{whichPoints(point)},[minCorr maxCorr]);
     
-    %set ticks 
+    %set ticks
     axH.XTick = 1:nClusters(whichPoints(point));
     axH.YTick = 1:nClusters(whichPoints(point));
     
@@ -94,18 +113,18 @@ for point = 1:nShowPoints
     
 end
 
-%create superAxes 
+%create superAxes
 cBarSupAx = [0.1 0.05 0.85 0.9];
 supAx = axes('Position',cBarSupAx,'Visible','off');
 
-%add colorbar 
+%add colorbar
 cBar = colorbar;
 cBar.Label.String = 'Correlation coefficient';
 cBar.FontSize = 20;
 cBar.Label.FontSize = 30;
 cBar.Limits = [minCorr maxCorr];
 
-%label super axes 
+%label super axes
 supAxes=[.14 .14 .82 .8];
 xLab = suplabel('Sorted cluster index','x',supAxes);
 xLab.FontSize = 30;

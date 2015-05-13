@@ -15,7 +15,7 @@ function [clustTraces,trialTraces,clustCounts] = getClusteredNeuronalActivity(da
 
 
 sortBy = 'leftTurn';
-
+shouldShuffle = false;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -26,6 +26,8 @@ if nargin > 1 || ~isempty(varargin)
         switch lower(varargin{argInd})
             case 'sortby'
                 sortBy = varargin{argInd+1};
+            case 'shouldshuffle'
+                shouldShuffle = varargin{argInd+1};
         end
     end
 end
@@ -48,6 +50,13 @@ mazePoints = getMazePoints(zTraces,yPosBins);
 %get uniqueClusters in each point
 uniqueClusters = arrayfun(@(x) unique(clusterIDs(:,x)),1:nPoints,'UniformOutput',false);
 nUnique = cellfun(@length,uniqueClusters);
+
+%shuffle cluster 
+if shouldShuffle 
+    for point = 1:nPoints
+        clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
+    end
+end
 
 %get cluster sort order
 sortOrder = cell(nPoints,1);
