@@ -5,6 +5,21 @@ function showTransitionGraph(mMat,cMat,varargin)
 %
 %INPUTS
 %mMat - mMat output by getClusteredMarkovMatrix
+%cMat - color matrix containing information about each node with regards to
+%   behavioral variables
+%
+%OPTIONAL INPUTS
+%sizeScale - scale for node sizes. 
+%pointLabels - xLabels for maze positions
+%colorBy - variable to color everything by. Must match field in cMat. 
+%sortBy - variable to sort by. Must match field in cMat.
+%whichPoints - whichPoints to plot. Must be scalar or array. 
+%showEdges - boolean of whether or not to show edges. 
+%showNull - boolean of whether or not to show null probability transitions.
+%showTrials - array of which individual trial numbers to show. If empty, shows transition
+%   probabilities.
+%clusterIDs - nTrials x nPoints array of clusterIDs if showing individual
+%   trials.
 %
 %ASM 4/15
 

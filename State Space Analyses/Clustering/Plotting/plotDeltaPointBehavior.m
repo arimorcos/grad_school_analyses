@@ -152,7 +152,7 @@ plotBehavNeur.MarkerFaceColor = colors(3,:);
 %Add statistics 
 limRange = range(axH.YLim);
 axH.YLim(2) = axH.YLim(2) + 0.1*limRange;
-colors = 'mck';
+colors = 'mcy';
 for delta = 1:nDelta
     allVals = cat(2,meanNeuron(delta),meanBehavior(delta),meanBehaviorNeuron(delta));
     for compInd = 1:size(pVal,2)

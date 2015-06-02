@@ -39,7 +39,7 @@ fileParts = explode(folderPath,filesep);
 mouseName = fileParts{end-1};
 acqDate = fileParts{end};
 acqName = sprintf('%s_%s',mouseName,acqDate);
-acqPath = sprintf('%s%s%s_acq.mat',folderPath,filesep,acqName);
+acqPath = sprintf('%s%s%s_acq_local.mat',folderPath,filesep,acqName);
 
 %load in acq2P object
 loadVar = load(acqPath);
@@ -122,7 +122,7 @@ if ~exist('vCellFile','var') || isempty(vCellFile)
         %get number of files which match search string
         vFileSearch = dir(vCellSearchStr);
         if length(vFileSearch) > 1 %if more than one file from that day
-            [vName,vPath] = uigetfile(vFileSearchStr);
+            [vName,vPath] = uigetfile(vCellSearchStr);
             vCellFile = fullfile(vPath,vName);
         else
             vCellFile = fullfile(vPath,currStr,mouseName,...

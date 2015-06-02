@@ -116,6 +116,10 @@ fEnd1 = fData(1:end-1) > 4; %find all indices where > 4
 fEnd2 = fData(2:end) < 4;%find all indices where < 4
 fStopTimes = find(fEnd1 == 1 & fEnd2 == 1) + 1; %find changes from >4 to <4, add 1 for diff
 
+if length(fStartTimes) == length(fStopTimes)+1
+    fStartTimes = fStartTimes(1:end-1);
+end
+
 %make range
 fRange = fStartTimes';
 fRange(:,2) = [fStartTimes(2:end)-1 fStopTimes(end)]'; %use start times so that all iterations leading up to next frame are included
