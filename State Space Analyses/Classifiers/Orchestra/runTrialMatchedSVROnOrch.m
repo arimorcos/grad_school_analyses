@@ -25,14 +25,14 @@ fileBase = sprintf('AM%d_%s',dataCell{1}.info.mouse,dataCell{1}.info.date);
 %get classifiers for net evidence
 groupClassifier = classifyNetEvGroupSegSVM(correctTrials,'shouldShuffle',true,'nShuffles',100,'classMode','netEv','trialMatch',true);
 acrossClassifier = classifyNetEvAcrossSegSVM(correctTrials,'shouldshuffle',true,'nshuffles',100,'classMode','netEv','trialMatch',true);
-save(sprintf('%s_SVR_classifierOut_netEv_tMatch',fileBase),'acrossClassifier','groupClassifier');
+save(sprintf('dataOut/%s_SVR_classifierOut_netEv_tMatch',fileBase),'acrossClassifier','groupClassifier');
 
 %get classifiers for net evidence
 groupClassifier = classifyNetEvGroupSegSVM(correctTrials,'shouldShuffle',true,'nShuffles',100,'classMode','numLeft','trialMatch',true);
 acrossClassifier = classifyNetEvAcrossSegSVM(correctTrials,'shouldshuffle',true,'nshuffles',100,'classMode','numLeft','trialMatch',true);
-save(sprintf('%s_SVR_classifierOut_numLeft_tMatch',fileBase),'acrossClassifier','groupClassifier');
+save(sprintf('dataOut/%s_SVR_classifierOut_numLeft_tMatch',fileBase),'acrossClassifier','groupClassifier');
 
 %get classifiers for net evidence
 groupClassifier = classifyNetEvGroupSegSVM(correctTrials,'shouldShuffle',true,'nShuffles',100,'classMode','numRight','trialMatch',true);
 acrossClassifier = classifyNetEvAcrossSegSVM(correctTrials,'shouldshuffle',true,'nshuffles',100,'classMode','numRight','trialMatch',true);
-save(sprintf('%s_SVR_classifierOut_numRight_tMatch',fileBase),'acrossClassifier','groupClassifier');
+save(sprintf('dataOut/%s_SVR_classifierOut_numRight_tMatch',fileBase),'acrossClassifier','groupClassifier');

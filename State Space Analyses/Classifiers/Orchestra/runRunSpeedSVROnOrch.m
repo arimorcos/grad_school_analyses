@@ -25,4 +25,4 @@ fileBase = sprintf('AM%d_%s',dataCell{1}.info.mouse,dataCell{1}.info.date);
 allBinRunSpeed = classifyRunSpeedSVR(imTrials,'shouldShuffle',...
     true,'nShuffles',100,'posControl',false);
 sinBinRunSpeed = classifyRunSpeedSVR(imTrials,'shouldShuffle',true,'nShuffles',100);
-save(sprintf('%s_SVR_classifierOut_runSpeed',fileBase),'allBinRunSpeed','sinBinRunSpeed');
+save(sprintf('dataOut/%s_SVR_classifierOut_runSpeed',fileBase),'allBinRunSpeed','sinBinRunSpeed');

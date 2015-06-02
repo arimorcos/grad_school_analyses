@@ -23,4 +23,4 @@ fileBase = sprintf('AM%d_%s',dataCell{1}.info.mouse,dataCell{1}.info.date);
 
 %get position classifier
 posClassifier = classifyPositionSVR(imTrials,'shouldshuffle',true,'nshuffles',100);
-save(sprintf('%s_SVR_classifierOut_position',fileBase),'posClassifier');
+save(sprintf('dataOut/%s_SVR_classifierOut_position',fileBase),'posClassifier');
