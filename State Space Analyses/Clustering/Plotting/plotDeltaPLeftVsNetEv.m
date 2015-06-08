@@ -1,4 +1,4 @@
-function plotDeltaPLeftVsNetEv(deltaPLeft,netEv,limitSegNum,useAbs)
+function handles = plotDeltaPLeftVsNetEv(deltaPLeft,netEv,limitSegNum,useAbs,handles)
 %plotDeltaPLeftVsEpoch.m Plots the change in p(left) as a function of maze
 %epoch transition 
 %
@@ -10,6 +10,15 @@ function plotDeltaPLeftVsNetEv(deltaPLeft,netEv,limitSegNum,useAbs)
 %
 %ASM 6/15
 
+%create figure and axis
+if nargin < 5 || isempty(handles)
+    handles.fig = figure;
+    handles.ax = axes;
+end
+
+%turn on hold
+hold(handles.ax,'on');
+
 if nargin < 4 || isempty(useAbs)
     useAbs = true;
 end
@@ -17,6 +26,7 @@ end
 if nargin < 3
     limitSegNum = [];
 end
+
 
 %crop last value of net ev and add zeros 
 netEv = netEv(:,1:end-1);
@@ -54,23 +64,36 @@ for evInd = 1:nNetEv
     semNetEv(evInd) = calcSEM(abs(pLeftSub(:)));
 end
 
-%create figure and axis 
-figH = figure;
-axH = axes; 
-
 %plot 
-errH = shadedErrorBar(uniqueNetEv,meanNetEv,semNetEv);
+errH = errorbar(uniqueNetEv,meanNetEv,semNetEv);
+errH.Marker = 'o';
 
 %beautify 
-beautifyPlot(figH,axH);
+beautifyPlot(handles.fig,handles.ax);
 
 %tick labels 
-axH.XTick = uniqueNetEv;
+handles.ax.XTick = uniqueNetEv;
 
 %label 
 if useAbs
-    axH.XLabel.String = 'Absolute Net Evidence';
+    handles.ax.XLabel.String = 'Absolute Net Evidence';
 else
-    axH.XLabel.String = 'Net Evidence';
+    handles.ax.XLabel.String = 'Net Evidence';
 end
-axH.YLabel.String = '\Delta P(Left Turn)';
+handles.ax.YLabel.String = '\Delta P(Left Turn)';
+
+%store
+if isfield(handles,'errH')
+    handles.errH(length(handles.errH)+1) = errH;
+else
+    handles.errH = errH;
+end
+
+%change color
+nColors = length(handles.errH);
+colors = distinguishable_colors(nColors);
+for plotInd = 1:nColors
+    handles.errH(plotInd).MarkerEdgeColor = colors(plotInd,:);
+    handles.errH(plotInd).MarkerFaceColor = colors(plotInd,:);
+    handles.errH(plotInd).Color = colors(plotInd,:);
+end
