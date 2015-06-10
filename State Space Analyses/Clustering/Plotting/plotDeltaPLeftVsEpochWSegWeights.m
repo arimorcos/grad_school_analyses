@@ -23,7 +23,12 @@ pointLabels = {'Segment 1','Segment 2','Segment 3','Segment 4',...
     'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
 
 %get segWeights 
-[segWeights, confInt] = getSegWeights(dataCell);
+if length(dataCell) > 2
+	[segWeights, confInt] = getSegWeights(dataCell);
+else
+    segWeights = dataCell{1};
+    confInt = dataCell{2};
+end
 confInt = abs(bsxfun(@minus,segWeights,confInt));
 
 %beautify 

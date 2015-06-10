@@ -12,6 +12,7 @@ function handles = plotMultipleSVRFromFolder(folder,fileStr,labApp)
 %
 %ASM 4/15
 
+showLegend = true;
 cmScale = 0.75;
 
 if nargin < 3 || isempty(labApp)
@@ -31,7 +32,7 @@ for fileInd = 1:length(matchFiles)
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
     field = fieldnames(currFileData);
     if length(field) > 1 
-        allClassOut{fileInd} = currFileData.allBinTMatch;
+        allClassOut{fileInd} = currFileData.allBinRunSpeed;
     else
         allClassOut{fileInd} = currFileData.(field{1});
     end
@@ -63,6 +64,11 @@ handles.ax.YLim = [minVal - 0.02*range(allVals) maxVal + 0.02*range(allVals)];
 
 %set axis to square
 axis(handles.ax,'square');
+
+%add legend
+if showLegend
+    legend(handles.errMean,strrep(matchFiles,'_','\_'),'Location','BestOutside');
+end
 
 %maximize 
 handles.fig.Units = 'normalized';

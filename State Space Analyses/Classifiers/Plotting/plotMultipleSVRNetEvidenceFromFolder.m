@@ -11,6 +11,7 @@ function handles = plotMultipleSVRNetEvidenceFromFolder(folder,fileStr)
 %
 %ASM 4/15
 
+showLegend = true;
 
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
@@ -68,6 +69,11 @@ handles.ax.YTickLabel = newTick;
 %set axis to square
 axis(handles.ax,'square');
 
+%add legend
+if showLegend
+    legend(handles.errMean,strrep(matchFiles,'_','\_'),'Location','BestOutside');
+end
+
 %% mean squared error
 %plot
 handles = [];
@@ -86,3 +92,12 @@ handles.fig.OuterPosition = [0 0 1 1];
 
 %set axis to square
 axis(handles.ax,'square');
+
+%add legend
+if showLegend
+    tempHandles = gobjects(length(handles.scatH),1);
+    for i = 1:length(handles.scatH)
+        tempHandles(i) = handles.scatH{i}(1);
+    end
+    legend(tempHandles,strrep(matchFiles,'_','\_'),'Location','BestOutside');
+end

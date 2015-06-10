@@ -56,7 +56,7 @@ if version == 1
             handles.ax.XLabel.String = 'Actual Num Right';
     end
     maxVal = nSeg+0.5;
-    if isfield(classOut(1),'viewAngleRange')
+    if isfield(classOut(1),'viewAngleRange') && classOut(1).binViewAngle
         minVal = -0.5;
     end
     handles.ax.XLim = [minVal maxVal];

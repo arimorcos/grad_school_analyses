@@ -16,6 +16,7 @@ function handles = plotMultipleClassifiersFromFolder(folder,fileStr,yLab,plotTyp
 
 cmScale = 0.75;
 segRanges = cmScale*(0:80:480);
+showLegend = true;
 
 if nargin < 5 || isempty(maxValue)
     maxValue = false;
@@ -48,13 +49,18 @@ allShuffle = cell(size(allAcc));
 allxVals = cell(size(allAcc));
 for fileInd = 1:length(matchFiles)
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
-    allAcc{fileInd} = currFileData.accuracy(2:end-1);
-    allShuffle{fileInd} = currFileData.shuffleAccuracy(:,2:end-1);
-    allxVals{fileInd} = currFileData.yPosBins(2:end-1);
+    allAcc{fileInd} = currFileData.accuracy(2:end-2);
+    allShuffle{fileInd} = currFileData.shuffleAccuracy(:,2:end-2);
+    allxVals{fileInd} = currFileData.yPosBins(2:end-2);
 end
 
 %plot 
 handles = plotMultipleMiceShuffleAccuracy(allAcc,allShuffle,allxVals,plotType,maxValue);
+
+%add legend
+if showLegend
+    legend(handles.plot,strrep(matchFiles,'_','\_'),'Location','BestOutside');
+end
 
 %label axes 
 handles.ax.XLabel.String = xLab;
@@ -93,9 +99,11 @@ end
 axis(handles.ax,'square');
 
 %add legend 
-handles.leg = legend([handles.plot(1) handles.shuffleHigh(1)],...
-    {'Actual accuracy',sprintf('Shuffle %d%% Confidence Intervals',95)},...
-    'Location','SouthEast');
+if ~showLegend
+    handles.leg = legend([handles.plot(1) handles.shuffleHigh(1)],...
+        {'Actual accuracy',sprintf('Shuffle %d%% Confidence Intervals',95)},...
+        'Location','SouthEast');
+end
 
 %maximize 
 handles.fig.Units = 'normalized';
