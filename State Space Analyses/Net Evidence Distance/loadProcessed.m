@@ -1,4 +1,8 @@
-function loadProcessed(mouse,date)
+function varargout = loadProcessed(mouse,date,request)
+
+if nargin < 3 || isempty(request)
+    request = [];
+end
 
 if nargin < 2
 
@@ -20,6 +24,8 @@ load(filePath);
 leftTrials = getTrials(imTrials,'maze.leftTrial==1');
 rightTrials = getTrials(imTrials,'maze.leftTrial==0');
 trials60 = getTrials(imTrials,'maze.numLeft==0,6');
+hardTrials = getTrials(imTrials,'maze.numLeft==2,3,4');
+medTrials = getTrials(imTrials,'maze.numLeft==1,2,3,4,5');
 correctTrials = getTrials(imTrials,'result.correct==1');
 errorTrials = getTrials(imTrials,'result.correct==0');
 left60 = getTrials(imTrials,'maze.numLeft==6');
@@ -39,3 +45,11 @@ assignin('base','left60',left60);
 assignin('base','right60',right60);
 assignin('base','correctLeft60',correctLeft60);
 assignin('base','correctRight60',correctRight60);
+
+if ~isempty(request)
+    varargout = cell(length(request),1);
+    for i = 1:length(request)
+        eval(sprintf('varargout{i} = %s;',request{i}));
+    end
+end
+
