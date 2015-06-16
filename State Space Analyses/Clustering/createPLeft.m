@@ -17,15 +17,19 @@ for dSet = 1:nDataSets
     [~,~,clusterIDs,~] = getClusteredMarkovMatrix(imTrials);
     
     %get deltaPLeft 
-    deltaPLeft = calcPLeftChange(clusterIDs,imTrials);
+    [deltaPLeft,startPLeft] = calcPLeftChange(clusterIDs,imTrials);
     
     %get netEvidence 
     netEvidence = getNetEvidence(imTrials);
+    
+    %get mazePatterns
+    mazePattern = getMazePatterns(imTrials);
     
     %get segWeights 
     [segWeights, confInt] = getSegWeights(imTrials);
     
     %save 
     saveName = fullfile(saveFolder,sprintf('%s_%s_deltaPLeft.mat',procList{dSet}{:}));
-    save(saveName,'deltaPLeft','netEvidence','segWeights','confInt');
+    save(saveName,'deltaPLeft','netEvidence','segWeights','confInt',...
+        'startPLeft','mazePattern');
 end

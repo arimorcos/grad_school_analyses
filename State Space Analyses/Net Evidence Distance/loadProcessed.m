@@ -45,6 +45,8 @@ assignin('base','left60',left60);
 assignin('base','right60',right60);
 assignin('base','correctLeft60',correctLeft60);
 assignin('base','correctRight60',correctRight60);
+assignin('base','hardTrials',hardTrials);
+assignin('base','medTrials',medTrials);
 
 if ~isempty(request)
     varargout = cell(length(request),1);

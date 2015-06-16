@@ -1,4 +1,4 @@
-function deltaPLeft = calcPLeftChange(clusterIDs,leftTurns,varargin)
+function [deltaPLeft, startPLeft] = calcPLeftChange(clusterIDs,leftTurns,varargin)
 %calcPLeftChange.m Calculates the change in p(leftTurn) for every trials
 %based on the clusters it moves through
 %
@@ -12,6 +12,7 @@ function deltaPLeft = calcPLeftChange(clusterIDs,leftTurns,varargin)
 %
 %OUTPUTS
 %deltaPLeft - nTrials x nTransitions matrix of change in p(left)
+%startPleft - nTrials x nTransitions matrix of starting p(left)
 %
 %ASM 6/15
 
@@ -46,6 +47,7 @@ nTransitions = size(clusterIDs,2)-1;
 
 %initialize 
 deltaPLeft = nan(nTrials,nTransitions);
+startPLeft = nan(nTrials,nTransitions);
 
 %loop through each trial and calculate 
 for trialInd = 1:nTrials 
@@ -77,6 +79,7 @@ for trialInd = 1:nTrials
         
         %get difference 
         deltaPLeft(trialInd,transition) = pLeftEnd - pLeftStart;
+        startPLeft(trialInd,transition) = pLeftStart;
         
     end
 end

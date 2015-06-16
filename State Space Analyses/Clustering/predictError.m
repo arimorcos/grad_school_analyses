@@ -110,6 +110,9 @@ end
 
 %calculate p value
 pVal = 1 - find(summedDiff <= sort(shuffledSummedDiff),1,'first')/nShuffles;
+if isempty(pVal)
+    pVal = 0;
+end
 
 %create errorMat
 errorMat = cat(2,errorCount,uniqueCount);
