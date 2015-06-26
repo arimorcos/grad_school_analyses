@@ -1,5 +1,5 @@
-function showTransitionGraph(mMat,cMat,varargin)
-%showTransitionGraph.m Plots a transition graph where each node represents
+function showTransitionGraphOneClustering(mMat,cMat,varargin)
+%showTransitionGraphOneClustering.m Plots a transition graph where each node represents
 %a cluster at a given point and each edge represents the transition from
 %one cluster to another. Edge width represents the transition probability.
 %
@@ -77,30 +77,60 @@ nPoints = length(cMat.netEv);
 % end
 nClusters = cellfun(@length,cMat.netEv);
 
+%% expand mMat 
+
+uniqueClusters = cMat.uniqueClusters;
+totalNClusters = length(uniqueClusters);
+
+for transition = 1:nPoints - 1
+    
+    % get unique clusters at start and end 
+    uniqueStart = cMat.uniquePointClusters{transition};
+    uniqueEnd = cMat.uniquePointClusters{transition+1};
+    
+    %get start and end matchInd
+    matchIndStart = ismember(uniqueClusters, uniqueStart);
+    matchIndEnd = ismember(uniqueClusters, uniqueEnd);
+    
+    %initialize temp mMat array 
+    tempMat = nan(totalNClusters);
+    
+    %store 
+    tempMat(matchIndStart, matchIndEnd) = mMat{transition};
+    
+%     tempMat(tempMat < 0.03) = 0;
+    
+    mMat{transition} = tempMat;
+end
+
+%%
+
 %sort points
 if ~strcmpi(sortBy,'none') && ~isempty(cMat)
     if ~isempty(clusterIDs)
         sortedClusters = cell(nPoints,1);
     end
-    for point = 1:nPoints
-        [~,tempSortOrder] = sort(cMat.(sortBy){point});
+    
+    %get sort order 
+    [~,sortOrder] = sort(nanmean(cat(2,cMat.(sortBy){:}),2));
+    
+    %loop through each point and sort 
+    for point = 1:nPoints 
         if point < nPoints
-            mMat{point} = mMat{point}(tempSortOrder,:);
+            mMat{point} = mMat{point}(sortOrder,:);
         end
         if point > 1
-            mMat{point-1} = mMat{point-1}(:,tempSortOrder);
+            mMat{point-1} = mMat{point-1}(:,sortOrder);
         end
         fields = fieldnames(cMat);
         for field = 1:length(fields)
-            if strcmpi('dPoints',fields{field})
+            if ismember(fields{field},{'dPoints','mode','uniqueClusters',...
+                    'uniquePointClusters','nUniquePoint','nUnique'})
                 continue;
             end
-            cMat.(fields{field}){point} = cMat.(fields{field}){point}(tempSortOrder);
+            cMat.(fields{field}){point} = cMat.(fields{field}){point}(sortOrder);
         end
-        if ~isempty(clusterIDs)
-            uniqueClusters = unique(clusterIDs(:,point));
-            sortedClusters{point} = uniqueClusters(tempSortOrder);
-        end
+        sortedClusters{point} = uniqueClusters(sortOrder);
     end
 end
 
@@ -151,6 +181,10 @@ if ~isempty(cMat)
         actualColorPoss = colorPoss;
         colors = actualColorPoss(ind,:);
         showColorbar = true;
+        nanValues = find(isnan(values));
+        for i = 1:length(nanValues)
+            colors(nanValues(i),:) = [0 0 0];
+        end
     else
         warning('Cannot interpret colorBy. Coloring uniformly');
         colors = repmat([1 1 1],sum(nClusters),1);
@@ -255,7 +289,7 @@ scatH = scatter(scatXVals(keepInd),scatYVals(keepInd),'filled');
 scatH.CData = colors(keepInd,:);
 scatH.MarkerEdgeColor = 'k';
 % scatSizeData(keepInd) = [0.5 1.5 0.5 1.5 0.75 1.25 0.8 1.4];
-scatH.SizeData = scatSizeData(keepInd)*sizeScale;
+scatH.SizeData = max(scatSizeData(keepInd)*sizeScale,1);
 
 %add colorbar
 if showColorbar

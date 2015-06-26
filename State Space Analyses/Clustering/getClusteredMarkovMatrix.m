@@ -19,6 +19,8 @@ nPoints = 10;
 clusterType = 'ap';
 shuffleIDs = false;
 useBehavior = false;
+oneClustering = false;
+perc = 10;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -33,6 +35,10 @@ if nargin > 1 || ~isempty(varargin)
                 shuffleIDs = varargin{argInd+1};
             case 'usebehavior'
                 useBehavior = varargin{argInd+1};
+            case 'oneclustering'
+                oneClustering = varargin{argInd+1};
+            case 'perc'
+                perc = varargin{argInd+1};
         end
     end
 end
@@ -57,24 +63,36 @@ nTrials = size(traces,3);
 tracePoints = getMazePoints(traces,yPosBins);
 
 %%%%%%%%%%%% cluster
-clusterIDs = nan(nTrials,nPoints);
-for point = 1:nPoints
-    switch lower(clusterType)
-        case 'ap'
-            clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
-        case 'dbscan'
-            clusterIDs(:,point) = dbscanClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
-        otherwise
-            error('Cannot interpret cluster type: %s',clusterType);
-    end
-    
-    if shuffleIDs
-        clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
+if oneClustering
+    reshapePoints = reshape(tracePoints,size(tracePoints,1),...
+        size(tracePoints,2)*size(tracePoints,3));
+    allClusterIDs = apClusterNeuronalStates(reshapePoints, perc);
+    clusterIDs = reshape(allClusterIDs,size(tracePoints,3),size(tracePoints,2));
+else
+    clusterIDs = nan(nTrials,nPoints);
+    for point = 1:nPoints
+        switch lower(clusterType)
+            case 'ap'
+                clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)), perc);
+            case 'dbscan'
+                clusterIDs(:,point) = dbscanClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
+            otherwise
+                error('Cannot interpret cluster type: %s',clusterType);
+        end
+        
+        if shuffleIDs
+            clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
+        end
     end
 end
 
 %get colors for matrix
-cMat = getClusterCMat(clusterIDs,dataCell);
+if oneClustering
+    cMat = getClusterCMatOneClustering(clusterIDs,dataCell);
+else
+    cMat = getClusterCMat(clusterIDs,dataCell);
+end
+
 
 %get transition matrix
 mMat = createTransitionMatrix(clusterIDs);

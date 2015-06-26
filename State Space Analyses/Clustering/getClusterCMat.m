@@ -14,6 +14,8 @@ function cMat = getClusterCMat(clusterIDs,dataCell)
 
 %% get relevant behavioral variables
 
+cMat.mode = 'points';
+
 %get nPoints
 nPoints = size(clusterIDs,2);
 
