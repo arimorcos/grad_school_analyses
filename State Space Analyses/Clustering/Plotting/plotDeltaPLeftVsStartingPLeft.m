@@ -25,6 +25,8 @@ end
 %turn on hold
 % hold(handles.ax,'on');
 
+deltaPLeft = abs(deltaPLeft);
+
 %get nTransitions 
 nTransitions = size(deltaPLeft,2);
 
@@ -55,11 +57,22 @@ for transition = 1:nTransitions
     
     %add title 
     handles.ax(transition).Title.String = pointLabels{transition};
+    
+    %xlim 
+    if ~isempty(strfind(lower(inputname(2)),'netev'))
+        handles.ax(transition).XLim = [min(startPLeft(:,transition))-0.01 max(startPLeft(:,transition))+0.01];
+    else
+        handles.ax(transition).XLim = [0 1];
+    end
 end
 
 
 %label 
-xLab = suplabel('Starting P(Left Turn)','x');
+if ~isempty(strfind(lower(inputname(2)),'netev'))
+    xLab = suplabel('Starting Mean Net Evidence','x');
+else
+    xLab = suplabel('Starting P(Left Turn)','x');
+end
 xLab.FontSize = 30;
 yLab = suplabel('\Delta P(Left Turn)','y');
 yLab.FontSize = 30;

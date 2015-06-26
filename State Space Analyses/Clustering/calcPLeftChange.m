@@ -1,4 +1,4 @@
-function [deltaPLeft, startPLeft] = calcPLeftChange(clusterIDs,leftTurns,varargin)
+function [deltaPLeft, startPLeft, startNetEv] = calcPLeftChange(clusterIDs,leftTurns,varargin)
 %calcPLeftChange.m Calculates the change in p(leftTurn) for every trials
 %based on the clusters it moves through
 %
@@ -13,6 +13,7 @@ function [deltaPLeft, startPLeft] = calcPLeftChange(clusterIDs,leftTurns,varargi
 %OUTPUTS
 %deltaPLeft - nTrials x nTransitions matrix of change in p(left)
 %startPleft - nTrials x nTransitions matrix of starting p(left)
+%startNetEv - nTrials x nTransitions matrix of starting netEv
 %
 %ASM 6/15
 
@@ -39,6 +40,7 @@ end
 if iscell(leftTurns)
     dataCell = leftTurns;
     leftTurns = getCellVals(dataCell,'result.leftTurn');
+    netEv = getNetEvidence(dataCell);
 end
 
 %get nTrials 
@@ -48,6 +50,7 @@ nTransitions = size(clusterIDs,2)-1;
 %initialize 
 deltaPLeft = nan(nTrials,nTransitions);
 startPLeft = nan(nTrials,nTransitions);
+startNetEv = zeros(nTrials,nTransitions);
 
 %loop through each trial and calculate 
 for trialInd = 1:nTrials 
@@ -76,6 +79,11 @@ for trialInd = 1:nTrials
         %get p(left) for each 
         pLeftStart = mean(leftTurns(matchStartCluster));
         pLeftEnd = mean(leftTurns(matchEndCluster));
+        if transition < size(netEv,2)
+            startNetEv(trialInd,transition+1) = mean(netEv(matchStartCluster,transition+1));
+        else
+            startNetEv(trialInd,transition) = mean(netEv(matchStartCluster,size(netEv,2)));
+        end
         
         %get difference 
         deltaPLeft(trialInd,transition) = pLeftEnd - pLeftStart;
