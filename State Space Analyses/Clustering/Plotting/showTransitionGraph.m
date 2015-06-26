@@ -23,6 +23,12 @@ function showTransitionGraph(mMat,cMat,varargin)
 %
 %ASM 4/15
 
+% call one clustering version if necessary 
+if strcmpi(cMat.mode, 'one')
+    showTransitionGraphOneClustering(mMat, cMat, varargin{:});
+    return;
+end
+
 sizeScale = 600;
 pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
     'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
