@@ -38,6 +38,7 @@ testOffset = 0;
 dontCompareSame = [];
 nShuffles = 100;
 classifier = 'svm';
+whichNeurons = [];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -54,8 +55,15 @@ if nargin > 1 || ~isempty(varargin)
                 nShuffles = varargin{argInd+1};
             case 'classifier'
                 classifier = varargin{argInd+1};
+            case 'whichneurons'
+                whichNeurons = varargin{argInd+1};
         end
     end
+end
+
+%crop traces
+if ~isempty(whichNeurons)
+    traces = traces(whichNeurons,:,:);
 end
 
 %call get classifier accuracy
