@@ -16,9 +16,11 @@ function [acc,sigMat,deltaPoint] = calcTrajPredictability(dataCell,varargin)
 %ASM 4/15
 
 shouldShuffle = true;
+oneClustering = false;
 nShuffles = 500;
 useBehavior = false;
 shuffleInitial = false;
+perc = 10;
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
         error('Must provide a name and value for each argument');
@@ -33,6 +35,10 @@ if nargin > 1 || ~isempty(varargin)
                 useBehavior = varargin{argInd+1};
             case 'shuffleinitial'
                 shuffleInitial = varargin{argInd+1};
+            case 'oneclustering'
+                oneClustering = varargin{argInd+1};
+            case 'perc'
+                perc = varargin{argInd+1};
         end
     end
 end
@@ -61,11 +67,18 @@ tracePoints = getMazePoints(traces,yPosBins);
 nPoints = size(tracePoints,2);
 
 %%%%%%%%%%%% cluster
-clusterIDs = nan(nTrials,nPoints);
-for point = 1:nPoints
-    clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
-    if shuffleInitial
-        clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
+if oneClustering
+    reshapePoints = reshape(tracePoints,size(tracePoints,1),...
+        size(tracePoints,2)*size(tracePoints,3));
+    allClusterIDs = apClusterNeuronalStates(reshapePoints, perc);
+    clusterIDs = reshape(allClusterIDs,size(tracePoints,3),size(tracePoints,2));
+else
+    clusterIDs = nan(nTrials,nPoints);
+    for point = 1:nPoints
+        clusterIDs(:,point) = apClusterNeuronalStates(squeeze(tracePoints(:,point,:)));
+        if shuffleInitial
+            clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
+        end
     end
 end
 

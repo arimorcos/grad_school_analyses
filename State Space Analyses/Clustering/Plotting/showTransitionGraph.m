@@ -98,7 +98,7 @@ if ~strcmpi(sortBy,'none') && ~isempty(cMat)
         end
         fields = fieldnames(cMat);
         for field = 1:length(fields)
-            if strcmpi('dPoints',fields{field})
+            if ismember(fields{field},{'dPoints','mode'})
                 continue;
             end
             cMat.(fields{field}){point} = cMat.(fields{field}){point}(tempSortOrder);
@@ -155,6 +155,9 @@ if ~isempty(cMat)
         colorPoss = redblue(255);
         colormap(colorPoss);
         actualColorPoss = colorPoss;
+        if length(unique(values)) == 1 && values(1) == 1
+            ind(:) = 255;
+        end
         colors = actualColorPoss(ind,:);
         showColorbar = true;
     else
