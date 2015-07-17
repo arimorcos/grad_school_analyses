@@ -21,6 +21,7 @@ shuffleIDs = false;
 useBehavior = false;
 oneClustering = false;
 perc = 10;
+whichNeurons = [];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -39,6 +40,8 @@ if nargin > 1 || ~isempty(varargin)
                 oneClustering = varargin{argInd+1};
             case 'perc'
                 perc = varargin{argInd+1};
+            case 'whichneurons'
+                whichNeurons = varargin{argInd+1};
         end
     end
 end
@@ -53,6 +56,10 @@ if useBehavior
 else
     %get traces
     [~,traces] = catBinnedTraces(dataCell);
+end
+
+if ~isempty(whichNeurons)
+    traces = traces(whichNeurons,:,:);
 end
 
 %get nNeurons

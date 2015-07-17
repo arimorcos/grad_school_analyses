@@ -19,7 +19,7 @@ function acc = getLeftRightAccuracyNeuronFallout(dataCell, sortOrder)
 nNeurons = size(traces,1);
 
 %crop traces 
-traces = traces(:,90:end-1,:);
+traces = traces(:,110:end-1,:);
 
 %check that sortOrder matches 
 assert(nNeurons == length(sortOrder),'sortOrder must match nNeurons');

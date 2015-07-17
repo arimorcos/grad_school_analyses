@@ -25,7 +25,7 @@ end
 %turn on hold
 % hold(handles.ax,'on');
 
-deltaPLeft = abs(deltaPLeft);
+% deltaPLeft = abs(deltaPLeft);
 
 %get nTransitions 
 nTransitions = size(deltaPLeft,2);

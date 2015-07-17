@@ -1,9 +1,9 @@
 function handles = plotDeltaPLeftVsEpochWSegWeights(deltaPLeft,dataCell,handles)
 %plotDeltaPLeftVsEpoch.m Plots the change in p(left) as a function of maze
-%epoch transition 
+%epoch transition
 %
 %INPUTS
-%deltaPLeft.m Output of calcPLeftChange 
+%deltaPLeft.m Output of calcPLeftChange
 %
 %ASM 6/15
 
@@ -22,30 +22,31 @@ hold(handles.ax1,'on');
 pointLabels = {'Segment 1','Segment 2','Segment 3','Segment 4',...
     'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
 
-%get segWeights 
+%get segWeights
 if length(dataCell) > 2
-	[segWeights, confInt] = getSegWeights(dataCell);
+    [segWeights, confInt] = getSegWeights(dataCell);
 else
     segWeights = dataCell{1};
     confInt = dataCell{2};
 end
 confInt = abs(bsxfun(@minus,segWeights,confInt));
 
-%beautify 
+%beautify
 beautifyPlot(handles.fig,handles.ax1);
 
-%crop deltaPleft  to segments 
+%crop deltaPleft  to segments
 deltaPLeft = deltaPLeft(:,1:length(segWeights));
 
-%get mean and sem 
+%get mean and sem
 transMean = nanmean(abs(deltaPLeft));
 transSEM = calcSEM(abs(deltaPLeft));
 
 %plot p(left)
 errH1 = errorbar(1:size(deltaPLeft,2),transMean,transSEM);
 errH1.Marker = 'o';
+errH1.Color = 'b';
 
-%plot regWeights 
+%plot regWeights
 if makeAx2
     handles.ax2 = axes('Position',handles.ax1.Position);
     hold(handles.ax2,'on');
@@ -55,13 +56,14 @@ errH2.Marker = '^';
 handles.ax2.XTick = [];
 handles.ax2.YAxisLocation = 'right';
 handles.ax2.Color = 'none';
+errH2.Color = 'r';
 
 axis(handles.ax1,'square');
 axis(handles.ax2,'square');
 handles.ax1.YColor = 'b';
 handles.ax2.YColor = 'r';
 
-%label 
+%label
 handles.ax2.LabelFontSizeMultiplier = 1.5;
 handles.ax1.XTick = 1:length(segWeights);
 handles.ax1.XTickLabel = pointLabels;
@@ -80,14 +82,17 @@ else
     handles.errH2 = errH2;
 end
 
-%change color
-nColors = length(handles.errH1);
-colors = distinguishable_colors(nColors);
-for plotInd = 1:nColors
-    handles.errH1(plotInd).MarkerEdgeColor = colors(plotInd,:);
-    handles.errH1(plotInd).MarkerFaceColor = colors(plotInd,:);
-    handles.errH1(plotInd).Color = colors(plotInd,:);
-    handles.errH2(plotInd).MarkerEdgeColor = colors(plotInd,:);
-    handles.errH2(plotInd).MarkerFaceColor = colors(plotInd,:);
-    handles.errH2(plotInd).Color = colors(plotInd,:);
+
+if ~makeAx2
+    %change color
+    nColors = length(handles.errH1);
+    colors = distinguishable_colors(nColors);
+    for plotInd = 1:nColors
+        handles.errH1(plotInd).MarkerEdgeColor = colors(plotInd,:);
+        handles.errH1(plotInd).MarkerFaceColor = colors(plotInd,:);
+        handles.errH1(plotInd).Color = colors(plotInd,:);
+        handles.errH2(plotInd).MarkerEdgeColor = colors(plotInd,:);
+        handles.errH2(plotInd).MarkerFaceColor = colors(plotInd,:);
+        handles.errH2(plotInd).Color = colors(plotInd,:);
+    end
 end

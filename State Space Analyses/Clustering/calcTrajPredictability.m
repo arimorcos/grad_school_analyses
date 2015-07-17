@@ -21,6 +21,7 @@ nShuffles = 500;
 useBehavior = false;
 shuffleInitial = false;
 perc = 10;
+whichNeurons = [];
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
         error('Must provide a name and value for each argument');
@@ -39,6 +40,8 @@ if nargin > 1 || ~isempty(varargin)
                 oneClustering = varargin{argInd+1};
             case 'perc'
                 perc = varargin{argInd+1};
+            case 'whichneurons'
+                whichNeurons = varargin{argInd+1};
         end
     end
 end
@@ -56,6 +59,10 @@ if useBehavior
 else
     %get traces
     [~,traces] = catBinnedTraces(dataCell);
+end
+
+if ~isempty(whichNeurons)
+    traces = traces(whichNeurons,:,:);
 end
 
 %get nNeurons
@@ -102,7 +109,7 @@ for shuffleInd = 1:nShuffles
         shuffleClusters(:,point) = shuffleArray(shuffleClusters(:,point));
     end
     shuffleAcc(:,:,shuffleInd) = getAccuracy(nPoints,nTrials,uniqueClusters,shuffleClusters,nUnique);
-    dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
+%     dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
 end
 
 %% get significance 
