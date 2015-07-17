@@ -32,8 +32,8 @@ function [accuracy,guess,classes,probEst] = getSVMAccuracy(traces,realClass,vara
 
 shouldntCompareSame = false;
 sameClass = [];
-cParam = 1;
-gamma = 1/size(traces,3);
+cParam = 2;
+gamma = 0.1;
 kernel = 'rbf';
 svmType = 'SVC';
 nu = 0.5;
