@@ -1,4 +1,4 @@
-function figHandle = makeLeftRightSeq(dataCell,normInd,conditions,sortFirst,gCells,axToPlot)
+function [figHandle,info] = makeLeftRightSeq(dataCell,normInd,conditions,sortFirst,gCells,axToPlot)
 %makeLeftRightSeq.m Creates sequence by sorting data by time of peak activity
 %
 %INPUTS
@@ -83,7 +83,14 @@ else
     normInd = false;
 end
 
+info.normTraces = normTraces;
+info.bins = bins;
+info.conditions = conditions;
+info.normInd = normInd;
+info.colorLab = colorLab;
+
 %plot
+figHandle = [];
 figHandle = plotSequences(normTraces,bins,conditions,normInd,colorLab,axToPlot);
 
 

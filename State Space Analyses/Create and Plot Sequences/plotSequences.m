@@ -62,6 +62,7 @@ for i = 1:nTraces
     %scale
     cmScale = 0.75;
     binLabels = cmScale*binLabels;
+    segRanges = segRanges*cmScale;
     
     %plot
     if normInd
@@ -92,6 +93,24 @@ for i = 1:nTraces
     %add on segment dividers
     for segRangeInd = 1:length(segRanges)
         line(repmat(segRanges(segRangeInd),1,2),[0 size(traces{i},1)],'Color','k','LineStyle','--');
+    end
+    
+    %add segment label
+    segLabel = text(axH.XLim(1),...
+        axH.YLim(1) - 0.02*range(axH.YLim),'Segment: ');
+    segLabel.FontSize = 20;
+    segLabel.HorizontalAlignment = 'Right';
+    segLabel.VerticalAlignment = 'Bottom';
+    segLabel.FontWeight = 'bold';
+    
+    %add segment numbers
+    for segInd = 1:length(segRanges)-1
+        segText = text(mean(segRanges(segInd:segInd+1)),...
+            axH.YLim(1) - 0.02*range(axH.YLim),sprintf('%d',segInd));
+        segText.HorizontalAlignment = 'Center';
+        segText.VerticalAlignment = 'Bottom';
+        segText.FontSize = 20;
+        segText.FontWeight = 'bold';
     end
     
 end

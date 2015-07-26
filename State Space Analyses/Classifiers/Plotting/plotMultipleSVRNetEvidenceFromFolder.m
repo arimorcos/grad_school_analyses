@@ -11,7 +11,8 @@ function handles = plotMultipleSVRNetEvidenceFromFolder(folder,fileStr)
 %
 %ASM 4/15
 
-showLegend = true;
+showLegend = false;
+showErrorBars = true;
 
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
@@ -39,9 +40,48 @@ end
 %% net evidence actual vs. guess
 
 %plot
-handles = [];
-for mouseInd = 1:length(matchFiles)
-    handles = plotSVRNetEvidence(allClassOut{mouseInd},handles,1);
+if showErrorBars
+    testClassVals = -6:6;
+    meanGuess = nan(length(matchFiles),13);
+    for mouseInd = 1:length(matchFiles)
+        for class = 1:length(testClassVals)
+            matchClass = allClassOut{mouseInd}(1).testClass == testClassVals(class);
+            meanGuess(mouseInd,class) = nanmean(...
+                allClassOut{mouseInd}(1).guess(matchClass));
+        end
+    end
+    
+    % get mean and sem
+    meanAllMice = mean(meanGuess);
+    semAllMice = calcSEM(meanGuess);
+    
+    %plot 
+    handles.fig = figure;
+    handles.ax = axes;
+    
+    %errorbar 
+    handles.err = errorbar(testClassVals,meanAllMice,semAllMice);
+    handles.err.Marker = 'o';
+    handles.err.MarkerFaceColor = handles.err.MarkerEdgeColor;
+    handles.err.LineStyle = 'none';
+    handles.err.MarkerSize = 3;
+    
+    %beuatify b
+    beautifyPlot(handles.fig, handles.ax);
+    equalAxes(handles.ax,true);
+    
+    %labels
+    handles.ax.XLabel.String = 'Actual Net Evidence';
+    handles.ax.YLabel.String = 'Guessed Net Evidence';
+    
+    %set lim
+    handles.ax.XLim = [-6.2 6.2];
+    handles.ax.YLim = [-6.2 6.2];
+else
+    handles = [];
+    for mouseInd = 1:length(matchFiles)
+        handles = plotSVRNetEvidence(allClassOut{mouseInd},handles,1);
+    end
 end
 
 %label axes

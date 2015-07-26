@@ -1,4 +1,4 @@
-function handles = plotMultipleClassifiersFromFolder(folder,fileStr,yLab,plotType,xLab,maxValue)
+function handles = plotMultipleClassifiersFromFolderErrorBars(folder,fileStr,yLab,plotType,xLab,maxValue)
 %plotMultipleClassifiersFromFolder.m Plots multiple classifiers based on a
 %specific folder path 
 %
@@ -17,7 +17,7 @@ function handles = plotMultipleClassifiersFromFolder(folder,fileStr,yLab,plotTyp
 cmScale = 0.75;
 segRanges = cmScale*(0:80:480);
 showLegend = false;
-plotError = false;
+dsamp = 4;
 
 if nargin < 5 || isempty(maxValue)
     maxValue = false;
@@ -55,13 +55,54 @@ for fileInd = 1:length(matchFiles)
     allxVals{fileInd} = currFileData.yPosBins(2:end-2);
 end
 
-%plot 
-handles = plotMultipleMiceShuffleAccuracy(allAcc,allShuffle,allxVals,plotType,maxValue);
+%cat accuracy 
+minBins = min(cellfun(@length, allAcc));
+maxBins = max(cellfun(@length, allAcc));
+cropAcc = cellfun(@(x) x(end-minBins+1:end),allAcc,'UniformOutput',false);
+cropXVals = cellfun(@(x) x(end-minBins+1:end),allxVals,'UniformOutput',false);
+catAcc =cat(2,cropAcc{:})';
+catXVals = cat(1,cropXVals{:});
+meanXVals = mean(catXVals);
+cmScale = 0.75;
+meanXVals = meanXVals*cmScale;
 
-%add legend
-if showLegend
-    legend(handles.plot,strrep(matchFiles,'_','\_'),'Location','BestOutside');
-end
+% get mean and sem
+meanAcc = mean(catAcc);
+semAcc = calcSEM(catAcc);
+
+%dsamp
+meanXVals = meanXVals(1:dsamp:end);
+meanAcc = meanAcc(1:dsamp:end);
+semAcc = semAcc(1:dsamp:end);
+
+%create figure 
+handles.fig = figure;
+handles.ax = axes;
+
+%plot errorbar 
+% errH = errorbar(meanXVals,meanAcc,semAcc);
+% errH.Marker = 'o';
+% errH.MarkerFaceColor = errH.MarkerEdgeColor;
+errH = shadedErrorBar(meanXVals,meanAcc,semAcc);
+color = [0    0.4470    0.7410];
+errH.mainLine.Color = color;
+errH.patch.FaceColor = color;
+errH.patch.FaceAlpha = 0.3;
+errH.edge(1).Color = color;
+errH.edge(2).Color = color;
+
+%ylim 
+handles.ax.YLim = [0 100];
+
+%add chance line 
+handles.chanceLine = line([min(meanXVals) max(meanXVals)],...
+    [50 50]);
+handles.chanceLine.Color = 'k';
+handles.chanceLine.LineStyle = '--';
+handles.chanceLine.LineWidth = 2;
+
+%beautify
+beautifyPlot(handles.fig,handles.ax);
 
 %label axes 
 handles.ax.XLabel.String = xLab;
@@ -98,13 +139,6 @@ end
 
 %set axis to square
 axis(handles.ax,'square');
-
-%add legend 
-if ~showLegend
-    handles.leg = legend([handles.plot(1) handles.shuffleHigh(1)],...
-        {'Actual accuracy',sprintf('Shuffle %d%% Confidence Intervals',95)},...
-        'Location','SouthEast');
-end
 
 %maximize 
 handles.fig.Units = 'normalized';

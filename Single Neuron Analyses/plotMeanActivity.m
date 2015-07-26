@@ -118,7 +118,7 @@ end
 legH = legend([leftPlot.mainLine rightPlot.mainLine],{'Left 6-0','Right 0-6'},...
     'Position',[0.58 0.24 0.1 0.1]);
 
-
+beautifyPlot(figH,axH);
 end
 
 function makePlot(axH,traces,xVals,segRanges,cLims,shouldSeg)
