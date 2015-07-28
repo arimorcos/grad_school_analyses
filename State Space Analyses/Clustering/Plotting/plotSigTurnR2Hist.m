@@ -1,13 +1,13 @@
-function plotSigClusterR2Hist(out)
-%plotSigClusterR2Hist.m Plots histogram with examples of the significant
-%cluster R2 values 
+function plotSigTurnR2Hist(out)
+%plotSigTurnR2Hist.m Plots histogram with examples of the significant
+%turn R2 values 
 %
 %INPUTS
 %out - output of regressClustBehavior
 %
 %ASM 7/15
 
-pThresh = 0.02;
+pThresh = 0.005;
 
 %% get significant cluster R2
 
@@ -31,9 +31,6 @@ end
 %convert to pValue 
 pValCluster = 1 - fracGreaterClusterR2ClusterShuffle;
 
-%get neuron subset which has pValue less than thresh 
-keepNeurons = pValCluster <= pThresh;
-
 %% get turn pVal
 %get percentile for each 
 sortedShuffleTurn = sort(out.shuffleTurn.turnR2,2);
@@ -52,6 +49,8 @@ end
 %convert to pValue 
 pValTurn = 1 - fracGreaterTurnR2TurnShuffle;
 
+%get neuron subset which has pValue less than thresh 
+keepNeurons = pValTurn <= pThresh;
 
 %% plot 
 figH = figure;
@@ -63,30 +62,32 @@ nBins = 40;
 edges = linspace(0, 1, nBins+1);
 
 %plot histogram
-histNotSig = histogram(pValTurn(~keepNeurons),edges,'Normalization','Probability');
-histSig = histogram(pValTurn(keepNeurons),edges,'Normalization','Probability');
+histNotSig = histogram(pValCluster(~keepNeurons),edges,'Normalization','Probability');
+histSig = histogram(pValCluster(keepNeurons),edges,'Normalization','Probability');
 
 %beautify
 beautifyPlot(figH,axH);
 
 %label
-axH.XLabel.String = 'Turn R^{2} P Value';
+axH.XLabel.String = 'Cluster R^{2} P Value';
 axH.YLabel.String = 'Probability';
 
 %add legend 
-legend([histSig, histNotSig],{'Significant Cluster R^{2}',...
-    'Not Significant Cluster R^{2}'},'Location','NorthEast');
+legend([histSig, histNotSig],{'Significant Turn R^{2}',...
+    'Not Significant Turn R^{2}'},'Location','NorthEast');
 
 %% add insets 
 
 %get low, middle, and upper neurons 
-takePrctiles = [1, 50, 99];
+takePrctiles = [1, 50, 97];
+% keepNeurons = keepNeurons & cellfun(@max,out.clusterMeanActivity) > 0.2;
 prctileKeepInd = round((takePrctiles/100)*sum(keepNeurons));
 prctileKeepInd = max(1,prctileKeepInd);
-[~,sortOrder] = sort(pValTurn(keepNeurons));
+[~,sortOrder] = sort(pValCluster(keepNeurons));
 keepInd = find(keepNeurons);
 sortedKeepInd = keepInd(sortOrder);
-% prctileKeepInd = [12, 34, 50]
+% prctileKeepInd = [1, 34, 63];
+% prctileKeepInd = 57:60;
 prctileNeuronInd = sortedKeepInd(prctileKeepInd);
 
 % annRecLow = annotation('rectangle',[0.04 0.74 0.2 0.25]);
@@ -96,12 +97,12 @@ axis(axLow,'square');
 axLow.Box = 'on';
 plotClusterActivityIndNeuronSortedByLeft(out, prctileNeuronInd(1), figH, axLow);
 startLow = [0.22, 0.88];
-yInd = find(pValTurn(prctileNeuronInd(1)) > edges, 1, 'last');
+yInd = find(pValCluster(prctileNeuronInd(1)) > edges, 1, 'last');
 if isempty(yInd)
     yInd = 1;
 end
 [endXLow, endYLow] = axescoord2figurecoord(...
-    roundtowardvec(pValTurn(prctileNeuronInd(1)),edges,'floor')  + 0.5*mean(diff(edges)),...
+    roundtowardvec(pValCluster(prctileNeuronInd(1)),edges,'floor')  + 0.5*mean(diff(edges)),...
     histSig.Values(yInd) - 0.01, axH);
 annLow = annotation('arrow', [startLow(1), endXLow + 0.5*mean(diff(edges))],...
     [startLow(2), endYLow]);
@@ -112,12 +113,12 @@ axis(axMid,'square');
 axMid.Box = 'on';
 plotClusterActivityIndNeuronSortedByLeft(out, prctileNeuronInd(2), figH, axMid);
 startMid = [0.5, 0.73];
-yInd = find(pValTurn(prctileNeuronInd(2)) > edges, 1, 'last');
+yInd = find(pValCluster(prctileNeuronInd(2)) > edges, 1, 'last');
 if isempty(yInd)
     yInd = 1;
 end
 [endXMid, endYMid] = axescoord2figurecoord(...
-    roundtowardvec(pValTurn(prctileNeuronInd(2)),edges,'floor')  + 0.5*mean(diff(edges)),...
+    roundtowardvec(pValCluster(prctileNeuronInd(2)),edges,'floor')  + 0.5*mean(diff(edges)),...
     histSig.Values(yInd) - 0.01, axH);
 annLow = annotation('arrow', [startMid(1), endXMid + 0.5*mean(diff(edges))],...
     [startMid(2), endYMid]);
@@ -128,12 +129,12 @@ axis(axHigh,'square');
 axHigh.Box = 'on';
 plotClusterActivityIndNeuronSortedByLeft(out, prctileNeuronInd(3), figH, axHigh);
 startHigh = [0.85, 0.73];
-yInd = find(pValTurn(prctileNeuronInd(3)) > edges, 1, 'last');
+yInd = find(pValCluster(prctileNeuronInd(3)) > edges, 1, 'last');
 if isempty(yInd)
     yInd = 1;
 end
 [endXHigh, endYHigh] = axescoord2figurecoord(...
-    roundtowardvec(pValTurn(prctileNeuronInd(3)),edges,'floor')  + 0.5*mean(diff(edges)),...
+    roundtowardvec(pValCluster(prctileNeuronInd(3)),edges,'floor')  + 0.5*mean(diff(edges)),...
     histSig.Values(yInd) - 0.01, axH);
 annLow = annotation('arrow', [startHigh(1), endXHigh + 0.5*mean(diff(edges))],...
     [startHigh(2), endYHigh]);

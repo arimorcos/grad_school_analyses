@@ -69,7 +69,7 @@ end
 %call get classifier accuracy
 switch classifier
     case 'svm'
-        [accuracy,classGuess] = getSVMAccuracy(traces,realClass,'dontcomparesame',dontCompareSame);
+        [accuracy,classGuess] = getSVMAccuracy(traces,realClass,'dontcomparesame',dontCompareSame, varargin{:});
     case 'leastdist'
         [accuracy,classGuess] = getClassifierAccuracyNew(traces,realClass,'dontcomparesame',dontCompareSame,...
             'testoffset',testOffset);
@@ -90,7 +90,7 @@ parfor shuffleInd = 1:nShuffles
             %classify
             [shuffleAccuracy(shuffleInd,:),shuffleGuess(:,:,shuffleInd)] =...
                 getSVMAccuracy(traces,shuffledClass,...
-                'dontcomparesame',dontCompareSame);
+                'dontcomparesame',dontCompareSame, varargin{:});
             
 %             while any(shuffleAccuracy(shuffleInd,:) < 30)
 %                 lowInd = shuffleAccuracy(shuffleInd,:) < 30;

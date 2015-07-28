@@ -1,4 +1,4 @@
-function [overlapIndex, whichAct,whichOverlap, whichNonOverlap] =...
+function [overlapIndex, whichAct,whichOverlap, whichNonOverlap, totalSize] =...
     calculateClusterOverlap(dataCell,clusterIDs,cMat,varargin)
 %calculateClusterOverlap.m Calculates the overlap in active neurons between
 %clusters using the threshold specified
@@ -71,12 +71,14 @@ end
 
 %% calculate overlap index 
 overlapIndex = cell(size(actNeurons));
+totalSize = cell(size(actNeurons));
 whichOverlap = cell(size(actNeurons));
 whichNonOverlap = cell(size(actNeurons));
 for point = 1:nPoints
     overlapIndex{point} = ones(nUnique(point));
     whichOverlap{point} = cell(nUnique(point));
     whichNonOverlap{point} = cell(nUnique(point));
+    totalSize{point} = nan(nUnique(point));
     for startCluster = 1:nUnique(point)
         for endCluster = startCluster+1:nUnique(point)
             actStart = find(actNeurons{point}(:,startCluster));
@@ -86,6 +88,8 @@ for point = 1:nPoints
             overlapIndex{point}(endCluster,startCluster) = overlap;
             whichOverlap{point}{startCluster,endCluster} = intersect(actEnd,actStart);
             whichNonOverlap{point}{startCluster,endCluster} = setxor(actEnd,actStart);
+            totalSize{point}(endCluster,startCluster) = clustCounts{point}(startCluster) + clustCounts{point}(endCluster);
+            totalSize{point}(startCluster,endCluster) = clustCounts{point}(startCluster) + clustCounts{point}(endCluster);
         end
     end
     
@@ -106,6 +110,7 @@ for point = 1:nPoints
                 length(union(firstHalfAct,secondHalfAct));
         end
         overlapIndex{point}(cluster,cluster) = nanmean(bootOverlap);
+        totalSize{point}(cluster,cluster) = clustCounts{point}(cluster);
     end
     
     %calculate diagonal overlap index 

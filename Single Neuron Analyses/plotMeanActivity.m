@@ -1,12 +1,12 @@
 function figH = plotMeanActivity(dataCell,conditions,neuronID,conditionTitles)
-%plotMeanActivity.m Plots mean activity fora given neuron 
+%plotMeanActivity.m Plots mean activity fora given neuron
 %
 %INPUTS
-%dataCell - dataCell contianing imaging data 
+%dataCell - dataCell contianing imaging data
 %neuronID - neuronID
 %
 %OUTPUTS
-%figH - figure to plot 
+%figH - figure to plot
 %
 %ASM 5/15
 
@@ -15,8 +15,9 @@ if nargin < 4 || isempty(conditionTitles)
 end
 
 segRanges = 0:80:480;
+normAct = true;
 
-%cmScale 
+%cmScale
 cmScale = 0.75;
 segRanges = segRanges*cmScale;
 
@@ -29,7 +30,7 @@ yPosBins = dataCell{1}.imaging.yPosBins;
 %subset to trials x bins
 traces = squeeze(traces(neuronID,:,:))';
 
-%create a figure 
+%create a figure
 figH = figure;
 
 %get xVals
@@ -37,13 +38,21 @@ yPosBins = yPosBins(2:end-1);
 traces = traces(:,2:end-1);
 xVals = yPosBins*cmScale;
 
-%get number of plots 
+
+if normAct 
+    if min(traces(:)) < 0 
+        traces = traces + abs(min(traces(:)));
+    end
+    traces = traces/max(traces(:));
+end
+
+%get number of plots
 nPlots = length(conditions);
 % [nRows,nCol] = calcNSubplotRows(nPlots);
 nRows = 3;
 nCol = 1;
 
-%get cLims 
+%get cLims
 cLims = [min(traces(:)) max(traces(:))];
 
 %get mean and sem
@@ -53,7 +62,7 @@ semActivity = nan(nPlots,size(traces,2));
 ha = tight_subplot(nRows, nCol, 0.02, 0.04, 0.01);
 
 for plotInd = 1:nPlots
-%     axH = subplot_tight(nRows,nCol,plotInd,[0.04 0.04]);
+    %     axH = subplot_tight(nRows,nCol,plotInd,[0.04 0.04]);
     axH = ha(plotInd);
     axes(axH);
     
@@ -72,24 +81,31 @@ for plotInd = 1:nPlots
     meanActivity(plotInd,:) = nanmean(traces(matchTrials,:));
     semActivity(plotInd,:) = calcSEM(traces(matchTrials,:));
     
-%     axH.Title.String = conditionTitles{plotInd};
-%     axH.Title.Position(2) = 4*axH.Title.Position(2);
-%     axH.Title.FontSize = 30;
+    %     axH.Title.String = conditionTitles{plotInd};
+    %     axH.Title.Position(2) = 4*axH.Title.Position(2);
+    %     axH.Title.FontSize = 30;
     
     axH.YLabel.String = conditionTitles{plotInd};
     axH.LabelFontSizeMultiplier = 1.2;
     
-        axH.XLabel.String = '';
-        axH.XTick = [];
+    axH.XLabel.String = '';
+    axH.XTick = [];
+    
+    %convert yTick to multipleso f 10
+    axH.YTick = 10*(1:floor(sum(matchTrials)/10));
     
 end
 
 %add colorbar
 cBar = colorbar('Position',[0.6 0.43 0.02 0.5]);
 cBar.FontSize = 20;
-cBar.Label.String = 'dF/F';
+if normAct
+    cBar.Label.String = 'Normalized dF/F';
+else
+    cBar.Label.String = 'dF/F';
+end
 
-%plot mean 
+%plot mean
 % axH = subplot_tight(nRows,nCol,nPlots+1,[0.04 0.04]);
 axH = ha(3);
 axes(axH);
@@ -97,7 +113,11 @@ hold(axH,'on');
 leftPlot = shadedErrorBar(xVals,meanActivity(1,:),semActivity(1,:),'-r');
 rightPlot = shadedErrorBar(xVals,meanActivity(2,:),semActivity(2,:),'-b');
 axH.XLabel.String = 'Maze Position (cm)';
-axH.YLabel.String = 'Mean dF/F';
+if normAct
+    axH.YLabel.String = 'Mean Normalized dF/F';
+else
+    axH.YLabel.String = 'Mean dF/F';
+end
 axis(axH,'square');
 axH.XLim = [min(xVals) max(xVals)];
 axH.FontSize = 20;
@@ -105,8 +125,10 @@ axH.LabelFontSizeMultiplier = 1.2;
 minY = min(min(meanActivity - semActivity));
 maxY = max(max(meanActivity + semActivity));
 axH.YLim = [minY - 0.05*(maxY-minY) maxY + 0.05*(maxY-minY)];
+axH.XTickLabel = axH.XTick;
+axH.YTickLabel = axH.YTick;
 
-%add segment dividers 
+%add segment dividers
 for segInd = 1:length(segRanges)
     lineH = line([segRanges(segInd) segRanges(segInd)],axH.YLim);
     lineH.Color = 'k';
@@ -132,7 +154,7 @@ axH.LabelFontSizeMultiplier = 1.5;
 axH.XLabel.String = 'Maze Position (cm)';
 axH.YLabel.String = 'Trial #';
 
-%add segment dividers 
+%add segment dividers
 for segInd = 1:length(segRanges)
     lineH = line([segRanges(segInd) segRanges(segInd)],axH.YLim);
     lineH.Color = 'k';

@@ -1,18 +1,19 @@
 %get traces
-[~,traces] = catBinnedTraces(imTrials);
+[~,traces] = catBinnedTraces(trials60);
 
 %crop to near end bin
-traces = traces(:,115,:);
+traces = traces(:,90,:);
 
 %get sortOrder 
-coeff = calculateTrialTrialVarCoefficient(imTrials);
-[~,sortOrder] = sort(coeff,'descend');
+% coeff = calculateTrialTrialVarCoefficient(imTrials);
+% [~,sortOrder] = sort(coeff,'descend');
 
 %crop to bottom half of cells 
-traces = traces(sortOrder(1:300),:,:);
+% traces = traces(sortOrder(1:300),:,:);
 
 %get leftTurns
-leftTurns = getCellVals(imTrials,'result.leftTurn');
+leftTurns = getCellVals(trials60,'result.leftTurn');
+% prevCorrect = getCellVals(imTrials,'result.prevCorrect');
 
 %get ranges
 cRange = [0 8];

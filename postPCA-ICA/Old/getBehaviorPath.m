@@ -7,7 +7,7 @@ elseif exist(fullfile(vPath,'Archived Mice',mouseName),'dir')
     currStr = 'Archived Mice';
 end
 vCellSearchStr = fullfile(vPath,currStr,mouseName,...
-    [mouseName,'_',date,'_Cell*.mat']);
+    [mouseName,'_',date,'_Cell.mat']);
 
 %get number of files which match search string
 vFileSearch = dir(vCellSearchStr);

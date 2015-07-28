@@ -77,7 +77,12 @@ shuffleBothTurnR2 = nan(nNeurons,nShuffles);
 
 clusterMeanAct = cell(nNeurons,1);
 clusterPLeft = cell(nNeurons,1);
-
+clusterNPoints = cell(nNeurons,1);
+clusterTurnAct = cell(nNeurons,1);
+clusterNPointsTurn = cell(nNeurons,1);
+clusterNPointsTurnClustering = cell(nNeurons,1);
+clusterPLeftTurn = cell(nNeurons,1);
+clusterMeanTurn = cell(nNeurons,1);
 
 %loop
 parfor neuronInd = 1:nNeurons
@@ -90,6 +95,7 @@ parfor neuronInd = 1:nNeurons
         size(tempTracePoints,2)*size(tempTracePoints,3));
     allClusterIDs = apClusterNeuronalStates(reshapePoints, perc);
     clusterIDs = reshape(allClusterIDs,size(tempTracePoints,3),size(tempTracePoints,2));
+    turnClusterIDs = apClusterNeuronalStates(squeeze(tempTracePoints(:,10,:)),perc);
     
     %get testTrace
     testTrace = squeeze(tracePoints(neuronInd,:,:))';
@@ -137,11 +143,34 @@ parfor neuronInd = 1:nNeurons
     clusterMeanAct{neuronInd} = nan(nUniqueClusters,1);
     clusterPLeft{neuronInd} = nan(nUniqueClusters,1);
     testTurn = reshape(turn,size(testTrace));
+    clusterTurnAct{neuronInd} = nan(nUniqueClusters,1);
+    clusterNPointsTurn{neuronInd} = nan(nUniqueClusters,1);
     for cluster = 1:nUniqueClusters
         clusterMeanAct{neuronInd}(cluster) = ...
             mean(testTrace(clusterIDs == uniqueClusters(cluster)));
         clusterPLeft{neuronInd}(cluster) = ...
             mean(testTurn(clusterIDs == uniqueClusters(cluster)));
+        clusterNPoints{neuronInd}(cluster) = ...
+            sum(sum(clusterIDs == uniqueClusters(cluster)));
+        clusterTurnAct{neuronInd}(cluster) = ...
+            mean(testTrace(clusterIDs(:,10) == uniqueClusters(cluster),10));
+        clusterNPointsTurn{neuronInd}(cluster) = ...
+            sum(clusterIDs(:,10) == uniqueClusters(cluster));
+    end
+    
+    %get mean value for each turn cluster 
+    uniqueTurnClusters = unique(turnClusterIDs);
+    nUniqueTurnClusters = length(uniqueTurnClusters);
+    clusterMeanTurn{neuronInd} = nan(nUniqueTurnClusters,1);
+    clusterPLeftTurn{neuronInd} = nan(nUniqueTurnClusters,1);
+    clusterNPointsTurnClustering{neuronInd} = nan(nUniqueTurnClusters,1);
+    for cluster = 1:nUniqueTurnClusters
+        clusterMeanTurn{neuronInd}(cluster) = mean(tracePoints(neuronInd,10,...
+            turnClusterIDs == uniqueTurnClusters(cluster)));
+        clusterPLeftTurn{neuronInd}(cluster) = mean(turn(turnClusterIDs == ...
+            uniqueTurnClusters(cluster)));
+        clusterNPointsTurnClustering{neuronInd}(cluster) = ...
+            sum(turnClusterIDs == uniqueTurnClusters(cluster));
     end
     
     %perform ridge 
@@ -208,6 +237,13 @@ out.shuffleBoth.R2Ratio = shuffleBothClusterR2./shuffleBothTurnR2;
 
 out.clusterMeanActivity = clusterMeanAct;
 out.clusterPLeft = clusterPLeft;
+out.clusterNPoints = clusterNPoints;
+out.clusterNPointsTurn = clusterNPointsTurn;
+out.clusterTurnAct = clusterTurnAct;
+out.clusterMeanTurn = clusterMeanTurn;
+out.clusterPLeftTurn = clusterPLeftTurn;
+out.clusterNPointsTurnClustering = clusterNPointsTurnClustering;
+
 
 end
 

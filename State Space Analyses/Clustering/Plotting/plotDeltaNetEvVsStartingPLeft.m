@@ -1,5 +1,5 @@
-function handles = plotDeltaPLeftVsStartingPLeft(deltaPLeft, startPLeft, mazePatterns, offset, handles)
-%plotDeltaPLeftVsStartingPLeft.m Plots the change in p(left) as a function of maze
+function handles = plotDeltaNetEvVsStartingPLeft(deltaNetEv, startPLeft, mazePatterns, offset, handles)
+%plotDeltaNetEvVsStartingPLeft.m Plots the change in meanNetEv as a function of maze
 %epoch transition
 %
 %INPUTS
@@ -28,7 +28,7 @@ end
 % deltaPLeft = abs(deltaPLeft);
 
 %get nTransitions 
-nTransitions = size(deltaPLeft,2);
+nTransitions = size(deltaNetEv,2);
 
 %initialize
 scatH = gobjects(nTransitions,2);
@@ -43,12 +43,12 @@ for transition = 1:nTransitions
     markerSize = 20;
     if transition <= size(mazePatterns,2) && transition > offset
         leftSeg = mazePatterns(:,transition - offset) == 1;
-        scatH(transition,1) = scatter(startPLeft(leftSeg,transition),deltaPLeft(leftSeg,transition),...
+        scatH(transition,1) = scatter(startPLeft(leftSeg,transition),deltaNetEv(leftSeg,transition),...
             markerSize,'b');    
-        scatH(transition,2) = scatter(startPLeft(~leftSeg,transition),deltaPLeft(~leftSeg,transition),...
+        scatH(transition,2) = scatter(startPLeft(~leftSeg,transition),deltaNetEv(~leftSeg,transition),...
             markerSize,'r');    
     else
-        scatH(transition,1) = scatter(startPLeft(:,transition),deltaPLeft(:,transition),...
+        scatH(transition,1) = scatter(startPLeft(:,transition),deltaNetEv(:,transition),...
             markerSize,'k');    
     end
     
@@ -68,7 +68,7 @@ for transition = 1:nTransitions
         handles.ax(transition).XLim = [min(startPLeft(:,transition))-0.01 max(startPLeft(:,transition))+0.01];
     else
         handles.ax(transition).XLim = [0 1];
-        handles.ax(transition).YLim = [-1 1];
+%         handles.ax(transition).YLim = [-1 1];
     end
     
     
@@ -82,7 +82,7 @@ else
     xLab = suplabel('Starting P(Left Turn)','x');
 end
 xLab.FontSize = 30;
-yLab = suplabel('\Delta P(Left Turn)','y');
+yLab = suplabel('\Delta Net Evidence','y');
 yLab.FontSize = 30;
 
 %label

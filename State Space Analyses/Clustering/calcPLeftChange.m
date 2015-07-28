@@ -1,4 +1,5 @@
-function [deltaPLeft, startPLeft, startNetEv] = calcPLeftChange(clusterIDs,leftTurns,varargin)
+function [out] = ...
+    calcPLeftChange(clusterIDs,dataCell,varargin)
 %calcPLeftChange.m Calculates the change in p(leftTurn) for every trials
 %based on the clusters it moves through
 %
@@ -37,11 +38,9 @@ end
 %% process 
 
 %get leftTurns 
-if iscell(leftTurns)
-    dataCell = leftTurns;
-    leftTurns = getCellVals(dataCell,'result.leftTurn');
-    netEv = getNetEvidence(dataCell);
-end
+leftTurns = getCellVals(dataCell,'result.leftTurn');
+netEv = getNetEvidence(dataCell);
+mazePatterns = getMazePatterns(dataCell);
 
 %get nTrials 
 nTrials = size(clusterIDs,1);
@@ -49,8 +48,11 @@ nTransitions = size(clusterIDs,2)-1;
 
 %initialize 
 deltaPLeft = nan(nTrials,nTransitions);
+deltaNetEv = nan(nTrials,nTransitions);
 startPLeft = nan(nTrials,nTransitions);
 startNetEv = zeros(nTrials,nTransitions);
+endNetEv = zeros(nTrials,nTransitions);
+switchProb = nan(nTrials,nTransitions);
 
 %loop through each trial and calculate 
 for trialInd = 1:nTrials 
@@ -84,10 +86,28 @@ for trialInd = 1:nTrials
         else
             startNetEv(trialInd,transition) = mean(netEv(matchStartCluster,size(netEv,2)));
         end
+        if transition+1 < size(netEv,2)
+            endNetEv(trialInd,transition) = mean(netEv(matchStartCluster,transition));
+        else
+            endNetEv(trialInd,transition) = mean(netEv(matchStartCluster,size(netEv,2)));
+        end
+        
+        %get switch prob 
+        switchProb(trialInd,transition) = pLeftStart > 0.5 ~= leftTurns(trialInd);
         
         %get difference 
         deltaPLeft(trialInd,transition) = pLeftEnd - pLeftStart;
         startPLeft(trialInd,transition) = pLeftStart;
+        deltaNetEv(trialInd,transition) = endNetEv(trialInd,transition) - startNetEv(trialInd,transition);
         
     end
 end
+
+out.deltaPLeft = deltaPLeft;
+out.startNetEv = startNetEv;
+out.startPLeft = startPLeft;
+out.endNetEv = endNetEv;
+out.deltaNetEv = deltaNetEv;
+out.mazePatterns = mazePatterns;
+out.netEv = netEv;
+out.switchProb = switchProb;

@@ -100,7 +100,7 @@ end
 axis(handles.ax,'square');
 
 %add legend 
-if ~showLegend
+if ~showLegend && strcmpi(plotType,'dashBounds')
     handles.leg = legend([handles.plot(1) handles.shuffleHigh(1)],...
         {'Actual accuracy',sprintf('Shuffle %d%% Confidence Intervals',95)},...
         'Location','SouthEast');
