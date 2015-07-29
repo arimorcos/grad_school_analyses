@@ -20,7 +20,7 @@ switch computer
     case 'PCWIN64'
         filePath = sprintf('W:\\Mice\\%s_%s_processed.mat',mouse,date);
 end
-load(filePath);
+load(filePath,'imTrials');
 leftTrials = getTrials(imTrials,'maze.leftTrial==1');
 rightTrials = getTrials(imTrials,'maze.leftTrial==0');
 trials60 = getTrials(imTrials,'maze.numLeft==0,6');
