@@ -14,7 +14,7 @@ function pVal = getClusteredTrajIntraHistorySig(dataCell,clusterIDs,nShuffles)
 
 %argument check
 if nargin < 3 || isempty(nShuffles)
-    nShuffles = 5000;
+    nShuffles = 1000;
 end
 
 %initialize
@@ -172,6 +172,10 @@ for segNum = 3:6
     addBracket([clusterStarts(segNum-2) clusterStarts(segNum-1)-1]+0.5,...
         maxCount + 1,sprintf('Segment %d',segNum));
 end
+
+%mazimize
+figH.Units = 'Normalized';
+figH.OuterPosition = [0 0 1 1];
 end
 
 function deltaCount = getDeltaCount(clusters1,clusters2,nClusters)
