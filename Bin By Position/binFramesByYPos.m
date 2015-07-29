@@ -34,6 +34,13 @@ imTrials = find(imTrials == 1);
 %get nTrials
 nTrials = length(imSub);
 
+%determine if should deconv
+if isfield(dataCell{1}.imaging,'completeDeconvTrace')
+    binDeconv = true;
+else
+    binDeconv = false;
+end
+
 %determine if multiple planes
 nPlanes = length(imSub{1}.imaging.dataFrames);
 
@@ -91,6 +98,9 @@ for planeInd = 1:nPlanes
     %     binnedDGRTraces = zeros(nCells,nBins,nTrials);
     %     binnedPCATraces = zeros(nPCs,nBins,nTrials);
     binnedDFFTraces = nan(nCells,nBins,nTrials);
+    if binDeconv
+        binnedDeconvTraces = nan(nCells,nBins,nTrials);
+    end
     binnedDataFrames = nan(size(imSub{1}.imaging.dataFrames{1},1),nBins,nTrials);
     if binFact
         binnedDFFFact = cell(1,nFactSets);
@@ -118,6 +128,9 @@ for planeInd = 1:nPlanes
                 tempFactDFF{factInd} = imSub{trialInd}.imaging.projDFF{factInd};
                 %             tempFactDGR{factInd} = imSub{trialInd}.imaging.projDGR{factInd};
             end
+        end
+        if binDeconv
+            tempDeconv = imSub{trialInd}.imaging.deconvTrace{planeInd};
         end
         dataFrames = imSub{trialInd}.imaging.dataFrames{planeInd};
         
@@ -149,6 +162,9 @@ for planeInd = 1:nPlanes
                         %                     binnedDGRFact{factInd}(:,binNum,trialInd) = nanmean(tempFactDGR{factInd}(:,binInd),2);
                     end
                 end
+                if binDeconv
+                    binnedDeconvTraces(:,binNum,trialInd) = nanmean(tempDeconv(:,binInd),2);
+                end
             end
             
         end
@@ -162,6 +178,9 @@ for planeInd = 1:nPlanes
                 %             binnedPCATraces(neuronInd,:,j) = interpLowValTraces(binnedPCATraces(neuronInd,:,j),'0','pchip');
                 %                 binnedDFFTraces(neuronInd,:,trialInd) = interpLowValTraces(binnedDFFTraces(neuronInd,:,trialInd),.1,'pchip');
                 binnedDFFTraces(neuronInd,:,trialInd) = interpNanTraces(binnedDFFTraces(neuronInd,:,trialInd),'linear');
+                if binDeconv
+                    binnedDeconvTraces(neuronInd,:,trialInd) = interpNanTraces(binnedDeconvTraces(neuronInd,:,trialInd),'linear');
+                end
             end
             for dataVar = 1:size(binnedDataFrames,1)
                binnedDataFrames(dataVar,:,trialInd) = interpNanTraces(...
@@ -188,6 +207,9 @@ for planeInd = 1:nPlanes
                 dataCell{imTrials(trialInd)}.imaging.binnedFactDFF{planeInd}{factInd} = binnedDFFFact{factInd}(:,:,trialInd);
                 %             dataCell{imTrials(trialInd)}.imaging.binnedFactDGR{planeInd}{factInd} = binnedDGRFact{factInd}(:,:,trialInd);
             end
+        end
+        if binDeconv
+            dataCell{imTrials(trialInd)}.imaging.binnedDeconvTraces{planeInd} = binnedDeconvTraces(:,:,trialInd);            
         end
     end
 end
