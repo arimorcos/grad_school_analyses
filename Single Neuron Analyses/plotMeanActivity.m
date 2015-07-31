@@ -126,6 +126,7 @@ minY = min(min(meanActivity - semActivity));
 maxY = max(max(meanActivity + semActivity));
 axH.YLim = [minY - 0.05*(maxY-minY) maxY + 0.05*(maxY-minY)];
 axH.XTickLabel = axH.XTick;
+axH.YTick = round(100*linspace(axH.YLim(1)+0.05,axH.YLim(2)-0.05,5))/100;
 axH.YTickLabel = axH.YTick;
 
 %add segment dividers

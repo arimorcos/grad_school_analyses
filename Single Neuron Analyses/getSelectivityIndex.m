@@ -1,4 +1,4 @@
-function selInd = getSelectivityIndex(dataCell)
+function selInd = getSelectivityIndex(dataCell,shuffle)
 %getSelectivityIndex.m Returns a nNeurons x nBins selectivity index based
 %on left and right 6-0 trials 
 %
@@ -11,13 +11,28 @@ function selInd = getSelectivityIndex(dataCell)
 %
 %ASM 7/15
 
+if nargin < 2 || isempty(shuffle)
+    shuffle= false;
+end
+
 %get left and right 60
 left60 = getTrials(dataCell,'result.correct==1;maze.numLeft==6');
 right60 = getTrials(dataCell,'result.correct==1;maze.numLeft==0');
 
+%shuffle if necessary 
+if shuffle
+    allTrials = cat(2,left60,right60);
+    leftInd = randsample(length(allTrials),length(left60));
+    rightInd = setdiff(1:length(allTrials),leftInd);
+    left60 = allTrials(leftInd);
+    right60 = allTrials(rightInd);
+end
+
 %get binned traces 
 [~,leftTraces] = catBinnedTraces(left60);
 [~,rightTraces] = catBinnedTraces(right60);
+
+
 
 %make positive 
 convToPos = @(x) x + abs(min(x(:)));

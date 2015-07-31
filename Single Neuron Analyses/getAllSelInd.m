@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/150726_selIndAll';
+saveFolder = 'D:\DATA\Analyzed Data\150726_selIndAll';
 
 %get list of datasets 
 procList = getProcessedList();
@@ -15,9 +15,10 @@ for dSet = 1:nDataSets
     
     %get sequence info 
     selIndAll{dSet} = getSelectivityIndex(imTrials);
+    shuffleSelIndAll{dSet} = getSelectivityIndex(imTrials,true);
    
     
 end
 
 % save 
-save(fullfile(saveFolder,'sequenceInfoAllMice'),'selIndAll');
+save(fullfile(saveFolder,'selIndAll'),'selIndAll','shuffleSelIndAll');
