@@ -60,8 +60,10 @@ minBins = min(cellfun(@length, allAcc));
 maxBins = max(cellfun(@length, allAcc));
 cropAcc = cellfun(@(x) x(end-minBins+1:end),allAcc,'UniformOutput',false);
 cropXVals = cellfun(@(x) x(end-minBins+1:end),allxVals,'UniformOutput',false);
+cropShuffle = cellfun(@(x) x(:,end-minBins+1:end),allShuffle,'UniformOutput',false);
 catAcc =cat(2,cropAcc{:})';
 catXVals = cat(1,cropXVals{:});
+catShuffle = cat(1,cropShuffle{:});
 meanXVals = mean(catXVals);
 cmScale = 0.75;
 meanXVals = meanXVals*cmScale;
@@ -95,8 +97,10 @@ errH.edge(2).Color = color;
 handles.ax.YLim = [0 100];
 
 %add chance line 
+chanceVal = mean(catShuffle(:));
+% chanceVal = 50;
 handles.chanceLine = line([min(meanXVals) max(meanXVals)],...
-    [50 50]);
+    [chanceVal chanceVal]);
 handles.chanceLine.Color = 'k';
 handles.chanceLine.LineStyle = '--';
 handles.chanceLine.LineWidth = 2;
@@ -139,6 +143,9 @@ end
 
 %set axis to square
 axis(handles.ax,'square');
+
+%set x limit
+handles.ax.XLim = [min(meanXVals) max(meanXVals)];
 
 %maximize 
 handles.fig.Units = 'normalized';

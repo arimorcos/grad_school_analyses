@@ -29,7 +29,9 @@ if strcmpi(cMat.mode, 'one')
     return;
 end
 
-sizeScale = 600;
+sizeScale = 2000;
+totalWidth = 30;
+% sizeScale = 600;
 pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
     'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
 colorBy = 'netEv';
@@ -199,7 +201,6 @@ end
 
 if showEdges
     %add edges
-    totalWidth = 30;
     xOffset = 0;
     nEdges = cellfun(@numel,mMat);
     maxEdges = max(nEdges);

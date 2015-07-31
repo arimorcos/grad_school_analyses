@@ -1,62 +1,65 @@
-function plotDeltaSegOffset(dataCell,whichPlots,binPoints)
-%plotDeltaSegOffset.m Plots the delta segment offset
+function handles = plotMultipleDeltaSegOffsetFromFolder(folder,fileStr,whichPlots,binPoints)
+%plotMultipleDeltaSegOffsetFromFolder.m Plots multiple classifiers based on a
+%specific folder path 
 %
-%INPUTS
-%dataCell - dataCell containing imaging data
+%INPUTS 
+%folder - path to folder 
+%fileStr - string to match files to 
+%
+%OUTPUTS
+%handles - structure of handles 
 %
 %ASM 4/15
-
 nSeg = 6;
-
-if nargin < 3 || isempty(binPoints)
+if nargin < 4 || isempty(binPoints)
     binPoints = true;
 end
 
-if nargin < 2 || isempty(whichPlots)
+if nargin < 3 || isempty(whichPlots)
     whichPlots = 1:nSeg;
 end
 
-% %get traces
-% [~,traces] = catBinnedTraces(dataCell);
-% 
-% %get yPosBins
-% yPosBins = dataCell{1}.imaging.yPosBins;
-% 
-% %get tracePoints
-% tracePoints = getMazePoints(traces,yPosBins);
-% 
-% %initialize
-% dists = cell(nSeg+1,1);
-% 
-% %get pairwise distance at each point from maze start to segment 6
-% for pointInd = 1:nSeg+1
-%     %get distances at each point
-%     dists{pointInd} = pdist(squeeze(tracePoints(:,pointInd,:))');
-% end
-% 
-% 
-% %get distances
-% segDist = tril(squareform(pdist([1:nSeg+1]')));
-% 
-% %loop through each deltaseg
-% deltaSegStart = cell(nSeg,1);
-% deltaSegEnd = cell(nSeg,1);
-% for deltaSeg = 1:nSeg
-%     %get pairs which match
-%     [pair1,pair2] = ind2sub(size(segDist),find(segDist == deltaSeg));
-%     
-%     %concatenate all those points together
-%     deltaSegStart{deltaSeg} = cat(2,dists{pair1});
-%     deltaSegEnd{deltaSeg} = cat(2,dists{pair2});
-% end
-[deltaSegStart, deltaSegEnd] = getDeltaSegOffset(dataCell);
+%get list of files in folder 
+[allNames, ~, ~, ~, isDirs] = dir2cell(folder);
+files = allNames(~isDirs);
 
-%% plot
+%match string 
+matchFiles = files(~cellfun(@isempty,regexp(files,fileStr)));
+
+%loop through each file and create array 
+deltaSegStart = cell(length(matchFiles),1);
+rOffset = cell(size(deltaSegStart));
+deltaSegEnd = cell(size(deltaSegStart));
+for fileInd = 1:length(matchFiles)
+    currFileData = load(fullfile(folder,matchFiles{fileInd}));
+    deltaSegStart{fileInd} = currFileData.deltaSegStart;
+    rOffset{fileInd} = currFileData.rOffset;
+    deltaSegEnd{fileInd} = currFileData.deltaSegEnd;
+end
+
+%concatenate all 
+nFiles = length(matchFiles);
+allStart = cell(nSeg,1);
+allEnd = cell(nSeg,1);
+for file = 1:nFiles
+    for seg = 1:nSeg
+        allStart{seg} = cat(2,allStart{seg},deltaSegStart{file}{seg});
+        allEnd{seg} = cat(2,allEnd{seg},deltaSegEnd{file}{seg});
+    end
+end
+
+%calculate r 
+r = nan(nSeg,1);
+for seg = 1:nSeg
+    corr = corrcoef(allStart{seg},allEnd{seg});
+    r = corr(1,2);
+end
+
+%create figure 
 figH = figure;
+
 nPlots = length(whichPlots);
 [nRows,nCol] = calcNSubplotRows(nPlots);
-r2 = nan(nPlots,1);
-slope = nan(nPlots,1);
 
 %loop through ecah plot
 for plotInd = 1:nPlots
@@ -141,29 +144,3 @@ else
     axH.YLabel.String = 'End distance (euclidean)';
     axH.XLabel.String = 'Start distance (euclidean)';
 end
-%% summary plot
-figH = figure;
-axH = axes;
-
-%plot
-% [yyH,plotR,plotSlope] = plotyy(1:nPlots,r2,1:nPlots,slope);
-plotH = plot(1:nPlots,r2);
-plotH.Marker = 'o';
-plotH.MarkerSize = 12;
-plotH.MarkerFaceColor = plotH.Color;
-axis(axH,'square');
-
-%label axes
-axH.XTick = 1:nPlots;
-axH.XLabel.String = '\Delta Segments';
-axH.XLabel.FontSize = 30;
-
-axH.FontSize = 20;
-axH.YLabel.FontSize = 30;
-axH.YLabel.String = 'R^{2}';
-% yyH(1).YLabel.FontSize = 30;
-% yyH(2).YLabel.FontSize = 30;
-% yyH(1).YLabel.String = 'R^{2}';
-% yyH(2).YLabel.String = 'Fit Slope';
-% [yyH(:).FontSize] = deal(20);
-

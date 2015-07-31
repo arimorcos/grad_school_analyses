@@ -25,7 +25,7 @@ end
 
 %% plot 
 figH = figure;
-axH = subplot(2,1,1);
+axH = subplot(2,2,1);
 % axH = axes;
 hold(axH, 'on');
 
@@ -35,11 +35,11 @@ xVals = linspace(0.75,1.25, nFiles);
 for file = 1:nFiles
     
     %plot accuracy 
-    scatH = scatter(xVals(file),allAcc(file),'b','filled');
+    scatH = scatter(xVals(file),100*allAcc(file),'b','filled');
     
     %plot shuffle 
-    medShuffle = median(allShuffleAcc{file});
-    confInt = prctile(allShuffleAcc{file},[2.5 97.5]);
+    medShuffle = median(100*allShuffleAcc{file});
+    confInt = prctile(100*allShuffleAcc{file},[2.5 97.5]);
     confInt = abs(confInt - medShuffle);
     errH = errorbar(xVals(file),medShuffle,confInt(1),confInt(2));
     errH.Color = 'b';
@@ -53,6 +53,8 @@ beautifyPlot(figH, axH);
 axH.XTick = [];
 axH.XLabel.String = 'Dataset';
 axH.YLabel.String = 'History Classification Accuracy';
+axH.XLim = [0.5 1.5];
+
 
 %% plot nSTD 
 % load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\singleSegNSTD.mat');
@@ -68,9 +70,14 @@ axH.YLabel.String = 'History Classification Accuracy';
 % axB.YLabel.String = 'nSTD Above Chance';
 
 load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\singleSegNSTD.mat');
-axB = subplot(2,2,3);
+axB = subplot(2,2,2);
 hold(axB,'on');
-scatter(allNSTD,nSTD);
+
+scatH=scatter(allNSTD,nSTD);
+scatH.MarkerEdgeColor = [0.7 0.7 0.7];
+scatH.MarkerFaceColor = [0.7 0.7 0.7];
+scatH.SizeData = 150;
+
 beautifyPlot(figH,axB);
 corr = corrcoef(nSTD,allNSTD);
 % legend('Segment nSTD','History nSTD','Location','Best');
@@ -84,11 +91,33 @@ textH.VerticalAlignment = 'Top';
 
 %% plot slope 
 load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\netEvSlope.mat');
-axB = subplot(2,2,4);
+axB = subplot(2,2,3);
 hold(axB,'on');
-scatter(allNSTD,slope);
+
+scatH = scatter(nSTD,slope);
+scatH.MarkerEdgeColor = [0.7 0.7 0.7];
+scatH.MarkerFaceColor = [0.7 0.7 0.7];
+scatH.SizeData = 150;
+
 beautifyPlot(figH,axB);
 corr = corrcoef(nSTD,slope);
+axB.YLabel.String = 'Net Evidence Slope';
+axB.XLabel.String = 'First Segment Accuracy (std)';
+textH = text(axB.XLim(1) + 0.02*range(axB.XLim),axB.YLim(2)-0.02*range(axB.YLim),...
+    sprintf('r = %.2f',corr(1,2)));
+textH.HorizontalAlignment = 'Left';
+textH.VerticalAlignment = 'Top';
+
+%% plot slope 
+load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\netEvSlope.mat');
+axB = subplot(2,2,4);
+hold(axB,'on');
+scatH = scatter(allNSTD,slope);
+scatH.MarkerEdgeColor = [0.7 0.7 0.7];
+scatH.MarkerFaceColor = [0.7 0.7 0.7];
+scatH.SizeData = 150;
+beautifyPlot(figH,axB);
+corr = corrcoef(allNSTD,slope);
 axB.YLabel.String = 'Net Evidence Slope';
 axB.XLabel.String = 'History Accuracy (std)';
 textH = text(axB.XLim(1) + 0.02*range(axB.XLim),axB.YLim(2)-0.02*range(axB.YLim),...
