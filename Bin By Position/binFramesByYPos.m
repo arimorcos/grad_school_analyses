@@ -35,7 +35,7 @@ imTrials = find(imTrials == 1);
 nTrials = length(imSub);
 
 %determine if should deconv
-if isfield(dataCell{1}.imaging,'completeDeconvTrace')
+if isfield(dataCell{1}.imaging,'deconvTrace')
     binDeconv = true;
 else
     binDeconv = false;

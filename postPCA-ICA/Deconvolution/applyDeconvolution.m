@@ -9,16 +9,28 @@ for dSet = 1:nDataSets
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
     
     %load in data
-    dataCell = loadBehaviorData(procList{1}{:});
+    dataCell = loadBehaviorData(procList{dSet}{:});
+    
+    %add in previous result field
+    dataCell = addPrevTrialResult(dataCell);
     
     %get traces 
     completeTrace = dataCell{1}.imaging.completeDFFTrace;
     
     %get deconvolved traces 
+    nNeurons = size(completeTrace,1);
+    deconvTrace = nan(size(completeTrace));
+    parfor neuron = 1:nNeurons
+        %deconvolve and smooth (one second)
+        deconvTrace(neuron,:) = smooth(getDeconv(completeTrace(neuron,:)),30);
+    end
     
     %add back to dataCell
     dataCell = standaloneCopyDeconvToDataCell(dataCell, deconvTrace);
     dataCell{1}.imaging.completeDeconvTrace = deconvTrace;
+    
+    %filter roiGroups
+    dataCell = filterROIGroups(dataCell,1);
     
     %save to processed 
     imTrials = getTrials(dataCell,'maze.crutchTrial==0;imaging.imData==1');

@@ -12,7 +12,7 @@ end
 
 %get list of files 
 fileList = dir2cell(filePath);
-fileList = fileList(~cellfun(@isempty,regexpi(fileList,'.*_processed.mat')));
+fileList = fileList(~cellfun(@isempty,regexpi(fileList,'AM.*_processed.mat')));
 
 %get mouse and date
 tempList = regexp(fileList,'(AM\d{3})_(\d{6})_processed.mat','tokens');

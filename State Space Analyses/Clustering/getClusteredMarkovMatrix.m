@@ -22,6 +22,7 @@ useBehavior = false;
 oneClustering = false;
 perc = 10;
 whichNeurons = [];
+traceType = 'dFF';
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -42,6 +43,8 @@ if nargin > 1 || ~isempty(varargin)
                 perc = varargin{argInd+1};
             case 'whichneurons'
                 whichNeurons = varargin{argInd+1};
+            case 'tracetype'
+                traceType = varargin{argInd+1};                
         end
     end
 end
@@ -54,8 +57,15 @@ if useBehavior
     keepVar = 2:6; %2 - xPos, 3 - yPos, 4 - view angle, 5 - xVel, 6 - yVel
     traces = traces(keepVar,:,:);
 else
-    %get traces
-    [~,traces] = catBinnedTraces(dataCell);
+    switch lower(traceType)
+        case 'dff'
+            %get traces
+            [~,traces] = catBinnedTraces(dataCell);
+        case 'deconv'
+            traces = catBinnedDeconvTraces(dataCell);
+        otherwise 
+            error('Can''t interpret trace type');
+    end
 end
 
 if ~isempty(whichNeurons)
