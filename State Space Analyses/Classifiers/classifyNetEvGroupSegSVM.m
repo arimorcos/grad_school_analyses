@@ -26,6 +26,7 @@ trialMatch = false;
 binViewAngle = false;
 leftViewAngle = true;
 viewAngleRange = 5;
+whichNeurons = [];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -56,6 +57,8 @@ if nargin > 1 || ~isempty(varargin)
                 leftViewAngle = varargin{argInd+1};
             case 'viewanglerange'
                 viewAngleRange = varargin{argInd+1};
+            case 'whichneurons'
+                whichNeurons = varargin{argInd+1};
         end
     end
 end
@@ -75,6 +78,11 @@ for condInd = 1:length(conditions)
     
     %get nSeg
     nSeg = max(segNum);
+    
+    %filter neurons 
+    if ~isempty(whichNeurons)
+        segTraces = segTraces(whichNeurons,:,:);
+    end
     
     %take mean
     meanBinRange = round(range*size(segTraces,2));
