@@ -1,4 +1,4 @@
-function [probIncorrect,pVal] = calcHighwayCorrect(clusterIDs,dataCell,refPoint)
+function [probIncorrect,pVal] = calcHighwayCorrect(clusterIDs,dataCell,refPoint,perc)
 %calcRelSwitchProb.m Calculates the relative probability of switching
 %between the two provided reference points
 %
@@ -14,9 +14,12 @@ function [probIncorrect,pVal] = calcHighwayCorrect(clusterIDs,dataCell,refPoint)
 useChiSquared = true;
 nShuffles = 1000;
 confInt = 95;
+if nargin  < 4|| isempty(perc)
+    perc = 10;
+end
 
 %cluster trajectories
-clusterTraj = clusterClusteredTrajectories(clusterIDs,1:refPoint);
+clusterTraj = clusterClusteredTrajectories(clusterIDs,1:refPoint,perc);
 
 %get isCorrect
 isCorrect = getCellVals(dataCell,'result.correct');
@@ -75,6 +78,7 @@ else
         shuffleTraj = shuffleArray(clusterTraj);
         shuffleDifference(shuffleInd) = calcMeanDiffFromNull(shuffleTraj,isCorrect);
     end
+    pVal = getPValFromShuffle(meanDifference,shuffleDifference);
 end
 %% plot
 if nargout > 0

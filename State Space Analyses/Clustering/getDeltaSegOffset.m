@@ -38,8 +38,8 @@ for deltaSeg = 1:nSeg
     [pair1,pair2] = ind2sub(size(segDist),find(segDist == deltaSeg));
     
     %concatenate all those points together
-    deltaSegStart{deltaSeg} = cat(2,dists{pair1});
-    deltaSegEnd{deltaSeg} = cat(2,dists{pair2});
+    deltaSegStart{deltaSeg} = cat(2,dists{pair2});
+    deltaSegEnd{deltaSeg} = cat(2,dists{pair1});
     
     %corr
     corr = corrcoef(deltaSegStart{deltaSeg},deltaSegEnd{deltaSeg});

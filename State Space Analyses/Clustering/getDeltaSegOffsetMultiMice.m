@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150731_deltaSegOffsetVec';
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/150731_deltaSegOffsetVec';
 
 %get list of datasets 
 procList = getProcessedList();

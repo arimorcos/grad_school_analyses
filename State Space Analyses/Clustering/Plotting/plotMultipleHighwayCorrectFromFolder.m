@@ -21,10 +21,16 @@ matchFiles = files(~cellfun(@isempty,regexp(files,fileStr)));
 %loop through each file and create array
 probIncorrect = cell(length(matchFiles),1);
 pVal = nan(length(matchFiles),1);
+errorRate = nan(length(matchFiles),1);
+nTrials = nan(length(matchFiles),1);
+nErrors = nan(length(matchFiles),1);
 for fileInd = 1:length(matchFiles)
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
     probIncorrect{fileInd} = currFileData.probIncorrect;
     pVal(fileInd) = currFileData.pVal;
+    errorRate(fileInd) = currFileData.errorRate;
+    nErrors(fileInd) = currFileData.nErrors;
+    nTrials(fileInd) = currFileData.nTrials;
 end
 
 %nFiles
@@ -42,13 +48,18 @@ colors = distinguishable_colors(nFiles);
 
 %loop through and plot
 for file = 1:nFiles
+    
+    if errorRate(file) < 0.02
+        continue;
+    end
+    
     plotH = plot(1:length(probIncorrect{file}),sort(probIncorrect{file}));
     plotH.Color = colors(file,:);
     plotH.Marker = 'o';
     plotH.MarkerSize = 15;
     plotH.LineStyle = '-';
     plotH.LineWidth = 3;
-    if pVal(file) < 0.01
+    if pVal(file) < 0.05
         plotH.MarkerFaceColor = colors(file,:);
     end
 end
