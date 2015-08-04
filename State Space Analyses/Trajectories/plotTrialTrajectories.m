@@ -20,8 +20,8 @@ function figH = plotTrialTrajectories(dataCell,conditions,varargin)
 %ASM 1/15
 
 %process varargin
-whichFactorSet = 2;
-whichFactors = 1:3;
+whichFactorSet = 1;
+whichFactors = 2:4;
 markersPerTrace = 2;
 timeColor = false;
 colorIndividually = false;

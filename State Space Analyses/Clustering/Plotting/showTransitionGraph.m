@@ -9,12 +9,12 @@ function showTransitionGraph(mMat,cMat,varargin)
 %   behavioral variables
 %
 %OPTIONAL INPUTS
-%sizeScale - scale for node sizes. 
+%sizeScale - scale for node sizes.
 %pointLabels - xLabels for maze positions
-%colorBy - variable to color everything by. Must match field in cMat. 
+%colorBy - variable to color everything by. Must match field in cMat.
 %sortBy - variable to sort by. Must match field in cMat.
-%whichPoints - whichPoints to plot. Must be scalar or array. 
-%showEdges - boolean of whether or not to show edges. 
+%whichPoints - whichPoints to plot. Must be scalar or array.
+%showEdges - boolean of whether or not to show edges.
 %showNull - boolean of whether or not to show null probability transitions.
 %showTrials - array of which individual trial numbers to show. If empty, shows transition
 %   probabilities.
@@ -23,7 +23,7 @@ function showTransitionGraph(mMat,cMat,varargin)
 %
 %ASM 4/15
 
-% call one clustering version if necessary 
+% call one clustering version if necessary
 if strcmpi(cMat.mode, 'one')
     showTransitionGraphOneClustering(mMat, cMat, varargin{:});
     return;
@@ -42,6 +42,8 @@ whichPoints = 1:10;
 showNull = false;
 showTrial = [];
 clusterIDs = [];
+trialColors = [];
+mMatColors = [];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -70,6 +72,10 @@ if nargin > 1 || ~isempty(varargin)
                 showTrial = varargin{argInd+1};
             case 'clusterids'
                 clusterIDs = varargin{argInd+1};
+            case 'trialcolors'
+                trialColors = varargin{argInd+1};
+            case 'mmatcolors'
+                mMatColors = varargin{argInd+1};
         end
     end
 end
@@ -85,6 +91,9 @@ nPoints = length(cMat.netEv);
 % end
 nClusters = cellfun(@length,cMat.netEv);
 
+%split mMat
+nMMatCol = size(mMat,2);
+
 %sort points
 if ~strcmpi(sortBy,'none') && ~isempty(cMat)
     if ~isempty(clusterIDs)
@@ -92,11 +101,13 @@ if ~strcmpi(sortBy,'none') && ~isempty(cMat)
     end
     for point = 1:nPoints
         [~,tempSortOrder] = sort(cMat.(sortBy){point});
-        if point < nPoints
-            mMat{point} = mMat{point}(tempSortOrder,:);
-        end
-        if point > 1
-            mMat{point-1} = mMat{point-1}(:,tempSortOrder);
+        for col = 1:nMMatCol
+            if point < nPoints
+                mMat{point,col} = mMat{point,col}(tempSortOrder,:);
+            end
+            if point > 1
+                mMat{point-1,col} = mMat{point-1,col}(:,tempSortOrder);
+            end
         end
         fields = fieldnames(cMat);
         for field = 1:length(fields)
@@ -138,11 +149,11 @@ for point = 1:nPoints
     scatYVals(clusterInds) = clusterLoc{point};
     
     %get size
-%     if point == 1
-%         trialFrac = sum(mMat{point},2);
-%     else
-%         trialFrac = sum(mMat{point-1});
-%     end
+    %     if point == 1
+    %         trialFrac = sum(mMat{point},2);
+    %     else
+    %         trialFrac = sum(mMat{point-1});
+    %     end
     trialFrac = cMat.counts{point}/sum(cMat.counts{point});
     scatSizeData(clusterInds) = trialFrac;
 end
@@ -163,7 +174,9 @@ if ~isempty(cMat)
         colors = actualColorPoss(ind,:);
         showColorbar = true;
     else
-        warning('Cannot interpret colorBy. Coloring uniformly');
+        if ~strcmpi(colorBy,'none')
+            warning('Cannot interpret colorBy. Coloring uniformly');
+        end
         colors = repmat([1 1 1],sum(nClusters),1);
         showColorbar = false;
     end
@@ -185,7 +198,9 @@ axH.YLim = [currYLim(1)-0.025*diff(currYLim) currYLim(2)+0.025*diff(currYLim)];
 
 if ~isempty(showTrial)
     showEdges = false;
-    trialColors = lines(length(showTrial));
+    if isempty(trialColors)
+        trialColors = lines(length(showTrial));
+    end
     for trial = 1:length(showTrial)
         currTrial = clusterIDs(showTrial(trial),:);
         for transition = 1:nPoints-1
@@ -195,67 +210,27 @@ if ~isempty(showTrial)
                 [clusterLoc{transition}(startID) clusterLoc{transition+1}(endID)]);
             lineH.LineWidth = 3;
             lineH.Color = trialColors(trial,:);
+            if trialColors(trial,1)
+                lineH.LineStyle = '--';
+            end
         end
     end
 end
 
 if showEdges
-    %add edges
-    xOffset = 0;
-    nEdges = cellfun(@numel,mMat);
-    maxEdges = max(nEdges);
-    edgeMat = nan(maxEdges,nPoints-1);
-    for point = 1:(nPoints-1)
-        % get temporary matrix
-        tempMat = mMat{point};
-        edgeMat(1:numel(tempMat),point) = tempMat(:);
-    end
-    
-    %find number which match
-    nMatch = sum(~isnan(edgeMat(:)));
-    allEdges = edgeMat(:);
-    allEdges(isnan(allEdges)) = [];
-    
-    %initialize
-    tempXVals = nan(2,nMatch);
-    tempYVals = nan(size(tempXVals));
-    
-    %create line plotting matrix
-    ind = 1;
-    for point = whichPoints(1):whichPoints(end-1)
-        for transition = 1:maxEdges
-            if ~isnan(edgeMat(transition,point))
-                tempXVals(:,ind) = [point + xOffset; point + 1 - xOffset];
-                [xInd, yInd] = ind2sub(size(mMat{point}),transition);
-                tempYVals(:,ind) = [clusterLoc{point}(xInd); clusterLoc{point+1}(yInd)];
-                ind = ind + 1;
-            end
-        end
-    end
-    
-    %plot
-    edgeH = line(tempXVals,tempYVals);
-    % uistack(edgeH,'bottom');
-    for edge = 1:nMatch
-        if showNull
-            edgeH(edge).Color = 'k';
-            nodeInd = edgeH(edge).XData(1) == scatXVals &...
-                edgeH(edge).YData(1) == scatYVals;
-            nNext = sum(edgeH(edge).XData(1) == scatXVals);
-            if any(nodeInd)
-                edgeH(edge).LineWidth = scatSizeData(nodeInd)*totalWidth/nNext;
-            end
+    if nMMatCol > 1 
+        yOffset = [0.002, -0.002];
+        if isempty(mMatColors)
+            edgeColors = lines(2);
         else
-            if allEdges(edge) > 0
-                edgeH(edge).Color = 'k';
-                edgeH(edge).LineWidth = allEdges(edge)*totalWidth;
-            else
-                delete(edgeH(edge));
-            end
+            edgeColors = mMatColors;
         end
-        
-        %         edgeH(edge).Color = 'k';
-        %         edgeH(edge).LineWidth = 0.2*rand*totalWidth;
+    else
+        yOffset = 0;
+        edgeColors = 'k';
+    end
+    for col = 1:nMMatCol
+        addEdges(mMat(:,col),nPoints,whichPoints,clusterLoc,showNull,totalWidth,edgeColors(col,:),yOffset(col));
     end
 end
 
@@ -276,6 +251,68 @@ if showColorbar
     cBar.Label.String = colorBy;
 end
 
-%mazimieze 
+%mazimieze
 figH.Units = 'normalized';
 figH.OuterPosition = [0 0 1 1];
+
+end
+
+function addEdges(mMat,nPoints,whichPoints,clusterLoc,showNull,totalWidth,color,yOffset)
+%add edges
+xOffset = 0;
+nEdges = cellfun(@numel,mMat);
+maxEdges = max(nEdges);
+edgeMat = nan(maxEdges,nPoints-1);
+for point = 1:(nPoints-1)
+    % get temporary matrix
+    tempMat = mMat{point};
+    edgeMat(1:numel(tempMat),point) = tempMat(:);
+end
+
+%find number which match
+nMatch = sum(~isnan(edgeMat(:)));
+allEdges = edgeMat(:);
+allEdges(isnan(allEdges)) = [];
+
+%initialize
+tempXVals = nan(2,nMatch);
+tempYVals = nan(size(tempXVals));
+
+%create line plotting matrix
+ind = 1;
+for point = whichPoints(1):whichPoints(end-1)
+    for transition = 1:maxEdges
+        if ~isnan(edgeMat(transition,point))
+            tempXVals(:,ind) = [point + xOffset; point + 1 - xOffset];
+            [xInd, yInd] = ind2sub(size(mMat{point}),transition);
+            tempYVals(:,ind) = [clusterLoc{point}(xInd)+yOffset; clusterLoc{point+1}(yInd)+yOffset];
+            ind = ind + 1;
+        end
+    end
+end
+
+%plot
+edgeH = line(tempXVals,tempYVals);
+% uistack(edgeH,'bottom');
+for edge = 1:nMatch
+    if showNull
+        edgeH(edge).Color = color;
+        nodeInd = edgeH(edge).XData(1) == scatXVals &...
+            edgeH(edge).YData(1) == scatYVals;
+        nNext = sum(edgeH(edge).XData(1) == scatXVals);
+        if any(nodeInd)
+            edgeH(edge).LineWidth = scatSizeData(nodeInd)*totalWidth/nNext;
+        end
+    else
+        if allEdges(edge) > 0
+            edgeH(edge).Color = color;
+            edgeH(edge).LineWidth = allEdges(edge)*totalWidth;
+        else
+            delete(edgeH(edge));
+        end
+    end
+    
+    %         edgeH(edge).Color = 'k';
+    %         edgeH(edge).LineWidth = 0.2*rand*totalWidth;
+end
+end

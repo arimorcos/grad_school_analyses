@@ -12,7 +12,7 @@ function selInd = getSelectivityIndex(dataCell,shuffle)
 %ASM 7/15
 
 if nargin < 2 || isempty(shuffle)
-    shuffle= false;
+    shuffle = false;
 end
 
 %get left and right 60
@@ -32,16 +32,20 @@ end
 [~,leftTraces] = catBinnedTraces(left60);
 [~,rightTraces] = catBinnedTraces(right60);
 
-
-
 %make positive 
-convToPos = @(x) x + abs(min(x(:)));
+% convToPos = @(x) x + abs(min(x(:)));
+convToPos = @(x) bsxfun(@plus,x,abs(min(min(x,[],3),[],2)));
 if any(leftTraces(:) < 0)
     leftTraces = convToPos(leftTraces);
 end
 if any(rightTraces(:) < 0)
     rightTraces = convToPos(rightTraces);
 end
+
+%normalize 
+maxVals = max(max(cat(3,leftTraces,rightTraces),[],3),[],2);
+leftTraces = bsxfun(@rdivide, leftTraces, maxVals);
+rightTraces = bsxfun(@rdivide, rightTraces, maxVals);
 
 %take mean across trials for each neuron 
 meanLeftTraces = mean(leftTraces,3);

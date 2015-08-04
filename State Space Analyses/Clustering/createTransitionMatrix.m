@@ -1,4 +1,4 @@
-function mMat = createTransitionMatrix(clusterIDs,limit)
+function mMat = createTransitionMatrix(clusterIDs,limit,clusterSub)
 %createTransitionMatrix.m Given a set of cluster ids and unique clusters,
 %creates a transition matrix 
 %
@@ -11,6 +11,9 @@ function mMat = createTransitionMatrix(clusterIDs,limit)
 %
 %ASM 4/15
 
+if nargin < 3 || isempty(clusterSub)
+    clusterSub = [];
+end
 if nargin < 2 
     limit = [];
 end
@@ -29,6 +32,13 @@ if ~isempty(limit)
     nTrials = sum(keepInd);
 end
 
+%% cluster sub 
+if ~isempty(clusterSub)
+    nTrials = size(clusterSub,1);
+else
+    clusterSub = clusterIDs;
+end
+
 %% get transitions
 transMat = cell(nPoints-1,1);
 for point = 1:(nPoints-1)
@@ -38,8 +48,8 @@ for point = 1:(nPoints-1)
     
     % loop through each trial
     for trialInd = 1:nTrials
-        currID = find(clusterIDs(trialInd,point) == uniqueClusters{point});
-        newID = find(clusterIDs(trialInd,point+1) == uniqueClusters{point+1});
+        currID = find(clusterSub(trialInd,point) == uniqueClusters{point});
+        newID = find(clusterSub(trialInd,point+1) == uniqueClusters{point+1});
         transMat{point}(currID,newID) = transMat{point}(currID,newID) + 1;
     end
 end
