@@ -35,17 +35,22 @@ for neuron = 1:length(out.clusterR2)
 end
 
 %histogram of fracGreater 
-histReal = histogram(1-fracGreaterClusterR2ClusterShuffle,50);
+histReal = histoutline(1-fracGreaterClusterR2ClusterShuffle,50,false,'Normalization','Probability');
 
 %histogram of fracGreater for shuffle
-histShuffle = histogram(1-fracGreaterShuffle,50);
+histShuffle = histoutline(1-fracGreaterShuffle,50,false,'Normalization','Probability');
+
+uistack(histReal,'top');
+histReal.LineWidth = 2;
+histShuffle.LineWidth = 2;
+histShuffle.Color = [0.7 0.7 0.7];
 
 %beautify 
 beautifyPlot(figH,axClusterShuffle);
 
 %label 
 axClusterShuffle.XLabel.String = 'P Value';
-axClusterShuffle.YLabel.String = 'Neuron count';
+axClusterShuffle.YLabel.String = 'Fraction of Neurons';
 axClusterShuffle.Title.String = 'Cluster R^{2} vs. Shuffled Cluster Labels';
 
 %% plot turn vs shuffle turn
@@ -202,6 +207,13 @@ beautifyPlot(handles.fig2, handles.scatAx);
 %label 
 handles.scatAx.YLabel.String = 'Turn R^{2} P Value';
 handles.scatAx.XLabel.String = 'Cluster R^{2} P Value';
+
+%add text 
+[r,p] = corrcoef(1 - fracGreaterClusterR2ClusterShuffle, 1 - fracGreaterTurnR2TurnShuffle);
+textH = text(0.02,0.98,sprintf('r = %.2f, p = %.2f',r(1,2),p(1,2)));
+textH.VerticalAlignment = 'top';
+textH.HorizontalAlignment = 'Left';
+textH.FontSize = 20;
 
 %add unity line 
 equalAxes(handles.scatAx,true);

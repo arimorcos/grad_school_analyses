@@ -63,8 +63,14 @@ nBins = 40;
 edges = linspace(0, 1, nBins+1);
 
 %plot histogram
-histNotSig = histogram(pValTurn(~keepNeurons),edges,'Normalization','Probability');
-histSig = histogram(pValTurn(keepNeurons),edges,'Normalization','Probability');
+% histNotSig = histogram(pValTurn(~keepNeurons),edges,'Normalization','Probability');
+% histSig = histogram(pValTurn(keepNeurons),edges,'Normalization','Probability');
+histSig = histoutline(pValTurn(keepNeurons),edges,false,'Normalization','Probability');
+histNotSig = histoutline(pValTurn(~keepNeurons),edges,false,'Normalization','Probability');
+uistack(histSig,'top');
+histSig.LineWidth = 2;
+histNotSig.LineWidth = 2;
+histNotSig.Color = [0.7 0.7 0.7];
 
 %beautify
 beautifyPlot(figH,axH);
@@ -80,7 +86,8 @@ legend([histSig, histNotSig],{'Significant Cluster R^{2}',...
 %% add insets 
 
 %get low, middle, and upper neurons 
-takePrctiles = [1, 50, 99];
+takePrctiles = [1, 49, 93];
+% keepNeurons = keepNeurons & cellfun(@(x) mean(addMin(x)),out.clusterMeanTurn) > 0.1;
 prctileKeepInd = round((takePrctiles/100)*sum(keepNeurons));
 prctileKeepInd = max(1,prctileKeepInd);
 [~,sortOrder] = sort(pValTurn(keepNeurons));
@@ -102,7 +109,7 @@ if isempty(yInd)
 end
 [endXLow, endYLow] = axescoord2figurecoord(...
     roundtowardvec(pValTurn(prctileNeuronInd(1)),edges,'floor')  + 0.5*mean(diff(edges)),...
-    histSig.Values(yInd) - 0.01, axH);
+    histSig.YData(yInd+1) - 0.01, axH);
 annLow = annotation('arrow', [startLow(1), endXLow + 0.5*mean(diff(edges))],...
     [startLow(2), endYLow]);
 annLow.LineWidth = 2;
@@ -118,7 +125,7 @@ if isempty(yInd)
 end
 [endXMid, endYMid] = axescoord2figurecoord(...
     roundtowardvec(pValTurn(prctileNeuronInd(2)),edges,'floor')  + 0.5*mean(diff(edges)),...
-    histSig.Values(yInd) - 0.01, axH);
+    histSig.YData(yInd+1) - 0.01, axH);
 annLow = annotation('arrow', [startMid(1), endXMid + 0.5*mean(diff(edges))],...
     [startMid(2), endYMid]);
 annLow.LineWidth = 2;
@@ -134,7 +141,19 @@ if isempty(yInd)
 end
 [endXHigh, endYHigh] = axescoord2figurecoord(...
     roundtowardvec(pValTurn(prctileNeuronInd(3)),edges,'floor')  + 0.5*mean(diff(edges)),...
-    histSig.Values(yInd) - 0.01, axH);
+    histSig.YData(yInd+1) - 0.01, axH);
 annLow = annotation('arrow', [startHigh(1), endXHigh + 0.5*mean(diff(edges))],...
     [startHigh(2), endYHigh]);
 annLow.LineWidth = 2;
+
+end
+function out = addMin(in)
+
+%get min val 
+minVal = min(in);
+if minVal < 0 
+    out = in + abs(minVal);
+else
+    out = in;
+end
+end

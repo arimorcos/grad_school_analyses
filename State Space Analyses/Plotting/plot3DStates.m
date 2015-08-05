@@ -18,7 +18,7 @@ function figH = plot3DStates(dataCell,conditions,segment,varargin)
 %ASM 1/15
 
 %process varargin
-whichFactorSet = 2;
+whichFactorSet = 1;
 whichFactors = 1:3;
 showViewAngle = false;
 

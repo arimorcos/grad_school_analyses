@@ -1,7 +1,7 @@
-useZThresh = 0.5;
+useZThresh = 1;
 
 %saveFolder
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/150802_overlapAll';
+saveFolder = 'D:\DATA\Analyzed Data\150802_overlapAll';
 
 %get list of datasets
 procList = getProcessedList();

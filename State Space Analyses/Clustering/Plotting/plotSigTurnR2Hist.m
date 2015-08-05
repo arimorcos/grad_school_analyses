@@ -79,8 +79,8 @@ legend([histSig, histNotSig],{'Significant Turn R^{2}',...
 %% add insets 
 
 %get low, middle, and upper neurons 
-takePrctiles = [1, 50, 97];
-% keepNeurons = keepNeurons & cellfun(@max,out.clusterMeanActivity) > 0.2;
+takePrctiles = [0.1, 50, 99.9];
+keepNeurons = keepNeurons & cellfun(@max,out.clusterMeanActivity) > 0.2;
 prctileKeepInd = round((takePrctiles/100)*sum(keepNeurons));
 prctileKeepInd = max(1,prctileKeepInd);
 [~,sortOrder] = sort(pValCluster(keepNeurons));
