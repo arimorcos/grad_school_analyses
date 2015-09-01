@@ -1,10 +1,10 @@
 function [vCellFile,vMatFile] = getBehaviorPath(mouseName,date)
 
 vPath = 'D:\Data\Ari\';
-if exist(fullfile(vPath,'Current Mice',mouseName),'dir') %check if directory is in current, archived or neither
-    currStr = 'Current Mice';
-elseif exist(fullfile(vPath,'Archived Mice',mouseName),'dir')
+if exist(fullfile(vPath,'Archived Mice',mouseName),'dir') %check if directory is in current, archived or neither
     currStr = 'Archived Mice';
+elseif exist(fullfile(vPath,'Current Mice',mouseName),'dir')
+    currStr = 'Current Mice';
 end
 vCellSearchStr = fullfile(vPath,currStr,mouseName,...
     [mouseName,'_',date,'_Cell.mat']);

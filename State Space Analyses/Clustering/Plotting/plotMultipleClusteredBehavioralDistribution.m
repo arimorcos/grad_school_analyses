@@ -59,6 +59,6 @@ beautifyPlot(figH,axH);
 
 %label 
 axH.XTick = [];
-axH.YLabel.String = 'Summed difference from expected';
+axH.YLabel.String = 'Summed difference from uniform';
 axH.XLabel.String = 'Dataset';
 axH.XLim = [-nDatasets 2*nDatasets];

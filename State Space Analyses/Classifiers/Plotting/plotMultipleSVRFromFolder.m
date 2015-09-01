@@ -12,7 +12,7 @@ function handles = plotMultipleSVRFromFolder(folder,fileStr,labApp)
 %
 %ASM 4/15
 
-showLegend = true;
+showLegend = false;
 cmScale = 0.75;
 
 if nargin < 3 || isempty(labApp)
@@ -53,9 +53,12 @@ handles.ax.YLabel.FontSize = 30;
 handles.ax.FontSize = 20;
 
 %set x limit
-allVals = arrayfun(@(x) cat(2,handles.errMean(x).XData(~isnan(handles.errMean(x).YData)),...
-    handles.errMean(x).YData(~isnan(handles.errMean(x).YData))),...
-    1:length(handles.errMean),'UniformOutput',false);
+% allVals = arrayfun(@(x) cat(2,handles.errMean(x).XData(~isnan(handles.errMean(x).YData)),...
+%     handles.errMean(x).YData(~isnan(handles.errMean(x).YData))),...
+%     1:length(handles.errMean),'UniformOutput',false);
+allVals = arrayfun(@(x) cat(2,handles.scatH(x).XData(~isnan(handles.scatH(x).YData)),...
+    handles.scatH(x).YData(~isnan(handles.scatH(x).YData))),...
+    1:length(handles.scatH),'UniformOutput',false);
 allVals = cat(2,allVals{:});
 minVal = min(allVals);
 maxVal = max(allVals);

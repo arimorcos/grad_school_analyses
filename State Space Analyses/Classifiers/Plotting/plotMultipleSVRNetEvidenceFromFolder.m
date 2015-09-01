@@ -52,7 +52,7 @@ if showErrorBars
     end
     
     % get mean and sem
-    meanAllMice = mean(meanGuess);
+    meanAllMice = nanmean(meanGuess);
     semAllMice = calcSEM(meanGuess);
     
     %plot 

@@ -1,8 +1,21 @@
 %get traces
-[~,traces] = catBinnedTraces(imTrials);
+% [~,traces] = catBinnedTraces(imTrials);
 
 %crop to near end bin
-traces = traces(:,24,:);
+traces = catBinnedDeconvTraces(imTrials);
+traces = traces(:,5,:);
+% traces = 100*traces;
+
+%get train set 
+% nTrials = size(traces,3);
+% nTrain = round(0.5*nTrials);
+% nTest = nTrials - nTrain;
+% trainSet = randsample(nTrials,nTrain);
+% testSet = setdiff(1:nTrials,trainSet);
+% traces = traces(:,:,trainSet);
+% 
+% trainCorrect = correct(trainSet);
+
 
 %get sortOrder 
 % coeff = calculateTrialTrialVarCoefficient(imTrials);
@@ -34,7 +47,7 @@ for i = 1:nIter
     gamma(i) = gammaOptions(randi([1 100]));
     
     %get accuracy 
-    acc(i) = getSVMAccuracy(traces,mazePatterns(:,1),'cParam',cParam(i),'gamma',gamma(i));
+    acc(i) = getSVMAccuracy(traces,prevTurn,'cParam',cParam(i),'gamma',gamma(i));
     
     dispProgress('%d/%d',i,i,nIter);
 end

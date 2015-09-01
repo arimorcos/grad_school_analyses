@@ -14,8 +14,17 @@ if nargin < 2 || isempty(prct)
     prct = 10;
 end
 
+%remove all zero traces 
+traces = traces';
+zeroInd = sum(traces) == 0;
+traces = traces(:,~zeroInd);
+
 %create distance matrix
-distMat = -1*squareform(pdist(traces'));
+% distMat = -1*squareform(pdist(traces,'cosine'));
+% distMat = -1*squareform(pdist(traces,'euclidean'));
+blendFac = 0;
+distMat = -1*((1-blendFac)*squareform(pdist(traces,'cosine')) + ...
+    blendFac*squareform(pdist(traces,'euclidean')));
 
 %run apcluster
 clusterIDs = apcluster(distMat,prctile(distMat(:),prct),varargin);

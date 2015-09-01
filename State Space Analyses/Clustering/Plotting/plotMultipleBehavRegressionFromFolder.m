@@ -137,5 +137,5 @@ handles.axR.XLim = [-0.2 nDelta-0.8];
 
 %% extra labels 
 %add xlabel
-[~,xLab] = suplabel('\Delta Maze Epochs','x',[0.13 0.2 0.775 0.815]);
-xLab.FontSize = 30;
+[~,handles.xLab] = suplabel('\Delta Maze Epochs','x',[0.13 0.2 0.775 0.815]);
+handles.xLab.FontSize = 30;

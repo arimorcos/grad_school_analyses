@@ -11,6 +11,8 @@ function handles = plotMultipleNetEvidenceAddInClassifiersFromFolder(folder,file
 %
 %ASM 7/15
 
+useSlope = true;
+
 %get list of files in folder 
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
 files = allNames(~isDirs);
@@ -23,9 +25,11 @@ nFiles = length(matchFiles);
 
 %loop through each file and create array 
 addInCorr = cell(nFiles,1);
+addInSlope = cell(nFiles,1);
 for fileInd = 1:nFiles
-    currFileData = load(fullfile(folder,matchFiles{fileInd}),'addInCorr');
+    currFileData = load(fullfile(folder,matchFiles{fileInd}),'addInCorr','addInSlope');
     addInCorr{fileInd} = currFileData.addInCorr;
+    addInSlope{fileInd} = currFileData.addInSlope;
 end
 
 %get max nNeurons 
@@ -34,16 +38,23 @@ maxNeurons = max(nNeurons);
 
 %get peak accuracy for each 
 peakCorr = nan(nFiles,maxNeurons);
+peakSlope = nan(nFiles,maxNeurons);
 for fileInd = 1:nFiles
     peakCorr(fileInd,1:nNeurons(fileInd)) = addInCorr{fileInd};
+    peakSlope(fileInd,1:nNeurons(fileInd)) = addInSlope{fileInd};
 end
 
 %smooth each curve 
 smoothCorr = peakCorr;
+smoothSlope = peakSlope;
 filtSize = 10;
 for fileInd = 1:nFiles
     smoothCorr(fileInd,1:nNeurons(fileInd)) = smooth(smoothCorr(fileInd,1:nNeurons(fileInd)),filtSize);
+    smoothSlope(fileInd,1:nNeurons(fileInd)) = smooth(smoothSlope(fileInd,1:nNeurons(fileInd)),filtSize);
 end
+
+%fix peakSlope
+peakSlope(:,1:3) = 0;
 
 %% plot 
 
@@ -89,7 +100,11 @@ for fileInd = 1:nFiles
     range = round(linspace(1, nNeurons(fileInd), nBins+1));
     for bin = 1:nBins
         useInd = range(bin):(range(bin+1)-1);
-        normAcc(fileInd,bin) = nanmean(peakCorr(fileInd,useInd));
+        if useSlope
+            normAcc(fileInd,bin) = nanmean(peakSlope(fileInd,useInd));
+        else
+            normAcc(fileInd,bin) = nanmean(peakCorr(fileInd,useInd));
+        end
     end
          
 end
@@ -111,5 +126,9 @@ beautifyPlot(handles.fig2, handles.ax2);
 
 %label 
 handles.ax2.XLabel.String = 'Fraction of total neurons used';
-handles.ax2.YLabel.String = 'Net Evidence Correlation';
+if useSlope
+    handles.ax2.YLabel.String = 'Net evidence slope';
+else
+    handles.ax2.YLabel.String = 'Net Evidence Correlation';
+end
 handles.ax2.YLim = [0 1];

@@ -41,17 +41,27 @@ for binInd = 1:nBins
 end
 
 %add to plot
-errMean = errorbar(xVals,meanVals,semVals);
-errMean.Marker = 'o';
-errMean.LineStyle = 'none';
-errMean.LineWidth = 2;
+% errMean = errorbar(xVals,meanVals,semVals);
+% errMean.Marker = 'o';
+% errMean.LineStyle = 'none';
+% errMean.LineWidth = 2;
+hold on;
+errH = terrorbar(xVals,meanVals,semVals,semVals,0);
+scatH = scatter(xVals,meanVals);
+scatH.Marker = 'o';
+
 
 
 %store
-if isfield(handles,'errMean')
-    handles.errMean(length(handles.errMean)+1) = errMean;
+% if isfield(handles,'errMean')
+if isfield(handles,'errH')
+    %     handles.errMean(length(handles.errMean)+1) = errMean;
+    handles.errH{length(handles.errH)+1} = errH;
+    handles.scatH(length(handles.scatH)+1) = scatH;
 else
-    handles.errMean = errMean;
+    %     handles.errMean = errMean;
+    handles.errH = {errH};
+    handles.scatH = scatH;
     
     %plot unity line
     handles.unity = plot([minVal maxVal], [minVal maxVal],'k--');
@@ -59,10 +69,17 @@ else
 end
 
 %change color
-nColors = length(handles.errMean);
+% nColors = length(handles.errMean);
+nColors = length(handles.errH);
 colors = distinguishable_colors(nColors);
 for plotInd = 1:nColors
-    handles.errMean(plotInd).MarkerEdgeColor = colors(plotInd,:);
-    handles.errMean(plotInd).MarkerFaceColor = colors(plotInd,:);
-    handles.errMean(plotInd).Color = colors(plotInd,:);
+    %     handles.errMean(plotInd).MarkerEdgeColor = colors(plotInd,:);
+    %     handles.errMean(plotInd).MarkerFaceColor = colors(plotInd,:);
+    %     handles.errMean(plotInd).Color = colors(plotInd,:);
+    
+    handles.scatH(plotInd).MarkerEdgeColor = colors(plotInd,:);
+    handles.scatH(plotInd).MarkerFaceColor = colors(plotInd,:);
+    for i = 1:length(handles.errH{plotInd})
+        handles.errH{plotInd}(i).Color = colors(plotInd,:);
+    end
 end

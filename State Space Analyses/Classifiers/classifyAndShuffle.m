@@ -39,6 +39,7 @@ dontCompareSame = [];
 nShuffles = 100;
 classifier = 'svm';
 whichNeurons = [];
+silent = false;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -57,6 +58,8 @@ if nargin > 1 || ~isempty(varargin)
                 classifier = varargin{argInd+1};
             case 'whichneurons'
                 whichNeurons = varargin{argInd+1};
+            case 'silent'
+                silent = varargin{argInd+1};
         end
     end
 end
@@ -80,7 +83,9 @@ shuffleAccuracy = nan(nShuffles,length(accuracy));
 shuffleGuess = nan(size(classGuess,1),size(classGuess,2),nShuffles);
 parfor shuffleInd = 1:nShuffles
     %display progress
-    dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
+    if ~silent
+        dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
+    end
     
     %shuffle labels
     shuffledClass = shuffleArray(realClass);

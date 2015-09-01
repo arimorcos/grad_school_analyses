@@ -16,11 +16,15 @@ if nargin < 4 || isempty(confInt)
     confInt = 95;
 end
 
+cmScale = 0.75;
+
 %convert to 0 to 1
-if any(accuracy > 1)
-    accuracy = accuracy/100;
-    shuffleAccuracy = shuffleAccuracy/100;
-end
+% if any(accuracy > 1)
+%     accuracy = accuracy/100;
+%     shuffleAccuracy = shuffleAccuracy/100;
+% end
+
+yPosBins = yPosBins*cmScale;
 
 %create figure
 figH = figure;
@@ -56,14 +60,14 @@ if ~isempty(shuffleAccuracy)
 end
 
 %plot chance line
-line([-1000 10000],[0.5 0.5],'Color','k','LineStyle','--');
+line([-1000 10000],[50 50],'Color','k','LineStyle','--');
 
 %set limits
 axH.XLim = [min(yPosBins) max(yPosBins)];
-axH.YLim = [0 1];
+axH.YLim = [0 100];
 
 %label axes
-axH.XLabel.String = 'Maze Position (binned)';
+axH.XLabel.String = 'Maze Position (cm)';
 axH.YLabel.String = 'Classifier Accuracy';
 
 %set axes overall size

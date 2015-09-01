@@ -34,9 +34,11 @@ netEv = cat(2,zeros(size(netEv,1),1),netEv);
 
 %crop deltaPLeft 
 deltaPLeft = deltaPLeft(:,1:size(netEv,2));
+mazePatterns = cat(2,netEv(:,1),diff(netEv,1,2));
 if ~isempty(limitSegNum) 
     deltaPLeft = deltaPLeft(:,limitSegNum);
     netEv = netEv(:,limitSegNum);
+    mazePatterns = mazePatterns(:,limitSegNum);
 end
 
 %convert to absolute value if necessary 
@@ -56,12 +58,17 @@ for evInd = 1:nNetEv
     %get matching net evidence values 
     matchInd = netEv == uniqueNetEv(evInd);
     
+    %take only left segment 
+%     matchInd = matchInd & mazePatterns == -1;
+    
     %get matching p(left)
     pLeftSub = deltaPLeft(matchInd);
     
     %take mean and sem 
     meanNetEv(evInd) = nanmean(abs(pLeftSub(:)));
     semNetEv(evInd) = calcSEM(abs(pLeftSub(:)));
+%     meanNetEv(evInd) = nanmean(pLeftSub(:));
+%     semNetEv(evInd) = calcSEM(pLeftSub(:));
 end
 
 %plot 

@@ -258,6 +258,8 @@ switch lower(traceType)
         traces = dataCell{trialInd}.imaging.dGRTraces{1}(:,segIndicesToUse);
     case 'dff'
         traces = dataCell{trialInd}.imaging.dFFTraces{1}(:,segIndicesToUse);
+    case 'deconv'
+        traces = dataCell{trialInd}.imaging.deconvTrace{1}(:,segIndicesToUse);
     case 'dffpca'
         traces = dataCell{trialInd}.imaging.dFFPCA{1}(1:find(dataCell{1}.imaging.dFFPCA{1}>pcaThresh,1,'first'),segIndicesToUse);
     case 'dgrpca'

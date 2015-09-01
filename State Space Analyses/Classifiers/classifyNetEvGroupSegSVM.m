@@ -164,7 +164,7 @@ for condInd = 1:length(conditions)
         shuffleCorrCoef = nan(size(shuffleMSE));
         
         for shuffleInd = 1:nShuffles
-            dispProgress('Performing shuffle %d/%d',shuffleInd,shuffleInd,nShuffles);
+%             dispProgress('Performing shuffle %d/%d',shuffleInd,shuffleInd,nShuffles);
             %generate random netEv conditions
             randClass = shuffleArray(realClass);
             

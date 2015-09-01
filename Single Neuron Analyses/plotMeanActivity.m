@@ -15,7 +15,7 @@ if nargin < 4 || isempty(conditionTitles)
 end
 
 segRanges = 0:80:480;
-normAct = true;
+normAct = false;
 
 %cmScale
 cmScale = 0.75;
@@ -26,6 +26,7 @@ yPosBins = dataCell{1}.imaging.yPosBins;
 
 %get binned traces
 [~,traces] = catBinnedTraces(dataCell);
+traces = catBinnedDeconvTraces(dataCell);
 
 %subset to trials x bins
 traces = squeeze(traces(neuronID,:,:))';

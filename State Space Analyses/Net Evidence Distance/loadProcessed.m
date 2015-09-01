@@ -1,4 +1,8 @@
-function varargout = loadProcessed(mouse,date,request)
+function varargout = loadProcessed(mouse,date,request,subFolder)
+
+if nargin < 4 || isempty(subFolder)
+    subFolder = [];
+end
 
 if nargin < 3 || isempty(request)
     request = [];
@@ -16,9 +20,17 @@ end
 
 switch computer
     case 'MACI64'
-        filePath = sprintf('/Users/arimorcos/Data/Analyzed Data/Mice/%s_%s_processed.mat',mouse,date);
+        if isempty(subFolder)
+            filePath = sprintf('/Users/arimorcos/Data/Analyzed Data/Mice/%s_%s_processed.mat',mouse,date);
+        else
+            filePath = sprintf('/Users/arimorcos/Data/Analyzed Data/Mice/%s/%s_%s_processed.mat',subFolder,mouse,date);
+        end
     case 'PCWIN64'
-        filePath = sprintf('W:\\Mice\\%s_%s_processed.mat',mouse,date);
+        if isempty(subFolder)
+            filePath = sprintf('W:\\Mice\\%s_%s_processed.mat',mouse,date);
+        else
+            filePath = sprintf('W:\\Mice\\%s\\%s_%s_processed.mat',subFolder,mouse,date);
+        end
 end
 load(filePath,'imTrials');
 leftTrials = getTrials(imTrials,'maze.leftTrial==1');
@@ -51,6 +63,9 @@ assignin('base','medTrials',medTrials);
 if ~isempty(request)
     varargout = cell(length(request),1);
     for i = 1:length(request)
+        if strcmpi(request,'dataCell')
+            load(filePath,'dataCell');
+        end
         eval(sprintf('varargout{i} = %s;',request{i}));
     end
 end

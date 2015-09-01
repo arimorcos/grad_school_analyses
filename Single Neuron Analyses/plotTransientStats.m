@@ -35,7 +35,9 @@ function plotTransientStats(stats)
 figure;
 
 %plot meanNTransients
+% figure;
 ax1 = subplot(1,3,1);
+% ax1 = axes;
 histogram(stats.meanNTransients,20,'Normalization','probability');
 xlabel('# Transients');
 ylabel('Fraction of active neurons');
@@ -44,7 +46,9 @@ ax1.FontSize = 20;
 ax1.LabelFontSizeMultiplier = 1.5;
 
 %plot mean transient length (in sec)
+% figure
 ax2 = subplot(1,3,2);
+% ax2 = axes;
 histogram(stats.meanTransLength,20,'Normalization','probability');
 xlabel('Transient Length (sec)');
 title('Mean Transient Length (sec)');
@@ -52,7 +56,9 @@ ax2.FontSize = 20;
 ax2.LabelFontSizeMultiplier = 1.5;
 
 %plot mean transient fraction 
-ax3 = subplot(1,3,3);
+figure
+% ax3 = subplot(1,3,3);
+ax3 = axes;
 histogram(stats.meanFracLength,20,'Normalization','probability');
 xlabel('Fraction of trial active');
 title('Mean trial fraction active');

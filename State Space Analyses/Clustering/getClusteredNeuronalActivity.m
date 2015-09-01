@@ -39,7 +39,8 @@ end
 yPosBins = dataCell{1}.imaging.yPosBins;
 
 %zScore traces 
-zTraces = zScoreTraces(traces);
+% zTraces = zScoreTraces(traces);
+zTraces = traces;
 
 %get maze points
 mazePoints = getMazePoints(zTraces,yPosBins);

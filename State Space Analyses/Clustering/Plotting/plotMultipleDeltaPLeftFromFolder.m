@@ -10,7 +10,7 @@ function handles = plotMultipleDeltaPLeftFromFolder(folder,fileStr,version)
 %
 %ASM 4/15
 
-showLegend = true;
+showLegend = false;
 
 if nargin < 3 || isempty(version)
     version = 'epoch';
@@ -25,16 +25,10 @@ matchFiles = files(~cellfun(@isempty,regexp(files,fileStr)));
 nFiles = length(matchFiles);
 
 %loop through each file and create array 
-confInt = cell(nFiles,1);
-deltaPLeft = cell(nFiles,1);
-netEvidence = cell(nFiles,1);
-segWeights = cell(nFiles,1);
+out = cell(nFiles,1);
 for fileInd = 1:nFiles
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
-    confInt{fileInd} = currFileData.confInt;
-    netEvidence{fileInd} = currFileData.netEvidence;
-    deltaPLeft{fileInd} = currFileData.deltaPLeft;
-    segWeights{fileInd} = currFileData.segWeights;
+    out{fileInd} = currFileData.out;
 end
 
 %% deltaPLeftVsEpoch
@@ -44,10 +38,10 @@ handles = [];
 for mouseInd = 1:length(matchFiles)
     switch version
         case 'epoch'
-            handles = plotDeltaPLeftVsEpoch(deltaPLeft{mouseInd},handles);
+            handles = plotDeltaPLeftVsEpoch(out{mouseInd}.deltaPLeft,handles);
         case 'netEv'
-            handles = plotDeltaPLeftVsNetEv(deltaPLeft{mouseInd},netEvidence{mouseInd},...
-                [],false,handles);
+            handles = plotDeltaPLeftVsNetEv(out{mouseInd}.deltaPLeft,out{mouseInd}.netEv,...
+                [],true,handles);
         otherwise 
             error('Can''t interpret %s',version);
     end

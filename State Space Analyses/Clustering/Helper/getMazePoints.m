@@ -1,4 +1,4 @@
-function tracePoints = getMazePoints(traces,yPosBins)
+function tracePoints = getMazePoints(traces,yPosBins,range)
 %getMazePoints.m Generates averages at 10 points throughout the maze.
 %Pre-seg 1, Seg 1-6, Early Delay, Late Delay, and Turn
 %
@@ -12,7 +12,9 @@ function tracePoints = getMazePoints(traces,yPosBins)
 
 segRanges = 0:80:480;
 nBinsAvg = 4;
-range = [0.5 0.75];
+if nargin < 3 || isempty(range)
+    range = [0.5 0.75];
+end
 
 %get size
 [nNeurons,~,nTrials] = size(traces);

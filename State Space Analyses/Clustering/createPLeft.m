@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150716_deltaPLeftOneClustering';
+saveFolder = 'D:\DATA\Analyzed Data\150811_allPLeft';
 
 %nShuffles 
 nShuffles = 100;
@@ -17,15 +17,13 @@ for dSet = 1:nDataSets
     loadProcessed(procList{dSet}{:});
     
     %cluster 
-    [~,~,clusterIDs,~] = getClusteredMarkovMatrix(imTrials,'oneClustering',true);
+    [~,~,clusterIDs,~] = getClusteredMarkovMatrix(imTrials,'oneClustering',false);
     
     %get deltaPLeft 
-    [deltaPLeft,startPLeft,startNetEv] = calcPLeftChange(clusterIDs,imTrials);
+    out = calcPLeftChange(clusterIDs,imTrials);
     
     %get shuffled deltaPLeft
-    deltaPLeftShuffle = nan(size(deltaPLeft,1),size(deltaPLeft,2),nShuffles);
-    startPLeftShuffle = nan(size(deltaPLeftShuffle));
-    startNetEvShuffle = nan(size(deltaPLeftShuffle));
+    shuffleOut = cell(nShuffles,1);
     for shuffleInd = 1:nShuffles
         %shuffle clusterIDs
         shuffleIDs = nan(size(clusterIDs));
@@ -33,22 +31,10 @@ for dSet = 1:nDataSets
             shuffleIDs(:,point) = shuffleArray(clusterIDs(:,point));
         end         
 
-        [deltaPLeftShuffle(:,:,shuffleInd),startPLeftShuffle(:,:,shuffleInd),...
-            startNetEvShuffle(:,:,shuffleInd)] = calcPLeftChange(shuffleIDs,imTrials);
+        shuffleOut{shuffleInd} = calcPLeftChange(shuffleIDs,imTrials);
     end
     
-    %get netEvidence 
-    netEvidence = getNetEvidence(imTrials);
-    
-    %get mazePatterns
-    mazePattern = getMazePatterns(imTrials);
-    
-    %get segWeights 
-    [segWeights, confInt] = getSegWeights(imTrials);
-    
     %save 
-    saveName = fullfile(saveFolder,sprintf('%s_%s_deltaPLeftOneClustering.mat',procList{dSet}{:}));
-    save(saveName,'deltaPLeft','netEvidence','segWeights','confInt',...
-        'startPLeft','mazePattern','startNetEv','deltaPLeftShuffle',...
-        'startPLeftShuffle','startNetEvShuffle');
+    saveName = fullfile(saveFolder,sprintf('%s_%s_deltaPLeftAllVar.mat',procList{dSet}{:}));
+    save(saveName,'out','shuffleOut');
 end

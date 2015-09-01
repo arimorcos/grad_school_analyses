@@ -55,7 +55,7 @@ if nargin > 1 || ~isempty(varargin)
             case 'dontcomparesame'
                 shouldntCompareSame = true;
                 sameClass = varargin{argInd+1};
-            case 'c'
+            case 'cParam'
                 cParam = varargin{argInd+1};
             case 'gamma'
                 gamma = varargin{argInd+1};
@@ -162,11 +162,16 @@ realClass = double(realClass);
 for binInd = 1:nBins
     
     %get binTraces
-    binTraces = squeeze(traces(:,binInd,:))';
+    if size(traces,1) == 1
+        binTraces = squeeze(traces(:,binInd,:));
+    else
+        binTraces = squeeze(traces(:,binInd,:))';
+    end
     
     %scale data
     if shouldScale
         binTraces = scaleSVMData(binTraces);
+        binTraces = binTraces(:,~any(isnan(binTraces))); %remove nans
     end
     
     %train svm

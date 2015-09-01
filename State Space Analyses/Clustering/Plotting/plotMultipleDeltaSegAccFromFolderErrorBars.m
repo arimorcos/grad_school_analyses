@@ -47,7 +47,7 @@ colors = distinguishable_colors(nFiles);
 %     
 % end
 xVals = 1:nDelta;
-meanVals = mean(nSTD);
+meanVals = nanmean(nSTD);
 semVals = calcSEM(nSTD);
 errH = shadedErrorBar(xVals,meanVals,semVals);
 color = [0    0.4470    0.7410];

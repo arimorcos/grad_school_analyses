@@ -23,6 +23,7 @@ oneClustering = false;
 perc = 10;
 whichNeurons = [];
 traceType = 'dFF';
+range = [0.5 0.75];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -44,7 +45,10 @@ if nargin > 1 || ~isempty(varargin)
             case 'whichneurons'
                 whichNeurons = varargin{argInd+1};
             case 'tracetype'
-                traceType = varargin{argInd+1};                
+                traceType = varargin{argInd+1};    
+            case 'range'
+                range = varargin{argInd+1};
+                
         end
     end
 end
@@ -77,7 +81,7 @@ nTrials = size(traces,3);
 
 %%%%%%%%% Create matrix of values at each point in the maze
 
-tracePoints = getMazePoints(traces,yPosBins);
+tracePoints = getMazePoints(traces,yPosBins,range);
 
 %%%%%%%%%%%% cluster
 if oneClustering

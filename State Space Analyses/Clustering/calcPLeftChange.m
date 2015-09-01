@@ -103,6 +103,9 @@ for trialInd = 1:nTrials
     end
 end
 
+% get segweights and confINt 
+[out.segWeights, out.confInt] = getSegWeights(dataCell);
+
 out.deltaPLeft = deltaPLeft;
 out.startNetEv = startNetEv;
 out.startPLeft = startPLeft;

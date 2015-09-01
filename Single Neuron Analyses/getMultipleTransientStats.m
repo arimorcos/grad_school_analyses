@@ -1,7 +1,11 @@
-function stats = getMultipleTransientStats(mice,dates)
+function stats = getMultipleTransientStats(mice,dates,limitToSeg)
 %
 %
 %
+if nargin < 3 || isempty(limitToSeg)
+    limitToSeg = false;
+end
+
 if nargin < 2
     dates = {'140820',...
         '141203',...
