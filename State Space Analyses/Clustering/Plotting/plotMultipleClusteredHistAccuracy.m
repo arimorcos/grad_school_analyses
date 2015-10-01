@@ -5,6 +5,7 @@ function plotMultipleClusteredHistAccuracy(folder,fileStr)
 %ASM 7/15
 
 accMode = true;
+useSlope = false;
 
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
@@ -72,7 +73,8 @@ axH.XLim = [0.5 1.5];
 % axB.YLabel.String = 'nSTD Above Chance';
 
 if accMode
-    load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\singleSegAcc.mat');
+    load('D:\DATA\Analyzed Data\150910_vogel_firstSegAcc\firstSeg_maxAcc.mat');
+    singleSegAcc = maxAcc;
 else
     load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\singleSegNSTD.mat');
 end
@@ -124,7 +126,13 @@ else
 end
 
 %% plot slope
-load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\netEvSlope.mat');
+if useSlope 
+    load('D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM\netEvSVR_slope.mat');
+    slope = slopeNetEv;
+else
+    load('D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM\netEVSVR_corrCoef.mat');
+    slope = corrCoefNetEv;
+end
 axB = subplot(2,2,3);
 hold(axB,'on');
 

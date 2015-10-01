@@ -15,18 +15,19 @@ if nargin < 4 || isempty(conditionTitles)
 end
 
 segRanges = 0:80:480;
-normAct = false;
+normAct = true;
 
 %cmScale
 cmScale = 0.75;
 segRanges = segRanges*cmScale;
 
 %get yPosBins
-yPosBins = dataCell{1}.imaging.yPosBins;
+useCell = getTrials(dataCell,'maze.numLeft==0,6;result.correct==1');
+yPosBins = useCell{1}.imaging.yPosBins;
 
 %get binned traces
-[~,traces] = catBinnedTraces(dataCell);
-traces = catBinnedDeconvTraces(dataCell);
+% [~,traces] = catBinnedTraces(useCell);
+traces = catBinnedDeconvTraces(useCell);
 
 %subset to trials x bins
 traces = squeeze(traces(neuronID,:,:))';
@@ -40,6 +41,7 @@ traces = traces(:,2:end-1);
 xVals = yPosBins*cmScale;
 
 
+origTraces = traces;
 if normAct 
     if min(traces(:)) < 0 
         traces = traces + abs(min(traces(:)));
@@ -50,7 +52,7 @@ end
 %get number of plots
 nPlots = length(conditions);
 % [nRows,nCol] = calcNSubplotRows(nPlots);
-nRows = 3;
+nRows = 4;
 nCol = 1;
 
 %get cLims
@@ -68,7 +70,7 @@ for plotInd = 1:nPlots
     axes(axH);
     
     %get trials which match condition
-    matchTrials = findTrials(dataCell,conditions{plotInd});
+    matchTrials = findTrials(useCell,conditions{plotInd});
     
     if plotInd == 1
         shouldSeg = true;
@@ -79,8 +81,8 @@ for plotInd = 1:nPlots
     makePlot(axH,traces(matchTrials,:),xVals,segRanges,cLims,shouldSeg);
     
     %get mean activity and sem
-    meanActivity(plotInd,:) = nanmean(traces(matchTrials,:));
-    semActivity(plotInd,:) = calcSEM(traces(matchTrials,:));
+    meanActivity(plotInd,:) = nanmean(origTraces(matchTrials,:));
+    semActivity(plotInd,:) = calcSEM(origTraces(matchTrials,:));
     
     %     axH.Title.String = conditionTitles{plotInd};
     %     axH.Title.Position(2) = 4*axH.Title.Position(2);
@@ -101,9 +103,9 @@ end
 cBar = colorbar('Position',[0.6 0.43 0.02 0.5]);
 cBar.FontSize = 20;
 if normAct
-    cBar.Label.String = 'Normalized dF/F';
+    cBar.Label.String = 'Normalized spike probability';
 else
-    cBar.Label.String = 'dF/F';
+    cBar.Label.String = 'Estimated spike probability';
 end
 
 %plot mean
@@ -115,9 +117,9 @@ leftPlot = shadedErrorBar(xVals,meanActivity(1,:),semActivity(1,:),'-r');
 rightPlot = shadedErrorBar(xVals,meanActivity(2,:),semActivity(2,:),'-b');
 axH.XLabel.String = 'Maze Position (cm)';
 if normAct
-    axH.YLabel.String = 'Mean Normalized dF/F';
+    axH.YLabel.String = 'Mean spike probability';
 else
-    axH.YLabel.String = 'Mean dF/F';
+    axH.YLabel.String = 'Mean spike probability';
 end
 axis(axH,'square');
 axH.XLim = [min(xVals) max(xVals)];
@@ -127,7 +129,9 @@ minY = min(min(meanActivity - semActivity));
 maxY = max(max(meanActivity + semActivity));
 axH.YLim = [minY - 0.05*(maxY-minY) maxY + 0.05*(maxY-minY)];
 axH.XTickLabel = axH.XTick;
-axH.YTick = round(100*linspace(axH.YLim(1)+0.05,axH.YLim(2)-0.05,5))/100;
+try
+    axH.YTick = round(100*linspace(axH.YLim(1)+0.01,axH.YLim(2)-0.01,5))/100;
+end
 axH.YTickLabel = axH.YTick;
 
 %add segment dividers
@@ -143,6 +147,9 @@ legH = legend([leftPlot.mainLine rightPlot.mainLine],{'Left 6-0','Right 0-6'},..
     'Position',[0.58 0.24 0.1 0.1]);
 
 beautifyPlot(figH,axH);
+
+%% add net evidence 
+plotDFFVsNetEv(dataCell,'cellID',neuronID,'traceType','deconv','figH',figH,'axH',ha(4));
 end
 
 function makePlot(axH,traces,xVals,segRanges,cLims,shouldSeg)

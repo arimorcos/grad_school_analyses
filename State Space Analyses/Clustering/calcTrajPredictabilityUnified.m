@@ -138,6 +138,8 @@ for point = 1:nPoints
 end
 nUniqueRight = cellfun(@length,uniqueClustersRight);
 
+nUnique = round(mean([sum(nUniqueRight),sum(nUniqueLeft)]));
+
 %% calculate accuracy 
 isGuessCorrectLeft = getAccuracy(nPoints,nLeftTrials,uniqueClustersLeft,clusterIDsLeft,nUniqueLeft);
 isGuessCorrectRight = getAccuracy(nPoints,nRightTrials,uniqueClustersRight,clusterIDsRight,nUniqueRight);
@@ -185,20 +187,23 @@ if nargout < 3
 end
 
 %get distance matrix
-pointDist = triu(squareform(pdist([1:nPoints]')));
+% pointDist = triu(squareform(pdist([1:nPoints]')));
+pointDist = squareform(pdist([1:nPoints]'));
+pointDist(logical(tril(ones(nPoints)))) = -1*pointDist(logical(tril(ones(nPoints))));
 
 %initialize 
-meanAcc = nan(nPoints-1,1);
+meanAcc = nan(2*nPoints-1,1);
 meanNSTD = nan(size(meanAcc));
 meanSig = nan(size(meanAcc));
 meanChance = nan(size(meanAcc));
 chanceBounds = nan(nPoints-1,3,2);
 
 % loop through each delta 
-for deltaInd = 1:nPoints-1
+deltaVals = -nPoints+1:nPoints-1;
+for deltaInd = 1:2*nPoints-1
     
     %get matchInd
-    matchInd = pointDist == deltaInd;
+    matchInd = pointDist == deltaVals(deltaInd);
     
     %get meanAcc
     meanAcc(deltaInd) = mean(acc(matchInd));
@@ -251,8 +256,13 @@ end
 
 function isGuessCorrect = getAccuracy(nPoints,nTrials,uniqueClusters,clusterIDs,nUnique)
 isGuessCorrect = cell(nPoints);
-for startPoint = 1:(nPoints-1)
-    for endPoint = startPoint+1:nPoints
+for startPoint = 1:nPoints
+    for endPoint = 1:nPoints
+        
+        %skip if same 
+        if startPoint == endPoint
+            continue;
+        end
         
         %initialize array of answers
         trialCorrect = nan(nTrials,1);
@@ -282,8 +292,13 @@ function acc = combineAcc(left,right)
 acc = nan(size(left));
 
 nPoints = size(left,1);
-for startPoint = 1:(nPoints-1)
-    for endPoint = startPoint+1:nPoints
+for startPoint = 1:nPoints
+    for endPoint = 1:nPoints
+        
+        if startPoint == endPoint
+            acc(startPoint,endPoint) = NaN;
+            continue;
+        end
         
         allTrials = cat(1,left{startPoint,endPoint},right{startPoint,endPoint});
         

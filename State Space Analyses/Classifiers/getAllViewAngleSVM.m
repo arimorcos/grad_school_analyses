@@ -1,5 +1,5 @@
 %saveFolder
-saveFolder = 'D:\DATA\Analyzed Data\150805_viewAngleSVR';
+saveFolder = 'D:\DATA\Analyzed Data\150910_vogel_viewAngleSVR';
 
 %get list of datasets
 procList = getProcessedList();
@@ -13,7 +13,7 @@ for dSet = 1:nDataSets
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
     
     %load in data
-    loadProcessed(procList{dSet}{:});
+    loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
     %view angle classifiers
     leftClassifierOut = classifyNetEvGroupSegSVM(imTrials,...

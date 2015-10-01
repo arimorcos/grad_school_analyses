@@ -11,7 +11,7 @@ function handles = plotMultipleNetEvidenceAddInClassifiersFromFolder(folder,file
 %
 %ASM 7/15
 
-useSlope = true;
+useSlope = false;
 
 %get list of files in folder 
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
@@ -82,7 +82,7 @@ peakSlope(:,1:3) = 0;
 % handles.ax.YLim = [50 100];
 
 %% plot normalized fraction 
-nBins = 30;
+nBins = 50;
 frac = linspace(0, 1, nBins+1);
 handles.fig2 = figure;
 handles.ax2 = axes;
@@ -129,6 +129,6 @@ handles.ax2.XLabel.String = 'Fraction of total neurons used';
 if useSlope
     handles.ax2.YLabel.String = 'Net evidence slope';
 else
-    handles.ax2.YLabel.String = 'Net Evidence Correlation';
+    handles.ax2.YLabel.String = 'Net evidence correlation';
 end
 handles.ax2.YLim = [0 1];

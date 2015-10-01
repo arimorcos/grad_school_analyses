@@ -1,3 +1,9 @@
+
+% seqInfo = seqInfoNoNorm;
+% seqInfo = seqInfoZScore;
+seqInfo = seqInfoCellNorm;
+
+%%
 binLengths = cellfun(@(x) length(x.bins),seqInfo);
 
 %get min binlengths 

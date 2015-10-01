@@ -1,10 +1,12 @@
 %% abs version 
 %get peak of each cell 
-peakAbsVal = cellfun(@(x) max(abs(x),[],2),selIndAll,'Uniformoutput',false);
+% peakAbsVal = cellfun(@(x) max(abs(x),[],2),selIndAll,'Uniformoutput',false);
+peakAbsVal = cellfun(@(x) mean(abs(x),2),selIndAll,'Uniformoutput',false);
 peakAbsVal = cat(1,peakAbsVal{:});
 
 %get shuffle
-peakAbsValShuffle = cellfun(@(x) max(abs(x),[],2),shuffleSelIndAll,'Uniformoutput',false);
+% peakAbsValShuffle = cellfun(@(x) max(abs(x),[],2),shuffleSelIndAll,'Uniformoutput',false);
+peakAbsValShuffle = cellfun(@(x) mean(abs(x),2),shuffleSelIndAll,'Uniformoutput',false);
 peakAbsValShuffle = cat(1,peakAbsValShuffle{:});
 
 % plot 

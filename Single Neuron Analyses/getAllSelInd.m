@@ -1,9 +1,10 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150726_selIndAll';
+saveFolder = 'D:\DATA\Analyzed Data\150907_vogel_deconv_selInd_seq';
 
 %get list of datasets 
 procList = getProcessedList();
 nDataSets = length(procList);
+nShuffles = 1000;
 
 for dSet = 1:nDataSets
     
@@ -15,7 +16,9 @@ for dSet = 1:nDataSets
     
     %get sequence info 
     selIndAll{dSet} = getSelectivityIndex(imTrials);
-    shuffleSelIndAll{dSet} = getSelectivityIndex(imTrials,true);
+    for shuffleInd = 1:nShuffles
+        shuffleSelIndAll{dSet,shuffleInd} = getSelectivityIndex(imTrials,true);
+    end
    
     
 end

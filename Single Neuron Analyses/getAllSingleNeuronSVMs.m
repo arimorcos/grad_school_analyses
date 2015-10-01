@@ -1,10 +1,11 @@
 %saveFolder
-saveFolder = 'D:\DATA\Analyzed Data\150831_singleNeuronSVMFoopsi';
+saveFolder = 'D:\DATA\Analyzed Data\150925_vogel_singleNeuronSVM_crossval';
 
 %get list of datasets
 procList = getProcessedList();
 nDataSets = length(procList);
-nShuffles = 100;
+nShuffles = 1;
+kfold = 10;
 
 %get deltaPLeft
 for dSet = 1:nDataSets
@@ -13,7 +14,7 @@ for dSet = 1:nDataSets
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
     
     %load in data
-    loadProcessed(procList{dSet}{:},[],'Foopsi_fudge_99');
+    loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
     %get traces
     [~,traces] = catBinnedTraces(imTrials);
@@ -55,7 +56,7 @@ for dSet = 1:nDataSets
         % classify
         [accuracy(neuronInd,:),shuffleAccuracy(:,:,neuronInd)] = classifyAndShuffle(deconvTraces(neuronInd,:,:),...
             leftTurns,{'accuracy','shuffleAccuracy'},...
-            'nshuffles',nShuffles,'silent',true);
+            'nshuffles',nShuffles,'silent',true,'kfold',kfold);
         
         dispProgress('Upcoming turn deconv: neuron %d/%d',neuronInd,neuronInd,nNeurons);
     end
@@ -80,7 +81,7 @@ for dSet = 1:nDataSets
     classifierOut = cell(nNeurons,1);
     for neuronInd = 1:nNeurons
         classifierOut{neuronInd} = classifyNetEvGroupSegSVM(imTrials,'nShuffles',nShuffles,...
-            'traceType','deconv','whichNeurons',neuronInd,'shouldShuffle',true);
+            'traceType','deconv','whichNeurons',neuronInd,'shouldShuffle',true,'kfold',kfold);
         
         dispProgress('Net evidence deconv: neuron %d/%d',neuronInd,neuronInd,nNeurons);
     end

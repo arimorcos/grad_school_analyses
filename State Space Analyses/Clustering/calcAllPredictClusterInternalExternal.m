@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150811_predictClusterIntenralExternal';
+saveFolder = 'D:\DATA\Analyzed Data\150907_vogel_predictClusterInternal';
 
 %get list of datasets 
 procList = getProcessedList();
@@ -11,7 +11,7 @@ for dSet = 1:nDataSets
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
     
     %load in data
-    loadProcessed(procList{dSet}{:});
+    loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
     %filter to 5-1
 %     imTrials = getTrials(imTrials,'maze.numLeft==1,2,3,4,5');

@@ -19,7 +19,7 @@ end
 
 %extract segment traces
 [segTraces,~,netEv,~,~,~] = extractSegmentTraces(dataCell,'usebins',true,...
-    'tracetype','dFF');
+    'tracetype','deconv');
 
 %get nNeurons
 [nNeurons,nBinsPerSeg,~] = size(segTraces);

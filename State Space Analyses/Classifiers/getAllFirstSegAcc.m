@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150602_SVMClassifiers';
+saveFolder = 'D:\DATA\Analyzed Data\150910_vogel_firstSegAcc';
 
 %get list of datasets 
 procList = getProcessedList();
@@ -12,13 +12,14 @@ for dSet = 1:nDataSets
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
     
     %load in data
-    loadProcessed(procList{dSet}{:});
+    loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
     %get traces 
     yPosBins = imTrials{1}.imaging.yPosBins;
     firstSegInd = yPosBins >= 0 & yPosBins < 80;
     yPosBins = yPosBins(firstSegInd);
-    [~,traces] = catBinnedTraces(imTrials);
+%     [~,traces] = catBinnedTraces(imTrials);
+    traces = catBinnedDeconvTraces(imTrials);
     traces = traces(:,firstSegInd,:);
     
     %get realClass
@@ -29,6 +30,6 @@ for dSet = 1:nDataSets
     [accuracy,shuffleAccuracy] = classifyAndShuffle(traces,realClass,{'accuracy','shuffleAccuracy'},'nshuffles',100);
     
     %save 
-    saveName = fullfile(saveFolder,sprintf('%s_%s_firstSeg_allTrials_out.mat',procList{dSet}{:}));
+    saveName = fullfile(saveFolder,sprintf('%s_%s_firstSeg.mat',procList{dSet}{:}));
     save(saveName,'accuracy','shuffleAccuracy','yPosBins');
 end 

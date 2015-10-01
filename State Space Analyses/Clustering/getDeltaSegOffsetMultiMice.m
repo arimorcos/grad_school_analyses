@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/150731_deltaSegOffsetVec';
+saveFolder = 'D:\DATA\Analyzed Data\150924_vogel_deltaSegOffset';
 
 %get list of datasets 
 procList = getProcessedList();
@@ -12,7 +12,7 @@ for dSet = 1:nDataSets
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
     
     %load in data
-    loadProcessed(procList{dSet}{:});
+    loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
     %get deltaSegOffset 
     [deltaSegStart, deltaSegEnd, rOffset] = getDeltaSegOffset(imTrials);

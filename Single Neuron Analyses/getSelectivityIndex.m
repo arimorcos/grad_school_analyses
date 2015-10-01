@@ -30,7 +30,9 @@ end
 
 %get binned traces 
 [~,leftTraces] = catBinnedTraces(left60);
+% leftTraces = catBinnedDeconvTraces(left60);
 [~,rightTraces] = catBinnedTraces(right60);
+% rightTraces = catBinnedDeconvTraces(right60);
 
 %make positive 
 % convToPos = @(x) x + abs(min(x(:)));

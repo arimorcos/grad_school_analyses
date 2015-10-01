@@ -23,11 +23,16 @@ colors = distinguishable_colors(1);
 
 %loop through and plot
 nPoints = length(deltaPoint(1).(mainField));
+if nPoints > 9
+    xVals = -9:9;
+else
+    xVals = 1:9;
+end
 for file = 1:1
     if showNSTD
-        plotH = plot(1:nPoints,deltaPoint(file).meanNSTD);
+        plotH = plot(xVals,deltaPoint(file).meanNSTD);
     else
-        plotH = plot(1:nPoints,deltaPoint(file).(mainField));
+        plotH = plot(xVals,deltaPoint(file).(mainField));
     end
     plotH.Color = colors(file,:);
     plotH.LineWidth = 2;
@@ -35,7 +40,7 @@ for file = 1:1
     plotH.MarkerFaceColor = colors(file,:);
     
     %     %significance 3
-    xVals = 1:nPoints;
+%     xVals = 1:nPoints;
     %     sigInd = deltaPoint(file).(sigField) == 3;
     %     scatSig3 = scatter(xVals(sigInd),deltaPoint(file).(mainField)(sigInd));
     %     scatSig3.Marker = 'o';
@@ -111,8 +116,8 @@ end
 handles.ax.XLabel.FontSize = 30;
 handles.ax.YLabel.FontSize = 30;
 handles.ax.FontSize = 20;
-handles.ax.XTick = 1:nPoints;
-handles.ax.XLim = [1 nPoints];
+handles.ax.XTick = xVals;
+handles.ax.XLim = [min(xVals) max(xVals)];
 
 % %add legend
 % handles.leg = legend([scatSig3,scatSig2,scatSig1,scatInSig],...

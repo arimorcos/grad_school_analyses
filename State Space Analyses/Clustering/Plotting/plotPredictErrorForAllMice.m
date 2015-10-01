@@ -19,6 +19,6 @@ for mouseInd = 1:nMice
     %predict error
     [handles,errorMat{mouseInd}] = predictError({leftTrials, rightTrials},...
         'clusterperc', clusterPerc, 'handles', handles, 'showNTrials',...
-        false, 'showPValue', false);
+        false, 'showPValue', false,'tracetype','deconv');
    
 end

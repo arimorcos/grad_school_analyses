@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/150726_allSeq';
+saveFolder = 'D:\DATA\Analyzed Data\150907_vogel_deconv_selInd_seq';
 
 %get list of datasets 
 procList = getProcessedList();
@@ -14,10 +14,12 @@ for dSet = 1:nDataSets
     loadProcessed(procList{dSet}{:});
     
     %get sequence info 
-    [~,seqInfo{dSet}] = makeLeftRightSeq(imTrials,'cells',{''});
+    [~,seqInfoCellNorm{dSet}] = makeLeftRightSeq(imTrials,'cells',{''});
+    [~,seqInfoZScore{dSet}] = makeLeftRightSeq(imTrials,'zScore',{''});
+    [~,seqInfoNoNorm{dSet}] = makeLeftRightSeq(imTrials,false,{''});
    
     
 end
 
 % save 
-save('sequenceInfoAllMice','seqInfo');
+save('sequenceInfoAllMice','seqInfoCellNorm','seqInfoZScore','seqInfoNoNorm');

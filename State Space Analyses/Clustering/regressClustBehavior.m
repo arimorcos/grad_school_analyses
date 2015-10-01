@@ -49,33 +49,36 @@ end
 %% take averages across diagonals
 
 %get distance matrix
-pointDist = triu(squareform(pdist((1:nPoints)')));
+% pointDist = triu(squareform(pdist((1:nPoints)')));
+pointDist = squareform(pdist([1:nPoints]'));
+pointDist(logical(tril(ones(nPoints)))) = -1*pointDist(logical(tril(ones(nPoints))));
 
 %initialize regular
-adjR2BehavDelta = nan(nPoints,1);
+adjR2BehavDelta = nan(2*nPoints-1,1);
 adjR2BehavNeurDelta = nan(size(adjR2BehavDelta));
 RMSEBehavDelta = nan(size(adjR2BehavDelta));
 RMSEBehavNeurDelta = nan(size(adjR2BehavDelta));
 
 %initialize shuffles
-adjR2BehavNeurDeltaShuffle = nan(nPoints,nShuffles);
+adjR2BehavNeurDeltaShuffle = nan(2*nPoints-1,nShuffles);
 RMSEBehavNeurDeltaShuffle = nan(size(adjR2BehavNeurDeltaShuffle));
 
 %loop through each transition
-for delta = 0:(nPoints-1)
+deltaVals = -nPoints+1:nPoints-1;
+for delta = 1:2*nPoints-1
     
     %get matchInd
-    if delta > 0
-        matchInd = pointDist == delta;
+    if delta ~= 0
+        matchInd = pointDist == deltaVals(delta);
     else
         matchInd = sub2ind([nPoints nPoints],1:nPoints,1:nPoints);
     end
     
     % take mean of matching indices for regulars
-    adjR2BehavDelta(delta+1) = nanmean(adjR2Behav(matchInd));
-    adjR2BehavNeurDelta(delta+1) = nanmean(adjR2BehavNeur(matchInd));
-    RMSEBehavDelta(delta+1) = nanmean(RMSEBehav(matchInd));
-    RMSEBehavNeurDelta(delta+1) = nanmean(RMSEBehavNeur(matchInd));
+    adjR2BehavDelta(delta) = nanmean(adjR2Behav(matchInd));
+    adjR2BehavNeurDelta(delta) = nanmean(adjR2BehavNeur(matchInd));
+    RMSEBehavDelta(delta) = nanmean(RMSEBehav(matchInd));
+    RMSEBehavNeurDelta(delta) = nanmean(RMSEBehavNeur(matchInd));
     
     % take mean of matching indices for shuffles
     for shuffleInd = 1:nShuffles
@@ -84,13 +87,13 @@ for delta = 0:(nPoints-1)
         %         adjR2BehavDeltaShuffle(delta+1,shuffleInd) = nanmean(tempAdjR2BehavShuffle(matchInd));
         
         tempAdjR2BehavNeurShuffle = adjR2BehavNeurShuffle(:,:,shuffleInd);
-        adjR2BehavNeurDeltaShuffle(delta+1,shuffleInd) = nanmean(tempAdjR2BehavNeurShuffle(matchInd));
+        adjR2BehavNeurDeltaShuffle(delta,shuffleInd) = nanmean(tempAdjR2BehavNeurShuffle(matchInd));
         
         %         tempRMSEBehavShuffle = in.RMSEBehavShuffle(:,:,shuffleInd);
         %         RMSEBehavDeltaShuffle(delta+1,shuffleInd) = nanmean(tempRMSEBehavShuffle(matchInd));
         
         tempRMSEBehavNeurShuffle = RMSEBehavNeurShuffle(:,:,shuffleInd);
-        RMSEBehavNeurDeltaShuffle(delta+1,shuffleInd) = nanmean(tempRMSEBehavNeurShuffle(matchInd));
+        RMSEBehavNeurDeltaShuffle(delta,shuffleInd) = nanmean(tempRMSEBehavNeurShuffle(matchInd));
     end
     
 end
@@ -129,7 +132,11 @@ RMSEBehavNeur = nan(nPoints);
 % ind = 1;
 % nComb = nPoints^2/2 + (nPoints/2) + 1;
 for point1 = 1:nPoints
-    for point2 = point1:nPoints
+    for point2 = 1:nPoints
+        
+%         if point1 == point2
+%             continue;
+%         end
         
         %display progress
         %         dispProgress('Calculating models %d/%d',ind, ind, nComb);

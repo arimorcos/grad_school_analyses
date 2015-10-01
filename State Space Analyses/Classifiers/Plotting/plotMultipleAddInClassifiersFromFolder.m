@@ -25,7 +25,7 @@ nFiles = length(matchFiles);
 allAcc = cell(nFiles,1);
 for fileInd = 1:nFiles
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
-    allAcc{fileInd} = currFileData.accuracy(:,2:end-2);
+    allAcc{fileInd} = currFileData.acc(:,2:end-2);
 end
 
 %get max nNeurons 

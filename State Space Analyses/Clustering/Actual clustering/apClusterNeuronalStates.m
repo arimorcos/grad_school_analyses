@@ -22,7 +22,7 @@ traces = traces(:,~zeroInd);
 %create distance matrix
 % distMat = -1*squareform(pdist(traces,'cosine'));
 % distMat = -1*squareform(pdist(traces,'euclidean'));
-blendFac = 0;
+blendFac = 0.5;
 distMat = -1*((1-blendFac)*squareform(pdist(traces,'cosine')) + ...
     blendFac*squareform(pdist(traces,'euclidean')));
 

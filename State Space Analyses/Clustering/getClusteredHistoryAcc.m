@@ -1,12 +1,12 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM';
+saveFolder = 'D:\DATA\Analyzed Data\150909_vogel_clusteredHistAcc';
 
 %get list of datasets 
 procList = getProcessedList();
 nDataSets = length(procList);
 
 %get deltaPLeft
-for dSet = 1:nDataSets
+for dSet = 7:nDataSets
 % for dSet = 7
     %dispProgress
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
@@ -16,7 +16,7 @@ for dSet = 1:nDataSets
     
     %cluster
     [mMat,cMat,clusterIDs,clusterCenters]=getClusteredMarkovMatrix(imTrials,...
-        'oneclustering',false,'perc',10,'traceType','dff');
+        'oneclustering',false,'perc',10,'traceType','deconv');
     
     %get accuracy 
     [accuracy,shuffleAccuracy,nSTD] = predictHistoryFromClusters(clusterIDs,imTrials);

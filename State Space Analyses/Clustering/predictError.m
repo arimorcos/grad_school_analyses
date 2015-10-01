@@ -17,6 +17,7 @@ whichPoint = 1;
 handles = [];
 showNTrials = true;
 showPValue = true;
+traceType = 'dff';
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -35,6 +36,8 @@ if nargin > 1 || ~isempty(varargin)
                 showNTrials = varargin{argInd+1};
             case 'showpvalue'
                 showPValue = varargin{argInd+1};
+            case 'tracetype'
+                traceType = varargin{argInd+1};
         end
     end
 end
@@ -56,7 +59,12 @@ for dInd = 1:nDataCells
     yPosBins = dataCell{dInd}{1}.imaging.yPosBins;
     
     %get traces
-    [~,traces] = catBinnedTraces(dataCell{dInd});
+    switch lower(traceType)
+        case 'dff'
+            [~,traces] = catBinnedTraces(dataCell{dInd});
+        case 'deconv'
+            traces = catBinnedDeconvTraces(dataCell{dInd});
+    end
     
     %create matrix of values at each point in the maze
     tracePoints = getMazePoints(traces,yPosBins);

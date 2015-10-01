@@ -1,4 +1,4 @@
-function acc = getLeftRightAccuracyNeuronFallout(dataCell, sortOrder, shuffleTraces, increment)
+function acc = getLeftRightAccuracyNeuronFallout(dataCell, sortOrder, shuffleTraces, increment, useClass)
 %getLeftRightAccuracyNeuronFallout.m Calculates svm accuracy at predicting
 %left-right turn with increasing number of neurons. Adds neurons according
 %to the sortOrder array starting from top.
@@ -11,6 +11,13 @@ function acc = getLeftRightAccuracyNeuronFallout(dataCell, sortOrder, shuffleTra
 %acc - nNeurons x nBins array of svm accuracy
 %
 %ASM 7/15
+
+useDeconv = true;
+
+if nargin < 5 || isempty(useClass)
+    useClass = [];
+end
+
 if nargin < 4 || isempty(increment)
     increment = 1;
 end
@@ -22,20 +29,28 @@ if shuffleTraces
     traces = breakTrialAssociationForClassifier(dataCell);
 else
     %get traces
-    [~,traces] = catBinnedTraces(dataCell);
+    if useDeconv
+        traces = catBinnedDeconvTraces(dataCell);
+    else
+        [~,traces] = catBinnedTraces(dataCell);
+    end
 end
 
 %get nNeurons
 nNeurons = size(traces,1);
 
 %crop traces
-traces = traces(:,2:90,:);
+traces = traces(:,2:end-1,:);
 
 %check that sortOrder matches
 assert(nNeurons == length(sortOrder),'sortOrder must match nNeurons');
 
 %get leftTurns
-leftTurns = getCellVals(dataCell,'result.leftTurn');
+if isempty(useClass)
+    leftTurns = getCellVals(dataCell,'result.leftTurn');
+else
+    leftTurns = useClass;
+end
 
 %get nBins 
 nBins = size(traces,2);

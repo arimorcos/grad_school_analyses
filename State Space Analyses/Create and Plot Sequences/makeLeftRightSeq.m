@@ -13,10 +13,10 @@ function [figHandle,info] = makeLeftRightSeq(dataCell,normInd,conditions,sortFir
 %ASM 1/14
 % shouldZScore = true;
 
-if nargin < 6 
+if nargin < 6
     axToPlot = [];
 end
-if nargin < 5 
+if nargin < 5
     gCells = [];
 end
 if nargin < 4 || isempty(sortFirst)
@@ -56,7 +56,7 @@ for i = 1:nCond
     
 end
 
-%crop out beginning and end 
+%crop out beginning and end
 % traces = cellfun(@(x) x(:,2:end-1),traces,'UniformOutput',false);
 % bins = bins(2:end-1);
 
@@ -67,12 +67,17 @@ if ischar(normInd) && strcmpi(normInd,'cells')
     traces = cellfun(@(x) bsxfun(@plus,x,abs(min(x,[],2))),traces,'UniformOutput',false);
     allTraces= cat(2,traces{:});
     maxTraces = max(allTraces,[],2);
-%     normTraces = cellfun(@(x) bsxfun(@rdivide,x,max(x,[],2)),traces,'UniformOutput',false);
+    %     normTraces = cellfun(@(x) bsxfun(@rdivide,x,max(x,[],2)),traces,'UniformOutput',false);
     normTraces=cellfun(@(x) bsxfun(@rdivide,x,maxTraces),traces,'UniformOutput',false);
     normInd = true;
 elseif ischar(normInd) && strcmpi(normInd,'zscore')
     normTraces = cellfun(@zScoreTraces,traces,'UniformOutput',false);
     figHandle = plotSequencesZScored(normTraces,bins,conditions,[0 3]);
+    info.normTraces = normTraces;
+    info.bins = bins;
+    info.conditions = conditions;
+    info.normInd = normInd;
+    info.colorLab = colorLab;
     return;
 elseif normInd == true
     %normalize traces

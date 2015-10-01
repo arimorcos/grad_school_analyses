@@ -17,6 +17,8 @@ nCellsToPlot = 5;
 cellID = [];
 shouldNorm = false;
 shouldVis = 'on';
+figH = [];
+axH = [];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -39,6 +41,10 @@ if nargin > 1 || ~isempty(varargin)
                 shouldNorm = varargin{argInd+1};
             case 'shouldvis'
                 shouldVis = varargin{argInd+1};
+            case 'figh'
+                figH = varargin{argInd+1};
+            case 'axh' 
+                axH = varargin{argInd+1};
         end
     end
 end
@@ -136,7 +142,9 @@ else %if grouping all segments together
         
         %take mean for each neuron and store
         actNetEv(condInd,:) = nanmean(traceSub,3)';
-        actNetEvErr(condInd,:) = nanstd(traceSub,0,3)';
+        tempSTD = std(traceSub,0,3)';
+        tempSTD = tempSTD/sqrt(size(traceSub,3));
+        actNetEvErr(condInd,:) = tempSTD;
         
     end
     
@@ -156,13 +164,23 @@ else %if grouping all segments together
     end
     
     %plot
-    figH = figure('Visible',shouldVis);
+    if isempty(figH)
+        figH = figure('Visible',shouldVis);
+    end
+    if isempty(axH)
+        axH = axes;
+    else
+        axes(axH);
+    end
     cellPlot=errorbar(uniqueNetEv,actNetEv(:,cellsToPlot),actNetEvErr(:,cellsToPlot));
     cellPlot.LineWidth = 2;
-    set(gca,'FontSize',20);
+    set(axH,'FontSize',20);
     xlabel('Net Evidence','FontSize',30);
     ylabel(yLabStr,'FontSize',30);
     xlim([-nSeg nSeg]);
+    beautifyPlot(figH,axH);
+    axH.XTickLabel = {'6R','4R','2R','0','2L','4L','6L'};
+    
 end
 
 

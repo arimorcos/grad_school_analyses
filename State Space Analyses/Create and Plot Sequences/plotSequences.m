@@ -19,7 +19,7 @@ else
 end
 
 if nargin < 5 || isempty(colorLab)
-    colorLab = 'Normalized dF/F';
+    colorLab = 'Normalized spike probability';
 end
 
 segRanges = 0:80:480;

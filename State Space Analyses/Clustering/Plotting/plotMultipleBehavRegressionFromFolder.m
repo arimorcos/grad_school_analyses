@@ -42,6 +42,7 @@ colors = distinguishable_colors(nFiles);
 
 %get nDelta
 nDelta = length(out{fileInd}.adjR2BehavNeurDelta);
+deltaVals = -9:9;
 
 % loop through and plot 
 handles.plot = gobjects(nFiles,1);
@@ -55,7 +56,7 @@ for fileInd = 1:nFiles
     nSTDAbove = (out{fileInd}.adjR2BehavNeurDelta - medianVal)./stdVal;
     
     %plot 
-    handles.plot(fileInd) = plot(0:(nDelta-1), nSTDAbove);
+    handles.plot(fileInd) = plot(deltaVals, nSTDAbove);
     handles.plot(fileInd).Color = colors(fileInd,:);
     handles.plot(fileInd).LineWidth = 2;
     
@@ -73,7 +74,7 @@ beautifyPlot(handles.fig, handles.axL);
 %label 
 % handles.axL.XLabel.String = '\Delta Maze Epochs';
 handles.axL.YLabel.String = '# STD Above Shuffle Median';
-handles.axL.XLim = [1 nDelta-1];
+handles.axL.XLim = [min(deltaVals) max(deltaVals)];
 
 %% plot sig diff to behav 
 
@@ -86,7 +87,7 @@ behavNeur = cell2mat(cellfun(@(x) x.adjR2BehavNeurDelta', out, 'UniformOutput',f
 behavOnly = cell2mat(cellfun(@(x) x.adjR2BehavDelta', out, 'UniformOutput',false));
 
 % plot behavior only 
-handles.behavPlot = errorbar(0:(nDelta-1), mean(behavOnly), calcSEM(behavOnly));
+handles.behavPlot = errorbar(deltaVals, mean(behavOnly), calcSEM(behavOnly));
 handles.behavPlot.Color = 'r';
 handles.behavPlot.MarkerSize = 10;
 handles.behavPlot.MarkerFaceColor = 'r';
@@ -94,7 +95,7 @@ handles.behavPlot.LineStyle = 'none';
 handles.behavPlot.Marker = 'o';
 
 % plot behavior and neur 
-handles.behavNeurPlot = errorbar(0:(nDelta-1), mean(behavNeur), calcSEM(behavNeur));
+handles.behavNeurPlot = errorbar(deltaVals, mean(behavNeur), calcSEM(behavNeur));
 handles.behavNeurPlot.Color = 'b';
 handles.behavNeurPlot.MarkerSize = 10;
 handles.behavNeurPlot.MarkerFaceColor = 'b';
@@ -106,18 +107,22 @@ handles.neurSig = gobjects(nDelta-1, 1);
 maxVal = max(cat(1,handles.behavPlot.YData + handles.behavPlot.UData,...
     handles.behavNeurPlot.YData + handles.behavNeurPlot.UData));
 textOffset = 0.02*range(handles.axR.YLim);
-for delta = 2:nDelta
+for delta = 1:nDelta
+    
+    if ~deltaVals(delta)
+        continue;
+    end
     
     %get pVal
     [~,pVal] = ttest2(behavOnly(:,delta), behavNeur(:,delta));
     
     %add significance 
     if pVal <= 0.001
-        textH = text(delta-1, maxVal(delta)+textOffset, '***');
+        textH = text(deltaVals(delta), maxVal(delta)+textOffset, '***');
     elseif pVal <= 0.01
-        textH = text(delta-1, maxVal(delta)+textOffset, '**');
+        textH = text(deltaVals(delta), maxVal(delta)+textOffset, '**');
     elseif pVal <= 0.05
-        textH = text(delta-1, maxVal(delta)+textOffset, '*');
+        textH = text(deltaVals(delta), maxVal(delta)+textOffset, '*');
     end
     textH.FontSize = 30;
     textH.HorizontalAlignment = 'center';
@@ -133,7 +138,7 @@ handles.rightLegend = legend([handles.behavPlot, handles.behavNeurPlot],...
 beautifyPlot(handles.fig, handles.axR);
 
 %change limits 
-handles.axR.XLim = [-0.2 nDelta-0.8];
+handles.axR.XLim = [min(deltaVals)-0.5 max(deltaVals)+0.5];
 
 %% extra labels 
 %add xlabel

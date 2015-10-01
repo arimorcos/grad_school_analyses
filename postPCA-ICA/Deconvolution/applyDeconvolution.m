@@ -2,9 +2,12 @@
 procList = getProcessedList();
 nDataSets = length(procList);
 
+setNoise = true;
+
 % nDataSets = 1;
 %get deltaPLeft
 for dSet = 1:nDataSets
+    % for dSet = 7
     
     %dispProgress
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
@@ -26,13 +29,22 @@ for dSet = 1:nDataSets
     parfor neuron = 1:nNeurons
         %deconvolve and smooth (1/3 second)
         %         deconvTrace(neuron,:) = smooth(getDeconv(completeTrace(neuron,:)),10);
-        try
-            [c(neuron,:),~,~,g{neuron},~,deconvTrace(neuron,:)] = constrained_foopsi(completeTrace(neuron,:));
-            
-            deconvTrace(neuron,:) = deconvTrace(neuron,:)/0.1;
-        catch
-            deconvTrace(neuron,:) = getDeconv(completeTrace(neuron,:))/0.1;
-        end
+        %         try
+        %             if setNoise
+        %                 F = completeTrace(neuron,:);
+        % %                 fTemp = F(F<median(F));
+        % %                 noiseVal = mad([fTemp,2*max(fTemp)-fTemp],0);
+        %                 noiseVal = 1.4826*mad(F,1);
+        %                 [c(neuron,:),~,~,g{neuron},~,deconvTrace(neuron,:)] = ...
+        %                     constrained_foopsi(completeTrace(neuron,:),[],[],[],noiseVal);
+        %             else
+        %                 [c(neuron,:),~,~,g{neuron},~,deconvTrace(neuron,:)] = ...
+        %                     constrained_foopsi(completeTrace(neuron,:));
+        %             end
+        %             deconvTrace(neuron,:) = deconvTrace(neuron,:)/0.1;
+        %         catch
+        deconvTrace(neuron,:) = getDeconv(completeTrace(neuron,:))/0.1;
+        %         end
         %         deconvTrace(neuron,:) = smooth(deconvTrace(neuron,:),10)
     end
     
@@ -48,8 +60,8 @@ for dSet = 1:nDataSets
     imTrials = imTrials(~findTurnAroundTrials(imTrials));
     imTrials = binFramesByYPos(imTrials,5);
     saveName = sprintf('%s_%s_processed.mat',procList{dSet}{1},procList{dSet}{2});
-    save(fullfile('W:\\Mice\\FoopsiTest',saveName),'dataCell','imTrials');
+    save(fullfile('W:\\Mice\\vogel_noSmooth',saveName),'dataCell','imTrials');
     
-    %save g and c 
-    save(fullfile('D:\\DATA\\Analyzed Data\\150901_foopsi_info',saveName),'c','g','deconvTrace','completeTrace');
+    %save g and c
+%     save(fullfile('W:\\Mice\\Foopsi_setNoise\\Traces',saveName),'c','g','deconvTrace','completeTrace');
 end

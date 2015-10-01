@@ -9,6 +9,11 @@ function slope = getNetEvSlope(classOut)
 %
 %ASM 8/15
 
+if isempty(classOut)
+    slope = NaN;
+    return;
+end
+
 %subset 
 classOut = classOut(1);
 
@@ -17,5 +22,6 @@ testClass = classOut.testClass;
 guess = classOut.guess;
 
 %get slope
-mdl = fitlm(guess, testClass);
+% mdl = fitlm(guess, testClass);
+mdl = fitlm(testClass,guess);
 slope = mdl.Coefficients.Estimate(2);

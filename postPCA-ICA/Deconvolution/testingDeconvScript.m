@@ -1,5 +1,5 @@
 %%
-neuron = 9;
+neuron = 18;
 
 figure;
 hold on;
@@ -21,6 +21,12 @@ noiseVal = 1.4826*mad(F,1);
 options.noise_range = [0.01 0.02];
 [cTest,~,~,~,~,deconvTest] = ...
     constrained_foopsi(completeTrace(neuron,:),[],[],[],[],options);
+
+%% offset baseline 
+[testTrace,noiseVal] = offsetBaseline(completeTrace(neuron,:),1.1);
+
+[cTest,~,~,~,~,deconvTest] = ...
+    constrained_foopsi(testTrace,[],[],[],noiseVal);
 
 %% plot two 
 

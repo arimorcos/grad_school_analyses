@@ -1,9 +1,10 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150727_netEvIndAll';
+saveFolder = 'D:\DATA\Analyzed Data\150907_vogel_deconv_selInd_seq';
 
 %get list of datasets 
 procList = getProcessedList();
 nDataSets = length(procList);
+nShuffles = 1000;
 
 netEvIndAll = [];
 shuffleNetEvIndAll = [];
@@ -18,7 +19,11 @@ for dSet = 1:nDataSets
     
     %get sequence info 
     netEvIndAll = cat(1,netEvIndAll,getNetEvidenceSelectivity(imTrials));
-    shuffleNetEvIndAll = cat(1,shuffleNetEvIndAll,getNetEvidenceSelectivity(imTrials,true));
+    temp = [];
+    for shuffleInd = 1:nShuffles
+        temp(:,shuffleInd) = getNetEvidenceSelectivity(imTrials,true);
+    end
+    shuffleNetEvIndAll = cat(1,shuffleNetEvIndAll,temp);
    
     
 end

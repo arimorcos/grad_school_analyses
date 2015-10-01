@@ -49,7 +49,7 @@ colors = distinguishable_colors(nFiles);
 %loop through and plot
 for file = 1:nFiles
     
-    if errorRate(file) < 0.02
+    if errorRate(file) < 0.05
         continue;
     end
     

@@ -1,6 +1,6 @@
 %saveFolder
 saveFolder = 'D:\DATA\Analyzed Data\150805_prevBehav';
-prevFolder = 'D:\DATA\Analyzed Data\150602_SVMClassifiers';
+prevFolder = 'D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM';
 
 %get list of datasets
 procList = getProcessedList();
@@ -17,7 +17,7 @@ for dSet = 1:nDataSets
     loadProcessed(procList{dSet}{:});
     
     %load in prevTurn
-    load(fullfile(prevFolder,sprintf('%s_%s_prevTurn_allTrials_out.mat',...
+    load(fullfile(prevFolder,sprintf('%s_%s_prevTurn.mat',...
         procList{dSet}{:})));
     
     %get behavioral variablea
@@ -31,11 +31,11 @@ for dSet = 1:nDataSets
     behavAccuracy = getSVMAccuracy(behavVar, prevTurn);
     
     %save
-    saveName = fullfile(saveFolder,sprintf('%s_%s_prevTurnBehavior.mat',procList{dSet}{:}));
+    saveName = fullfile(saveFolder,sprintf('%s_%s_prevTurnBehavior_vogel.mat',procList{dSet}{:}));
     save(saveName,'behavAccuracy','accuracy','yPosBins','shuffleAccuracy');
     
     %load in prevCorrect
-    load(fullfile(prevFolder,sprintf('%s_%s_prevCorrect_allTrials_out.mat',...
+    load(fullfile(prevFolder,sprintf('%s_%s_prevCorrect.mat',...
         procList{dSet}{:})));
     
     %get prevTurn
@@ -45,7 +45,7 @@ for dSet = 1:nDataSets
     behavAccuracy = getSVMAccuracy(behavVar, prevCorrect);
     
     %save
-    saveName = fullfile(saveFolder,sprintf('%s_%s_prevCorrectBehavior.mat',procList{dSet}{:}));
+    saveName = fullfile(saveFolder,sprintf('%s_%s_prevCorrectBehavior_vogel.mat',procList{dSet}{:}));
     save(saveName,'behavAccuracy','accuracy','yPosBins','shuffleAccuracy');
 
 end
