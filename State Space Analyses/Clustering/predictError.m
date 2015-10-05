@@ -1,4 +1,4 @@
-function [handles, errorMat] = predictError(dataCell, varargin)
+function [handles, errorMat, out] = predictError(dataCell, varargin)
 %predictError.m Predicts an error trial using provided maze point
 %
 %INPUTS
@@ -122,9 +122,16 @@ if isempty(pVal)
     pVal = 0;
 end
 
+out.realSummedDiff = summedDiff;
+out.shuffledSummedDiff = shuffledSummedDiff;
+out.totalErrorRate = totalErrorRate;
+out.expectedErrors = expectedErrors;
+out.errorCount = errorCount;
+out.uniqueCount = uniqueCount;
+
 %create errorMat
 errorMat = cat(2,errorCount,uniqueCount);
-
+out.errorMat = errorMat;
 %% plot
 if isempty(handles)
     handles.fig = figure;

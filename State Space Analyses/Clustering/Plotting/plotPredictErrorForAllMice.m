@@ -14,11 +14,17 @@ handles = [];
 errorMat = cell(nMice,1);
 for mouseInd = 1:nMice 
     %load
-    [leftTrials,rightTrials] = loadProcessed(procList{mouseInd}{:},{'leftTrials','rightTrials'});
+    [leftTrials,rightTrials] = loadProcessed(procList{mouseInd}{:},...
+        {'leftTrials','rightTrials'},'oldDeconv_smooth10');
     
     %predict error
-    [handles,errorMat{mouseInd}] = predictError({leftTrials, rightTrials},...
+    [handles,errorMat{mouseInd},out] = predictError({leftTrials, rightTrials},...
         'clusterperc', clusterPerc, 'handles', handles, 'showNTrials',...
         false, 'showPValue', false,'tracetype','deconv');
+    
+    %save 
+    saveFolder = '/Users/arimorcos/Data/Analyzed Data/150908_vogel_first4Same';
+    saveName = fullfile(saveFolder,sprintf('%s_%s_mazeStartError.mat',procList{mouseInd}{:}));
+    save(saveName,'out');
    
 end

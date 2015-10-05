@@ -5,7 +5,7 @@ function procList = getProcessedList()
 
 switch computer
     case 'MACI64'
-        filePath = '/Users/arimorcos/Data/Analyzed Data/Mice';
+        filePath = '/Users/arimorcos/Data/Analyzed Data/Mice/oldDeconv_smooth10';
     case 'PCWIN64'
         filePath = 'W:\\Mice\\';
 end
