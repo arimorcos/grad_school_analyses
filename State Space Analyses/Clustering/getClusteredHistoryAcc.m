@@ -1,12 +1,12 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150909_vogel_clusteredHistAcc';
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/151005_vogel_clusteredHistAcc_separate';
 
 %get list of datasets 
 procList = getProcessedList();
 nDataSets = length(procList);
 
 %get deltaPLeft
-for dSet = 7:nDataSets
+for dSet = 1:nDataSets
 % for dSet = 7
     %dispProgress
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
@@ -14,14 +14,11 @@ for dSet = 7:nDataSets
     %load in data
     loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
-    %cluster
-    [mMat,cMat,clusterIDs,clusterCenters]=getClusteredMarkovMatrix(imTrials,...
-        'oneclustering',false,'perc',10,'traceType','deconv');
-    
     %get accuracy 
-    [accuracy,shuffleAccuracy,nSTD] = predictHistoryFromClusters(clusterIDs,imTrials);
+    [accuracy,shuffleAccuracy,nSTD,trialInfo] = ...
+        predictHistoryFromClustersSeparateClustering(imTrials);
     
     %save 
-    saveName = fullfile(saveFolder,sprintf('%s_%s_clusteredHistAcc_tMatch_perc_10.mat',procList{dSet}{:}));
-    save(saveName,'accuracy','shuffleAccuracy','nSTD');
+    saveName = fullfile(saveFolder,sprintf('%s_%s_clusteredHistAcc_tMatch_perc_10_sep.mat',procList{dSet}{:}));
+    save(saveName,'accuracy','shuffleAccuracy','nSTD','trialInfo');
 end 

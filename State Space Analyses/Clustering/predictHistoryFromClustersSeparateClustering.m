@@ -1,7 +1,8 @@
 function [accuracy, shuffleAccuracy, nSTD, trialInfo] = ...
-    predictHistoryFromClusters(clusterIDs,dataCell,nShuffles)
-%predictHistoryFromClusters.m Predcits segment history based on current
-%cluster in a leave-one-out fashion
+    predictHistoryFromClustersSeparateClustering(dataCell,nShuffles)
+%predictHistoryFromClustersSeparateClustering.m Predcits segment history based on current
+%cluster in a leave-one-out fashion.Performs clustering separately for each
+%trial combination
 %
 %INPUTS
 %clusterIDs - cluster labels 
@@ -20,7 +21,7 @@ function [accuracy, shuffleAccuracy, nSTD, trialInfo] = ...
 %ASM 7/15
 
 %get real accuracy 
-[accuracy, trialInfo] = getHistoryClusterAcc(clusterIDs,dataCell);
+[accuracy, trialInfo] = getHistoryClusterAcc(dataCell,false);
 
 %get shuffled accuracy 
 if nargin < 3 || isempty(nShuffles)
@@ -29,13 +30,8 @@ end
 
 shuffleAccuracy = nan(nShuffles,1);
 for shuffleInd = 1:nShuffles
-    %shuffle clusterIDs 
-    shuffleIDs = nan(size(clusterIDs));
-    for point = 1:size(clusterIDs,2)
-        shuffleIDs(:,point) = shuffleArray(clusterIDs(:,point));
-    end
     
-    shuffleAccuracy(shuffleInd) = getHistoryClusterAcc(shuffleIDs,dataCell);
+    shuffleAccuracy(shuffleInd) = getHistoryClusterAcc(dataCell,true);
     
     %display progress
     dispProgress('Shuffling history %d/%d',shuffleInd,shuffleInd,nShuffles);
@@ -46,31 +42,34 @@ nSTD = (accuracy - median(shuffleAccuracy))/std(shuffleAccuracy);
 
 end 
 
-function [accuracy, trialInfo] = getHistoryClusterAcc(clusterIDs,dataCell)
+function [accuracy, trialInfo] = getHistoryClusterAcc(dataCell,shouldShuffle)
 trialMatch = true;
 
 %initialize
+perc = 10;
 totalNClusters = 0;
 actualAnswer = [];
 guessedAnswer = [];
 whichTrials = [];
 whichSeg = [];
 
+traces = catBinnedDeconvTraces(dataCell);
+tracePoints = getMazePoints(traces,dataCell{1}.imaging.yPosBins);
+
 %loop through each segment and get accuracy
 for segNum = 3:6
     
-    %get tempClusterIDs
-    tempClusterIDs = clusterIDs(:,segNum+1);
-    
-    %convert clusterIDs to 1:nClusters
-    uniqueClusters = unique(tempClusterIDs);
-    nClusters = length(uniqueClusters);
-    oldClusterIDs = tempClusterIDs;
-    for clusterInd = 1:nClusters
-        tempClusterIDs(oldClusterIDs==uniqueClusters(clusterInd)) = ...
-            clusterInd + totalNClusters;
-    end
-    totalNClusters = totalNClusters + nClusters;
+%     %get tempClusterIDs
+%     tempClusterIDs = clusterIDs(:,segNum+1);
+%     
+%     %convert clusterIDs to 1:nClusters
+%     uniqueClusters = unique(tempClusterIDs);
+%     nClusters = length(uniqueClusters);
+%     oldClusterIDs = tempClusterIDs;
+%     for clusterInd = 1:nClusters
+%         tempClusterIDs(oldClusterIDs==uniqueClusters(clusterInd)) = ...
+%             clusterInd + totalNClusters;
+%     end
     
     %get mazePatterns
     mazePatterns = getMazePatterns(dataCell);
@@ -95,11 +94,18 @@ for segNum = 3:6
         %get the actual answer 
         actualAnswer = cat(1,actualAnswer,ismember(allLeft(leftTrial),LRLTrials));
         
+        %cluster 
+        clusterIDsLeft = apClusterNeuronalStates(...
+            squeeze(tracePoints(:,segNum+1,allLeft)), perc);
+        
+        if shouldShuffle
+            clusterIDsLeft = shuffleArray(clusterIDsLeft);
+        end
+        
         %guess an answer 
-        trialCluster = clusterIDs(allLeft(leftTrial),segNum+1);
-        allMatchingTrials = find(clusterIDs(:,segNum+1) == trialCluster);
-        leftTripletMatchTrials = allMatchingTrials(ismember(allMatchingTrials,allLeft));
-        leftTripletMatchTrials =  leftTripletMatchTrials(leftTripletMatchTrials ~= allLeft(leftTrial));
+        trialCluster = clusterIDsLeft(leftTrial);
+        leftTripletMatchTrials = find(clusterIDsLeft == trialCluster);
+        leftTripletMatchTrials =  leftTripletMatchTrials(leftTripletMatchTrials ~= leftTrial);
         if sum(ismember(leftTripletMatchTrials,LRLTrials)) > sum(ismember(leftTripletMatchTrials,RLLTrials))
             guessedAnswer = cat(1,guessedAnswer,1);
         elseif sum(ismember(leftTripletMatchTrials,RLLTrials)) > sum(ismember(leftTripletMatchTrials,LRLTrials))
@@ -118,11 +124,18 @@ for segNum = 3:6
         %get the actual answer 
         actualAnswer = cat(1,actualAnswer,ismember(allRight(rightTrial),LRRTrials));
         
+        %cluster 
+        clusterIDsRight = apClusterNeuronalStates(...
+            squeeze(tracePoints(:,segNum+1,allRight)), perc);
+        
+        if shouldShuffle
+            clusterIDsRight = shuffleArray(clusterIDsRight);
+        end
+        
         %guess an answer 
-        trialCluster = clusterIDs(allRight(rightTrial),segNum+1);
-        allMatchingTrials = find(clusterIDs(:,segNum+1) == trialCluster);
-        rightTripletMatchTrials = allMatchingTrials(ismember(allMatchingTrials,allRight));
-        rightTripletMatchTrials =  rightTripletMatchTrials(rightTripletMatchTrials ~= allRight(rightTrial)); %remove current trial
+        trialCluster = clusterIDsRight(rightTrial);
+        rightTripletMatchTrials = find(clusterIDsRight == trialCluster);
+        rightTripletMatchTrials =  rightTripletMatchTrials(rightTripletMatchTrials ~= rightTrial);
         if sum(ismember(rightTripletMatchTrials,LRRTrials)) > sum(ismember(rightTripletMatchTrials,RLRTrials))
             guessedAnswer = cat(1,guessedAnswer,1);
         elseif sum(ismember(rightTripletMatchTrials,RLRTrials)) > sum(ismember(rightTripletMatchTrials,LRRTrials))

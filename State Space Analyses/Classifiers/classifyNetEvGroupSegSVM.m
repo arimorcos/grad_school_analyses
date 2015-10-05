@@ -27,6 +27,7 @@ binViewAngle = false;
 leftViewAngle = true;
 viewAngleRange = 5;
 whichNeurons = [];
+trainInd = [];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -59,6 +60,8 @@ if nargin > 1 || ~isempty(varargin)
                 viewAngleRange = varargin{argInd+1};
             case 'whichneurons'
                 whichNeurons = varargin{argInd+1};
+            case 'trainind'
+                trainInd = varargin{argInd+1};
         end
     end
 end
@@ -153,7 +156,7 @@ for condInd = 1:length(conditions)
     
     %calculate actual accuracy
     [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
-        realClass, trainFrac);
+        realClass, trainFrac, trainInd);
     
     %shuffle
     if shouldShuffle
@@ -170,7 +173,7 @@ for condInd = 1:length(conditions)
             
             [shuffleGuess(:,shuffleInd), shuffleTestClass(:,shuffleInd),...
                 shuffleMSE(shuffleInd),shuffleCorrCoef(shuffleInd)] =...
-                getNetEvGroupSegData(segTraces,randClass,trainFrac);
+                getNetEvGroupSegData(segTraces,randClass,trainFrac,trainInd);
         end
     else
         shuffleMSE = [];
@@ -195,11 +198,11 @@ for condInd = 1:length(conditions)
 end
 
 function [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
-    realClass, trainFrac)
+    realClass, trainFrac, trainInd)
 
 %calculate accuracy
 [guess,mse,testClass,corrCoef] =...
     getSVMAccuracy(segTraces,realClass,...
     'svmType', 'e-SVR', 'C',50,'epsilon',0.004,'gamma',0.04,'kFold',1,...
-    'trainFrac',trainFrac);
+    'trainFrac',trainFrac,'trainind',trainInd);
 

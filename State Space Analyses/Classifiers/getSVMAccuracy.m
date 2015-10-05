@@ -149,7 +149,11 @@ else
 end
 
 if svmType ~= 0
-    nTest = floor(nTrials*(1-trainFrac));
+    if isempty(trainInd)
+        nTest = floor(nTrials*(1-trainFrac));
+    else
+        nTest = nTrials - length(trainInd);
+    end
     guess = nan(1,nBins);
     accuracy = nan(nTest,nBins);
     classes = nan(nTest,nBins);
