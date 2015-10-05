@@ -1,4 +1,5 @@
-function [accuracy,guess,classes,probEst] = getSVMAccuracy(traces,realClass,varargin)
+function [accuracy,guess,classes,probEst,testClass] = ...
+    getSVMAccuracy(traces,realClass,varargin)
 %getSVMAccuracy Trains a cross-validated svm
 %
 %INPUTS
