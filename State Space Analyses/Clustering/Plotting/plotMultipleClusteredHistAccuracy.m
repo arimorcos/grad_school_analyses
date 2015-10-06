@@ -73,10 +73,18 @@ axH.XLim = [0.5 1.5];
 % axB.YLabel.String = 'nSTD Above Chance';
 
 if accMode
-    load('D:\DATA\Analyzed Data\150910_vogel_firstSegAcc\firstSeg_maxAcc.mat');
+    if strcmpi(computer,'MACI64')
+        load('/Users/arimorcos/Data/Analyzed Data/150910_vogel_firstSegAcc/firstSeg_maxAcc.mat');
+    else
+        load('D:\DATA\Analyzed Data\150910_vogel_firstSegAcc\firstSeg_maxAcc.mat');
+    end
     singleSegAcc = maxAcc;
 else
-    load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\singleSegNSTD.mat');
+    if strcmpi(computer,'MACI64')
+        load('/Users/arimorcos/Data/Analyzed Data/150728_clusteredHistAcc/singleSegNSTD.mat');
+    else
+        load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\singleSegNSTD.mat');
+    end
 end
 axB = subplot(2,2,2);
 hold(axB,'on');
@@ -127,10 +135,18 @@ end
 
 %% plot slope
 if useSlope 
-    load('D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM\netEvSVR_slope.mat');
+    if strcmpi(computer, 'MACI64')
+        load('/Users/arimorcos/Data/Analyzed Data/150824_oldDeconv_smooth10_SVM/netEvSVR_slope.mat');
+    else
+        load('D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM\netEvSVR_slope.mat');
+    end
     slope = slopeNetEv;
 else
-    load('D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM\netEVSVR_corrCoef.mat');
+    if strcmpi(computer, 'MACI64')
+        load('/Users/arimorcos/Data/Analyzed Data/150824_oldDeconv_smooth10_SVM/netEVSVR_corrCoef.mat');
+    else
+        load('D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM\netEVSVR_corrCoef.mat');
+    end
     slope = corrCoefNetEv;
 end
 axB = subplot(2,2,3);
@@ -176,7 +192,11 @@ else
 end
 
 %% plot slope
-load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\netEvSlope.mat');
+if strcmpi(computer, 'MACI64') 
+    load('/Users/arimorcos/Data/Analyzed Data/150728_clusteredHistAcc/netEvSlope.mat');
+else
+    load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\netEvSlope.mat');
+end
 axB = subplot(2,2,4);
 hold(axB,'on');
 
