@@ -18,6 +18,7 @@ handles = [];
 showNTrials = true;
 showPValue = true;
 traceType = 'dff';
+silent = false;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -38,6 +39,8 @@ if nargin > 1 || ~isempty(varargin)
                 showPValue = varargin{argInd+1};
             case 'tracetype'
                 traceType = varargin{argInd+1};
+            case 'silent'
+                silent = varargin{argInd+1};
         end
     end
 end
@@ -102,10 +105,11 @@ summedDiff = sum(abs(errorCount - expectedErrors));
 %perform shuffle
 nShuffles = 1000;
 shuffledSummedDiff = nan(nShuffles,1);
+shuffledErrorCount = nan(length(expectedErrors), nShuffles);
 for shuffleInd = 1:nShuffles
     dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
-    shuffleErrorCount = getErrorCount(correctTrial,uniqueClusters,shuffleArray(clusterIDs));
-    shuffledSummedDiff(shuffleInd) = sum(abs(shuffleErrorCount - expectedErrors));
+    shuffleErrorCount(:,shuffleInd) = getErrorCount(correctTrial,uniqueClusters,shuffleArray(clusterIDs));
+    shuffledSummedDiff(shuffleInd) = sum(abs(shuffleErrorCount(:,shuffleInd) - expectedErrors));
 end
 
 %compare to uniform distribution
@@ -128,6 +132,7 @@ out.totalErrorRate = totalErrorRate;
 out.expectedErrors = expectedErrors;
 out.errorCount = errorCount;
 out.uniqueCount = uniqueCount;
+out.shuffleErrorCount = shuffleErrorCount; 
 
 %create errorMat
 errorMat = cat(2,errorCount,uniqueCount);

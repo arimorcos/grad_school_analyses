@@ -48,6 +48,8 @@ fprintf('P value <= %.3f \n', pVal);
 
 totalErrorRate = mean(cellfun(@(x) x.totalErrorRate,out));
 fracError = nan(nFiles,nBins);
+nShuffles = size(out{1}.shuffleErrorCount,2);
+allShuffleError = nan(nFiles*nShuffles, nBins);
 
 for file = 1:nFiles
     
@@ -72,6 +74,23 @@ for file = 1:nFiles
         fracError(file,bin) = binError/binUnique;
     end    
     
+    % perform averaging for each shuffle
+    for shuffle = 1:nShuffles
+        tempShuffleCount = out{file}.shuffleErrorCount(:,shuffle);
+        tempUniqueCount = out{file}.uniqueCount;
+        tempError = tempShuffleCount./tempUniqueCount;
+        [~,tempSort] = sort(tempError);
+        tempShuffleCount = tempShuffleCount(tempSort);
+        tempUniqueCount = tempUniqueCount(tempSort);
+        
+        for bin = 1:nBins
+            tempBinError = sum(tempShuffleCount(edges(bin):edges(bin+1)));
+            tempBinUnique = sum(tempUniqueCount(edges(bin):edges(bin+1)));
+            allShuffleError((file-1)*nShuffles + shuffle,bin) = tempBinError/tempBinUnique;
+        end
+        
+    end
+    
 end
 
 %% plot
@@ -81,21 +100,34 @@ handles.ax = axes;
 %hold
 hold(handles.ax,'on');
 
+colors = lines(2);
+
 meanVals = mean(fracError);
 semVals = calcSEM(fracError);
 xVals = 1:nBins;
 errH = shadedErrorBar(xVals,meanVals,semVals);
-color = [0    0.4470    0.7410];
-errH.mainLine.Color = color;
-errH.patch.FaceColor = color;
+errH.mainLine.Color = colors(1,:);
+errH.patch.FaceColor = colors(1,:);
 errH.patch.FaceAlpha = 0.3;
-errH.edge(1).Color = color;
-errH.edge(2).Color = color;
+errH.edge(1).Color = colors(1,:);
+errH.edge(2).Color = colors(1,:);
 
-%plot chance line 
-chanceH = line([1 nBins],[totalErrorRate, totalErrorRate]);
-chanceH.Color = 'k';
-chanceH.LineStyle = '--';
+%plot shuffle
+meanShuffle = mean(allShuffleError);
+semShuffle = calcSEM(allShuffleError);
+xVals = 1:nBins;
+errH = shadedErrorBar(xVals,meanShuffle,semShuffle);
+errH.mainLine.Color = colors(2,:);
+errH.patch.FaceColor = colors(2,:);
+errH.patch.FaceAlpha = 0.3;
+errH.edge(1).Color = colors(2,:);
+errH.edge(2).Color = colors(2,:);
+
+
+% %plot chance line 
+% chanceH = line([1 nBins],[totalErrorRate, totalErrorRate]);
+% chanceH.Color = 'k';
+% chanceH.LineStyle = '--';
 
 %set axis to square
 axis(handles.ax,'square');
