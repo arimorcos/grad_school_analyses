@@ -22,7 +22,7 @@ useBehavior = false;
 oneClustering = false;
 perc = 10;
 whichNeurons = [];
-traceType = 'dFF';
+traceType = 'deconv';
 range = [0.5 0.75];
 
 %process varargin

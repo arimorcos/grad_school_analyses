@@ -21,6 +21,7 @@ function figH = plot3DStates(dataCell,conditions,segment,varargin)
 whichFactorSet = 1;
 whichFactors = 1:3;
 showViewAngle = false;
+traceType = 'deconv';
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -34,6 +35,8 @@ if nargin > 1 || ~isempty(varargin)
                 whichFactors = varargin{argInd+1};
             case 'showviewangle'
                 showViewAngle = varargin{argInd+1};
+            case 'tracetype'
+                traceType = varargin{argInd+1};
         end
     end
 end
@@ -55,7 +58,7 @@ condSegTraces = cell(1,nConditions);
 condVA = cell(1,nConditions);
 for condInd = 1:nConditions
     [condSegTraces{condInd},~,~,~,~,~,~,~,condVA{condInd}] =...
-        extractSegmentTraces(condSub{condInd},'traceType','dffFactor',...
+        extractSegmentTraces(condSub{condInd},'traceType',traceType,...
         'whichFactor',whichFactorSet,'outputTrials',true);
     
     %subset factors and segment

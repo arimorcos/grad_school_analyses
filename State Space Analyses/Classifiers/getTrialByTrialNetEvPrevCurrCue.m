@@ -14,7 +14,8 @@ function out = getTrialByTrialNetEvPrevCurrCue(dataCell)
 %ASM 10/15
 
 %cluster
-[~,~,clusterIDs,~] = getClusteredMarkovMatrix(dataCell);
+[~,~,clusterIDs,~] = getClusteredMarkovMatrix(dataCell,...
+    'traceType','deconv');
 
 % get previous cue info 
 [~,~,~,trialInfo] = predictHistoryFromClusters(clusterIDs,dataCell,1);

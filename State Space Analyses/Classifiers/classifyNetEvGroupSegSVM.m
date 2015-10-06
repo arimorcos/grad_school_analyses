@@ -16,7 +16,7 @@ function classifierOut = classifyNetEvGroupSegSVM(dataCell,varargin)
 
 nShuffles = 100;
 shouldShuffle = false;
-traceType = 'dff';
+traceType = 'deconv';
 whichFactor = 2;
 range = [0.5 0.75];
 conditions = {'','result.leftTurn==1','result.leftTurn==0'};
