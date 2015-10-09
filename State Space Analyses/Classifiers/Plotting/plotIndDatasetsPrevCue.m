@@ -1,4 +1,4 @@
-function plotIndDatasetsPrevCue(folder,fileStr)
+function [acc, shuffleAcc] = plotIndDatasetsPrevCue(folder,fileStr)
 %plotIndDatasetsPrevCue.m Plots overlapping histograms for individual
 %datasets along with stats
 %
@@ -12,6 +12,7 @@ function plotIndDatasetsPrevCue(folder,fileStr)
 %ASM 10/15
 
 showCDF = true;
+groupAll = true;
 
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
@@ -28,8 +29,31 @@ for fileInd = 1:nFiles
     out{fileInd} = currFileData.out;
 end
 
-%% plot
+%% plot all datasets 
+if groupAll
 
+    allInter = cellfun(@(x) x.allInter,out,'uniformoutput',false);
+    allInter = cat(1,allInter{:});
+    
+    allIntra = cellfun(@(x) x.allIntra,out,'uniformoutput',false);
+    allIntra = cat(1,allIntra{:});
+    
+    %create figure
+    figH = figure;
+    axH = axes; 
+    
+    %beautify 
+    beautifyPlot(figH, axH);
+    
+    keyboard;
+    
+    
+    acc = [];
+    shuffleAcc = [];
+    return;
+end
+
+%% plot individual datasets 
 nRows = 4;
 nCol = 3;
 
@@ -48,7 +72,6 @@ for file = 1:nFiles
     xVals = [0, binEdges(1:end-1) + mean(diff(binEdges))];
     
     if showCDF
-        smooth = false;
         histIntraCounts = [0, histcounts(out{file}.allIntra, binEdges)];
         histInterCounts = [0, histcounts(out{file}.allInter, binEdges)];
         cdfIntra = cumsum(histIntraCounts)/sum(histIntraCounts);
@@ -56,6 +79,7 @@ for file = 1:nFiles
         plotIntra = plot(xVals, cdfIntra, 'LineWidth', 2);
         plotInter = plot(xVals, cdfInter, 'LineWidth', 2);
     else
+        smooth = false;
         histIntra = histoutline(out{file}.allIntra,binEdges,smooth,'Normalization','probability');
         histInter = histoutline(out{file}.allInter,binEdges,smooth,'Normalization','probability');
         uistack(histIntra,'top');
@@ -74,14 +98,14 @@ for file = 1:nFiles
     [~,p] = kstest2(out{file}.allIntra,out{file}.allInter);
     
     %calculate accuracy 
-    acc = sum(out{file}.allGuess == out{file}.allLabel)/length(out{file}.allLabel);
+    acc(file) = sum(out{file}.allGuess == out{file}.allLabel)/length(out{file}.allLabel);
     
     %calculate shuffled accuracy 
-    shuffleAcc = sum(out{file}.allGuessShuffle == out{file}.allLabelShuffle)/...
+    shuffleAcc{file} = sum(out{file}.allGuessShuffle == out{file}.allLabelShuffle)/...
         length(out{file}.allLabel);
     
     %get acc pval
-    accP = getPValFromShuffle(acc, shuffleAcc);
+    accP = getPValFromShuffle(acc(file), shuffleAcc{file});
     
     %plot
     textLow = text(axH.XLim(2)-0.02*range(axH.XLim),...
