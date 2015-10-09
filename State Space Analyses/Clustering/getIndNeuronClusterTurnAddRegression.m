@@ -1,13 +1,13 @@
 function out = getIndNeuronClusterTurnAddRegression(dataCell)
 %getIndNeuronClusterTurnAddRegression.m Performs regression using just the
 %cluster IDs, just the turn identity, or both to try to predict a given
-%neuron's activity 
+%neuron's activity
 %
 %INPUTS
-%dataCell - dataCell containing imaging data 
+%dataCell - dataCell containing imaging data
 %
 %OUTPUTS
-%out - stucture containing: 
+%out - stucture containing:
 %
 %
 %ASM 10/15
@@ -17,6 +17,7 @@ whichEpoch = 10;
 nShuffles = 100;
 clusterIndForEachNeuron = true;
 perc = 10;
+useGLM = false;
 
 if ~clusterIndForEachNeuron
     %cluster
@@ -31,23 +32,23 @@ switch lower(traceType)
         traces = catBinnedDeconvTraces(dataCell);
     case 'dff'
         [~,traces] = catBinnedTraces(dataCell);
-    otherwise 
+    otherwise
         error('Can''t interpret traceType: %s', traceType);
 end
 
-%get tracePoints 
+%get tracePoints
 tracePoints = getMazePoints(traces, dataCell{1}.imaging.yPosBins);
 
-%crop 
+%crop
 tracePoints = squeeze(tracePoints(:, whichEpoch, :));
 
 %get nNeurons
 nNeurons = size(tracePoints, 1);
 
-%get turn 
+%get turn
 leftTurn = getCellVals(dataCell, 'result.leftTurn');
 
-%initialize 
+%initialize
 % clusterR2 = nan(nNeurons,1);
 turnR2 = nan(nNeurons,1);
 bothR2 = nan(nNeurons,1);
@@ -55,10 +56,10 @@ shuffleR2 = nan(nNeurons, nShuffles);
 
 warning('off','stats:LinearModel:RankDefDesignMat');
 
-% loop thorugh each neuron 
+% loop thorugh each neuron
 for neuron = 1:nNeurons
     
-    %get neuron points 
+    %get neuron points
     neuronPoints = tracePoints(neuron,:)';
     
     if clusterIndForEachNeuron
@@ -68,31 +69,47 @@ for neuron = 1:nNeurons
     
     % perform regression for just cluster ids
     %     clusterModel = fitlm(cat(2, ones(size(clusterIDs)), clusterIDs),...
-%         neuronPoints, 'CategoricalVars',2);
+    %         neuronPoints, 'CategoricalVars',2);
     
-    % perform regression for just turn 
-    turnModel = fitlm(leftTurn, neuronPoints, 'CategoricalVars', 1);
+    % perform regression for just turn
+    if ~useGLM
+        turnModel = fitlm(leftTurn, neuronPoints, 'CategoricalVars', 1);
+    else
+        turnModel = fitlm(leftTurn, neuronPoints, 'CategoricalVars', 1,...
+            'link', 'logit', 'Distribution', 'Poisson');
+    end
     
-    %perform regression for both 
-    bothModel = fitlm(cat(2,clusterIDs, leftTurn'), neuronPoints, ...
-        'CategoricalVars',[1 2]);
+    %perform regression for both
+    if ~useGLM
+        bothModel = fitlm(cat(2,clusterIDs, leftTurn'), neuronPoints, ...
+            'CategoricalVars',[1 2]);
+    else
+        bothModel = fitlm(cat(2,clusterIDs, leftTurn'), neuronPoints, ...
+            'CategoricalVars',[1 2], 'Distribution', 'Poisson', 'link', 'logit');
+    end
     
     for shuffleInd = 1:nShuffles
-        bothModelShuffle = fitlm(cat(2,shuffleArray(clusterIDs), leftTurn'),...
-            neuronPoints, 'CategoricalVars',[1 2]);
+        if ~useGLM
+            bothModelShuffle = fitlm(cat(2,shuffleArray(clusterIDs), leftTurn'),...
+                neuronPoints, 'CategoricalVars',[1 2]);
+        else
+            bothModelShuffle = fitlm(cat(2,shuffleArray(clusterIDs), leftTurn'),...
+                neuronPoints, 'CategoricalVars',[1 2], 'Distribution', 'Poisson',...
+                'link', 'logit');
+        end
         shuffleR2(neuron,shuffleInd) = bothModelShuffle.Rsquared.Adjusted;
     end
     
-    %store 
-%     clusterR2(neuron) = clusterModel.Rsquared.Adjusted;
+    %store
+    %     clusterR2(neuron) = clusterModel.Rsquared.Adjusted;
     turnR2(neuron) = turnModel.Rsquared.Adjusted;
-    bothR2(neuron) = bothModel.Rsquared.Adjusted; 
+    bothR2(neuron) = bothModel.Rsquared.Adjusted;
     
     %display progress
     dispProgress('Neuron %d/%d',neuron,neuron,nNeurons);
 end
 
-%store 
+%store
 % out.clusterR2 = clusterR2;
 out.turnR2 = turnR2;
 out.bothR2 = bothR2;
