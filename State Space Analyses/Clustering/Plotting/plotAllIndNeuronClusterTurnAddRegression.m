@@ -119,6 +119,7 @@ histShuffle = histoutline(shufflePVal, binEdges, smooth, 'Normalization', 'proba
 uistack(histReal,'top');
 histReal.LineWidth = 2;
 histShuffle.LineWidth = 2;
+histShuffle.Color = repmat(0.7, 3, 1);
 beautifyPlot(figH, axH);
 
 %label
