@@ -18,7 +18,7 @@ function stats = getClusterStats(dataCell,varargin)
 %ASM 8/15
 
 traceType = 'deconv';
-zThresh = [0 0.25 0.5 0.75 1];
+zThresh = [0:0.1:1];
 range = [0.5 0.75];
 perc = 10;
 clusterIDs = [];
@@ -52,11 +52,11 @@ end
 
 nPoints = 10;
 
-if ~isempty(clusterIDs) && ~isempty(cMat)
+if isempty(clusterIDs) && isempty(cMat)
     [~,cMat,clusterIDs,~] = getClusteredMarkovMatrix(dataCell,...
         'perc',perc,'range',range,'tracetype',traceType);
 end
-if ~isempty(oneClusterIDs)
+if isempty(oneClusterIDs)
     [~,~,oneClusterIDs,~] = getClusteredMarkovMatrix(dataCell,...
         'perc',perc,'range',range,'tracetype',traceType,'oneclustering',true);
 end
@@ -109,6 +109,7 @@ fracSameCluster = cellfun(@(x) sum(x)/length(x),fracSame);
 
 %get the fraction of the time two neurons are in the same cluster at one
 %   point that they are at a later point as well
+warning('off','ALLCOMB:EmptyInput');
 fracStillTogether = cell(2*nPoints - 1, nThresh);
 for threshInd = 1:nThresh
     for startPoint = 1:nPoints

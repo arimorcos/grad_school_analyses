@@ -6,6 +6,7 @@ function plotMultipleClusteredHistAccuracy(folder,fileStr)
 
 accMode = true;
 useSlope = false;
+whichAcc = 'corr';
 
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
@@ -58,6 +59,19 @@ axH.XLabel.String = 'Dataset';
 axH.YLabel.String = 'History Classification Accuracy';
 axH.XLim = [0.5 1.5];
 
+%% change accuracy if necessary 
+switch whichAcc
+    case 'cluster'
+    case 'corr'
+        loadData = load('/Users/arimorcos/Data/Analyzed Data/151008_prevCueCorr/Not controlled prevTUrn/allMice_corr_prevCueAcc.mat');
+        allAcc = loadData.acc;
+        allAcc = allAcc/100;
+    case 'cosine'
+        loadData = load('/Users/arimorcos/Data/Analyzed Data/151008_prevCueCorr/Not controlled prevTUrn/allMice_cosine_prevCueAcc.mat');
+        allAcc = loadData.acc;
+        allAcc = allAcc/100;
+end
+
 
 %% plot nSTD
 % load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\singleSegNSTD.mat');
@@ -96,6 +110,14 @@ if accMode
     scatH.SizeData = 150;
     
     beautifyPlot(figH,axB);
+    
+    %add trendline
+    lm = fitlm(100*allAcc, singleSegAcc);
+    xPred = linspace(axB.XLim(1), axB.XLim(2), 100)';
+    yPred = predict(lm, xPred);
+    trendH = plot(xPred, yPred);
+    trendH.Color = lines(1);
+    
     corr = corrcoef(allAcc,singleSegAcc);
     shuffleCorr = nan(1000,1);
     for i = 1:1000
@@ -159,6 +181,15 @@ if accMode
     scatH.SizeData = 150;
     
     beautifyPlot(figH,axB);
+        
+    %add trendline
+    lm = fitlm(singleSegAcc, slope);
+    xPred = linspace(axB.XLim(1), axB.XLim(2), 100)';
+    yPred = predict(lm, xPred);
+    trendH = plot(xPred, yPred);
+    trendH.Color = lines(1);
+    
+    
     corr = corrcoef(singleSegAcc,slope);
     shuffleCorr = nan(1000,1);
     for i = 1:1000
@@ -167,7 +198,11 @@ if accMode
     end
     shuffleCorr = sort(shuffleCorr);
     pVal = 1 - find(corr(1,2) >= shuffleCorr,1,'last')/1000;
-    axB.YLabel.String = 'Net evidence slope';
+    if useSlope
+        axB.YLabel.String = 'Net evidence slope';
+    else
+        axB.YLabel.String = 'Net evidence correlation';
+    end
     axB.XLabel.String = 'Current cue accuracy';
     textH = text(axB.XLim(1) + 0.02*range(axB.XLim),axB.YLim(2)-0.02*range(axB.YLim),...
         sprintf('r = %.3f',corr(1,2)));
@@ -182,7 +217,11 @@ else
     
     beautifyPlot(figH,axB);
     [corr,pVal] = corrcoef(nSTD,slope);
-    axB.YLabel.String = 'Net Evidence Slope';
+    if useSlope
+        axB.YLabel.String = 'Net evidence slope';
+    else
+        axB.YLabel.String = 'Net evidence correlation';
+    end
     axB.XLabel.String = 'First Segment Accuracy (std)';
     textH = text(axB.XLim(1) + 0.02*range(axB.XLim),axB.YLim(2)-0.02*range(axB.YLim),...
         sprintf('r = %.3f',corr(1,2)));
@@ -192,11 +231,28 @@ else
 end
 
 %% plot slope
-if strcmpi(computer, 'MACI64') 
-    load('/Users/arimorcos/Data/Analyzed Data/150728_clusteredHistAcc/netEvSlope.mat');
+if useSlope 
+    if strcmpi(computer, 'MACI64')
+        load('/Users/arimorcos/Data/Analyzed Data/150824_oldDeconv_smooth10_SVM/netEvSVR_slope.mat');
+    else
+        load('D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM\netEvSVR_slope.mat');
+    end
+    slope = slopeNetEv;
 else
-    load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\netEvSlope.mat');
+    if strcmpi(computer, 'MACI64')
+        load('/Users/arimorcos/Data/Analyzed Data/150824_oldDeconv_smooth10_SVM/netEVSVR_corrCoef.mat');
+    else
+        load('D:\DATA\Analyzed Data\150824_oldDeconv_smooth10_SVM\netEVSVR_corrCoef.mat');
+    end
+    slope = corrCoefNetEv;
 end
+
+
+% if strcmpi(computer, 'MACI64') 
+%     load('/Users/arimorcos/Data/Analyzed Data/150728_clusteredHistAcc/netEvSlope.mat');
+% else
+%     load('D:\DATA\Analyzed Data\150728_clusteredHistAcc\netEvSlope.mat');
+% end
 axB = subplot(2,2,4);
 hold(axB,'on');
 
@@ -206,6 +262,15 @@ if accMode
     scatH.MarkerFaceColor = [0.7 0.7 0.7];
     scatH.SizeData = 150;
     beautifyPlot(figH,axB);
+    
+    %add trendline
+    lm = fitlm(100*allAcc, slope);
+    xPred = linspace(axB.XLim(1), axB.XLim(2), 100)';
+    yPred = predict(lm, xPred);
+    trendH = plot(xPred, yPred);
+    trendH.Color = lines(1);
+    
+    
     corr = corrcoef(100*allAcc,slope);
     shuffleCorr = nan(1000,1);
     for i = 1:1000
@@ -214,7 +279,11 @@ if accMode
     end
     shuffleCorr = sort(shuffleCorr);
     pVal = 1 - find(corr(1,2) >= shuffleCorr,1,'last')/1000;
-    axB.YLabel.String = 'Net evidence slope';
+    if useSlope
+        axB.YLabel.String = 'Net evidence slope';
+    else 
+        axB.YLabel.String = 'Net evidence correlation';
+    end
     axB.XLabel.String = 'Previous cue accuracy';
     textH = text(axB.XLim(1) + 0.02*range(axB.XLim),axB.YLim(2)-0.02*range(axB.YLim),...
         sprintf('r = %.3f',corr(1,2)));
@@ -228,7 +297,11 @@ else
     scatH.SizeData = 150;
     beautifyPlot(figH,axB);
     [corr,pVal] = corrcoef(allNSTD,slope);
-    axB.YLabel.String = 'Net Evidence Slope';
+    if useSlope
+        axB.YLabel.String = 'Net evidence slope';
+    else
+        axB.YLabel.String = 'Net evidence correlation';
+    end
     axB.XLabel.String = 'History Accuracy (std)';
     textH = text(axB.XLim(1) + 0.02*range(axB.XLim),axB.YLim(2)-0.02*range(axB.YLim),...
         sprintf('r = %.3f',corr(1,2)));

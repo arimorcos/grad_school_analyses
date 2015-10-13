@@ -12,7 +12,7 @@ function plotClusterHistograms(clusterIDs, whichPlot, thresh)
 nBins = 4;
 
 if nargin < 3 || isempty(thresh)
-    thresh = 35;
+    thresh = 25;
 end
 if nargin < 2 || iesmpty(whichPlot)
     whichPlot = 1:size(clusterIDs,2);
