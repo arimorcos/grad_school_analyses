@@ -18,6 +18,10 @@ allTraces = cat(1,croppedTraces{:});
 [~,sortOrder] = sort(maxInd);
 allTraces = allTraces(sortOrder,:);
 
+%cutoff 
+cutoff = 3;
+allTraces(allTraces > cutoff) = cutoff;
+
 
 %plot 
 figH = plotSequences({allTraces},seqInfo{ind}.bins,...

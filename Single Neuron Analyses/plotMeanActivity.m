@@ -16,6 +16,7 @@ end
 
 segRanges = 0:80:480;
 normAct = true;
+zScoreAct = false;
 
 %cmScale
 cmScale = 0.75;
@@ -48,6 +49,9 @@ if normAct
     end
     traces = traces/max(traces(:));
 end
+% if zScoreAct
+%     traces = zScoreTraces(traces);
+% end
 
 %get number of plots
 nPlots = length(conditions);
@@ -63,6 +67,8 @@ meanActivity = nan(nPlots,size(traces,2));
 semActivity = nan(nPlots,size(traces,2));
 
 ha = tight_subplot(nRows, nCol, 0.02, 0.04, 0.01);
+
+colormap(hot);
 
 for plotInd = 1:nPlots
     %     axH = subplot_tight(nRows,nCol,plotInd,[0.04 0.04]);

@@ -12,13 +12,15 @@ function figH = plotDFFVsNetEv(dataCell,varargin)
 
 traceType = 'dff';
 sepSeg = false;
-range = [0.5 0.75];
+% range = [0.5 0.75];
+range = [0 1];
 nCellsToPlot = 5;
 cellID = [];
 shouldNorm = false;
 shouldVis = 'on';
 figH = [];
 axH = [];
+combineDelay = true;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -45,19 +47,35 @@ if nargin > 1 || ~isempty(varargin)
                 figH = varargin{argInd+1};
             case 'axh' 
                 axH = varargin{argInd+1};
+            case 'combinedelay'
+                combineDelay = varargin{argInd+1};
         end
     end
 end
 
 %extract segment traces
-[segTraces,~,netEv,segNum,~,~] = extractSegmentTraces(dataCell,'usebins',true,...
-    'tracetype',traceType);
+[segTraces,~,netEv,segNum,~,~,delayTraces] = extractSegmentTraces(dataCell,'usebins',true,...
+    'tracetype',traceType,'getDelay',true);
+
+netEv = netEv(~isnan(segNum));
+if combineDelay 
+    seg6Traces = segTraces(:,:,segNum==6);
+    seg6AndDelayTraces = cat(2,seg6Traces, delayTraces);
+    nBins = size(segTraces,2);
+    edges = round(linspace(1,size(seg6AndDelayTraces,2),nBins+1));
+    tempTraces = nan(size(seg6Traces));
+    for bin = 1:nBins
+        tempTraces(:,bin,:) = mean(seg6AndDelayTraces(:,edges(bin):edges(bin+1),:),2);
+    end
+    segTraces(:,:,segNum==6) = tempTraces;
+end
+% keyboard
 
 %get nNeurons
 [nNeurons,nBinsPerSeg,~] = size(segTraces);
 
 %take mean of each segment trace across range
-meanBinRange = round(range*nBinsPerSeg);
+meanBinRange = max(1,round(range*nBinsPerSeg));
 segTraces = mean(segTraces(:,meanBinRange(1):meanBinRange(2),:),2);
 
 %get unique net evidence conditions
@@ -65,7 +83,7 @@ uniqueNetEv = unique(netEv);
 nNetEv = length(uniqueNetEv);
 
 %get nSeg
-nSeg = length(unique(segNum));
+nSeg = length(unique(segNum(~isnan(segNum))));
 
 if sepSeg %if treating each segment individually
     
@@ -179,6 +197,7 @@ else %if grouping all segments together
     ylabel(yLabStr,'FontSize',30);
     xlim([-nSeg nSeg]);
     beautifyPlot(figH,axH);
+    axH.XTick = -nSeg:2:nSeg;
     axH.XTickLabel = {'6R','4R','2R','0','2L','4L','6L'};
     
 end

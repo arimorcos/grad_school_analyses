@@ -48,6 +48,7 @@ nTraces = length(traces);
 allData = cat(1,traces{:});
 cLims = [min(allData(:)) max(allData(:))];
 
+colormap(hot);
 
 %loop and create subplots
 for i = 1:nTraces
@@ -84,8 +85,6 @@ for i = 1:nTraces
         title(traceLabels{i});
         
     end
-
-    
     
     %square
     axis square;

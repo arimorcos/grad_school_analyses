@@ -14,8 +14,8 @@ function [acc, shuffleAcc] = plotIndDatasetsPrevCue(folder,fileStr)
 %ASM 10/15
 
 showCDF = true;
-groupAll = true;
-showAcc = true;
+groupAll = false;
+showAcc = false;
 
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
