@@ -1,11 +1,12 @@
 %saveFolder
-saveFolder = 'D:\DATA\Analyzed Data\150925_vogel_singleNeuronSVM_crossval';
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/151013_vogel_singleNeuronSVM_boot';
 
 %get list of datasets
 procList = getProcessedList();
 nDataSets = length(procList);
-nShuffles = 1;
-kfold = 10;
+nShuffles = 0;
+kfold = 1;
+nBoots = 20;
 
 %get deltaPLeft
 for dSet = 1:nDataSets
@@ -53,10 +54,24 @@ for dSet = 1:nDataSets
     shuffleAccuracy = nan(nShuffles,nBins,nNeurons);
     
     for neuronInd = 1:nNeurons
-        % classify
-        [accuracy(neuronInd,:),shuffleAccuracy(:,:,neuronInd)] = classifyAndShuffle(deconvTraces(neuronInd,:,:),...
-            leftTurns,{'accuracy','shuffleAccuracy'},...
-            'nshuffles',nShuffles,'silent',true,'kfold',kfold);
+        if nShuffles > 0
+            % classify
+            [accuracy(neuronInd,:),shuffleAccuracy(:,:,neuronInd)] = classifyAndShuffle(deconvTraces(neuronInd,:,:),...
+                leftTurns,{'accuracy','shuffleAccuracy'},...
+                'nshuffles',nShuffles,'silent',true,'kfold',kfold);
+        else
+            if nBoots > 0
+                tempAcc = nan(nBoots, nBins);
+                for bootInd = 1:nBoots
+                    tempAcc(bootInd, :) = getSVMAccuracy(deconvTraces(neuronInd,:,:),...
+                        leftTurns, 'kfold', kfold);
+                end
+                accuracy(neuronInd,:) = mean(tempAcc);
+            else
+                accuracy(neuronInd,:) = getSVMAccuracy(deconvTraces(neuronInd,:,:),...
+                    leftTurns, 'kfold', kfold);
+            end
+        end
         
         dispProgress('Upcoming turn deconv: neuron %d/%d',neuronInd,neuronInd,nNeurons);
     end
@@ -78,14 +93,14 @@ for dSet = 1:nDataSets
 %     save(saveName,'classifierOut');
 %     
     %% net evidence deconv
-    classifierOut = cell(nNeurons,1);
-    for neuronInd = 1:nNeurons
-        classifierOut{neuronInd} = classifyNetEvGroupSegSVM(imTrials,'nShuffles',nShuffles,...
-            'traceType','deconv','whichNeurons',neuronInd,'shouldShuffle',true,'kfold',kfold);
-        
-        dispProgress('Net evidence deconv: neuron %d/%d',neuronInd,neuronInd,nNeurons);
-    end
-    
-    saveName = fullfile(saveFolder,sprintf('%s_%s_netEvSVR_deconv.mat',procList{dSet}{:}));
-    save(saveName,'classifierOut');    
+%     classifierOut = cell(nNeurons,1);
+%     for neuronInd = 1:nNeurons
+%         classifierOut{neuronInd} = classifyNetEvGroupSegSVM(imTrials,'nShuffles',nShuffles,...
+%             'traceType','deconv','whichNeurons',neuronInd,'shouldShuffle',true,'kfold',kfold);
+%         
+%         dispProgress('Net evidence deconv: neuron %d/%d',neuronInd,neuronInd,nNeurons);
+%     end
+%     
+%     saveName = fullfile(saveFolder,sprintf('%s_%s_netEvSVR_deconv.mat',procList{dSet}{:}));
+%     save(saveName,'classifierOut');    
 end
