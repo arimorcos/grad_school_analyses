@@ -148,8 +148,8 @@ meanMeanShuffle = nanmean(plotShuffleOffDiag(:));
 %plot bar 
 barData = cat(2,meanDiag,meanOffDiag,meanMeanShuffle);
 barError = cat(2,semDiag,semOffDiag,semShuffle);
-barData = repmat(barData,2,1);
-barError = repmat(barError,2,1);
+% barData = repmat(barData,2,1);
+% barError = repmat(barError,2,1);
 [barH,errH] = barwitherr(barError,barData);
 
 % hold(axH,'on');
@@ -162,9 +162,9 @@ colors = lines(3);
 % barDiag.FaceColor = colors(1,:);
 % barOffDiag.FaceColor = colors(2,:);
 % barShuffle.FaceColor = colors(3,:);
-barH(1).FaceColor = colors(1,:);
-barH(2).FaceColor = colors(2,:);
-barH(3).FaceColor = colors(3,:);
+% barH(1).FaceColor = colors(1,:);
+% barH(2).FaceColor = colors(2,:);
+% barH(3).FaceColor = colors(3,:);
 
 %add significance 
 sig = nan(3,1);
@@ -188,7 +188,7 @@ end
 beautifyPlot(figH,axH);
 
 %crop
-axH.XLim(2) = 1.4;
+% axH.XLim(2) = 1.4;
 
 %label 
 axH.XLabel.String = '';

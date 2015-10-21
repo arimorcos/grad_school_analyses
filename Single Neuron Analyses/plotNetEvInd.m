@@ -4,15 +4,15 @@ axH = axes;
 hold(axH,'on');
 
 %plot
-minVal = min(cat(1,netEvIndAll,shuffleNetEvIndAll));
-maxVal = max(cat(1,netEvIndAll,shuffleNetEvIndAll));
+minVal = min(cat(1,netEvIndAll,shuffleNetEvIndAll(:,1)));
+maxVal = max(cat(1,netEvIndAll,shuffleNetEvIndAll(:,1)));
 nBins = 30;
 binEdges = linspace(minVal,maxVal,nBins+1);
 
 %outline version
 smooth = false;
 histReal = histoutline(netEvIndAll,binEdges,smooth,'Normalization','probability');
-histShuffle = histoutline(shuffleNetEvIndAll,binEdges,smooth,'Normalization','probability');
+histShuffle = histoutline(shuffleNetEvIndAll(:,1),binEdges,smooth,'Normalization','probability');
 uistack(histReal,'top');
 histReal.LineWidth = 2;
 histShuffle.LineWidth = 2;

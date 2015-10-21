@@ -17,6 +17,7 @@ end
 segRanges = 0:80:480;
 normAct = true;
 zScoreAct = false;
+capAct = 0.8;
 
 %cmScale
 cmScale = 0.75;
@@ -49,6 +50,11 @@ if normAct
     end
     traces = traces/max(traces(:));
 end
+
+if ~isempty(capAct)
+    traces(traces > capAct) = capAct;
+    traces = traces/max(traces(:));
+end
 % if zScoreAct
 %     traces = zScoreTraces(traces);
 % end
@@ -68,13 +74,15 @@ semActivity = nan(nPlots,size(traces,2));
 
 ha = tight_subplot(nRows, nCol, 0.02, 0.04, 0.01);
 
-colormap(hot);
+% load('whiteBlue.mat')
+% colormap(whiteBlue);
+colormap(parula);
 
 for plotInd = 1:nPlots
     %     axH = subplot_tight(nRows,nCol,plotInd,[0.04 0.04]);
     axH = ha(plotInd);
     axes(axH);
-    
+  
     %get trials which match condition
     matchTrials = findTrials(useCell,conditions{plotInd});
     

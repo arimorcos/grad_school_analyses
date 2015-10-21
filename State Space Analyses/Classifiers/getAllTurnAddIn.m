@@ -16,7 +16,7 @@ for dSet = 1:nDataSets
     loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
     %get sort order 
-    loadStr = sprintf('D:\\DATA\\Analyzed Data\\150906_singleNeuronSVM_vogel\\%s_%s_upcomingTurn_deconv.mat',procList{dSet}{:});
+    loadStr = sprintf('D:\\DATA\\Analyzed Data\\151013_vogel_singleNeuronSVMs_boot\\%s_%s_upcomingTurn_deconv.mat',procList{dSet}{:});
     load(loadStr);
     maxAcc = max(accuracy,[],2);
     [~,sortOrder] = sort(maxAcc);

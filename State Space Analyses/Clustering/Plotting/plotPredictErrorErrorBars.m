@@ -1,27 +1,28 @@
 function handles = plotPredictErrorErrorBars(folder,fileStr,nBins)
 %plotPredictErrorErrorBars.m Plots multiple clustered behavioral
-%distributions from folder with error bars 
+%distributions from folder with error bars
 %
-%INPUTS 
-%folder - path to folder 
-%fileStr - string to match files to 
+%INPUTS
+%folder - path to folder
+%fileStr - string to match files to
 %
 %OUTPUTS
-%handles - structure of handles 
+%handles - structure of handles
 %
 %ASM 10/15
 if nargin < 3 || isempty(nBins)
     nBins = 10;
 end
+plotShuffle = false;
 
-%get list of files in folder 
+%get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
 files = allNames(~isDirs);
 
-%match string 
+%match string
 matchFiles = files(~cellfun(@isempty,regexp(files,fileStr)));
 
-%loop through each file and create array 
+%loop through each file and create array
 nFiles = length(matchFiles);
 out = cell(nFiles,1);
 for fileInd = 1:nFiles
@@ -29,19 +30,19 @@ for fileInd = 1:nFiles
     out{fileInd} = currFileData.out;
 end
 
-%% calculate significance 
+%% calculate significance
 
 %sum real differences across all datasets
 totalSummedDiff = sum(cellfun(@(x) x.realSummedDiff,out));
 
-%sum shuffled differences across all datasets 
+%sum shuffled differences across all datasets
 shuffledDiff = cellfun(@(x) x.shuffledSummedDiff',out,'uniformoutput',false);
 totalShuffleDiff = sum(cat(1,shuffledDiff{:}));
 
-%get pvalue 
+%get pvalue
 pVal = getPValFromShuffle(totalSummedDiff, totalShuffleDiff);
 
-%display 
+%display
 fprintf('P value <= %.3f \n', pVal);
 
 %% get values and bin
@@ -53,7 +54,7 @@ allShuffleError = nan(nFiles*nShuffles, nBins);
 
 for file = 1:nFiles
     
-    %get error count and unique count 
+    %get error count and unique count
     errorCount = out{file}.errorCount;
     uniqueCount = out{file}.uniqueCount;
     
@@ -67,12 +68,12 @@ for file = 1:nFiles
     nClusters = length(errorCount);
     edges = round(linspace(1,nClusters,nBins+1));
     
-    %average across each 
+    %average across each
     for bin = 1:nBins
         binError = sum(errorCount(edges(bin):edges(bin+1)));
         binUnique = sum(uniqueCount(edges(bin):edges(bin+1)));
         fracError(file,bin) = binError/binUnique;
-    end    
+    end
     
     % perform averaging for each shuffle
     for shuffle = 1:nShuffles
@@ -113,18 +114,19 @@ errH.edge(1).Color = colors(1,:);
 errH.edge(2).Color = colors(1,:);
 
 %plot shuffle
-meanShuffle = mean(allShuffleError);
-semShuffle = calcSEM(allShuffleError);
-xVals = 1:nBins;
-errH = shadedErrorBar(xVals,meanShuffle,semShuffle);
-errH.mainLine.Color = colors(2,:);
-errH.patch.FaceColor = colors(2,:);
-errH.patch.FaceAlpha = 0.3;
-errH.edge(1).Color = colors(2,:);
-errH.edge(2).Color = colors(2,:);
+if plotShuffle
+    meanShuffle = mean(allShuffleError);
+    semShuffle = calcSEM(allShuffleError);
+    xVals = 1:nBins;
+    errH = shadedErrorBar(xVals,meanShuffle,semShuffle);
+    errH.mainLine.Color = colors(2,:);
+    errH.patch.FaceColor = colors(2,:);
+    errH.patch.FaceAlpha = 0.3;
+    errH.edge(1).Color = colors(2,:);
+    errH.edge(2).Color = colors(2,:);
+end
 
-
-% %plot chance line 
+% %plot chance line
 % chanceH = line([1 nBins],[totalErrorRate, totalErrorRate]);
 % chanceH.Color = 'k';
 % chanceH.LineStyle = '--';

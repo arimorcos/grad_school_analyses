@@ -16,7 +16,7 @@ function handles = plotMultipleClassifiersFromFolder(folder,fileStr,yLab,plotTyp
 
 cmScale = 0.75;
 segRanges = cmScale*(0:80:480);
-showLegend = false;
+showLegend = true;
 plotError = false;
 
 if nargin < 5 || isempty(maxValue)

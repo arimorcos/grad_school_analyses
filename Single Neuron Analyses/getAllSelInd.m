@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150907_vogel_deconv_selInd_seq';
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/150907_vogel_deconv_selInd_seq';
 
 %get list of datasets 
 procList = getProcessedList();
@@ -12,7 +12,7 @@ for dSet = 1:nDataSets
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
     
     %load in data
-    loadProcessed(procList{dSet}{:});
+    loadProcessed(procList{dSet}{:},[],'vogel_noSmooth');
     
     %get sequence info 
     selIndAll{dSet} = getSelectivityIndex(imTrials);

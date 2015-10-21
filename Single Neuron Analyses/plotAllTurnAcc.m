@@ -18,6 +18,8 @@ histReal.LineWidth = 2;
 histShuffle.LineWidth = 2;
 histShuffle.Color = [0.7 0.7 0.7];
 
+axH.XLim = [minVal maxVal];
+
 %beautify
 beautifyPlot(figH,axH);
 

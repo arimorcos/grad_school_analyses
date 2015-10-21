@@ -62,7 +62,7 @@ if nargout > 0
     %shuffle 
     shuffleOffDiag = nan(nShuffles,nPoints);
     shuffleDiag = nan(nShuffles,nPoints);
-    parfor shuffleInd = 1:nShuffles
+    for shuffleInd = 1:nShuffles
         shuffleIndex = calculateClusterOverlap(dataCell,clusterIDs,cMat,'sortBy',...
             sortBy,'zThresh',zThresh,'shouldShuffle',true);
         for point = 1:nPoints

@@ -15,7 +15,7 @@ function stats = getTransientStats(dataCell,varargin)
 %
 %ASM 10/14
 
-shouldSmooth = true;
+shouldSmooth = false;
 smoothLength = 3;
 traceType = 'dFF';
 segRange = [0 480];
@@ -65,6 +65,9 @@ for trialInd = 1:nTrials
             tempTrace = dataCell{trialInd}.imaging.dFFTraces{1};
         case 'DGR'
             tempTrace = dataCell{trialInd}.imaging.dGRTraces{1};
+        case 'DECONV'
+            tempTrace = dataCell{trialInd}.imaging.deconvTrace{1};
+            tempTrace(tempTrace < 0.01) = 0;
     end
     
     %smooth each neuron

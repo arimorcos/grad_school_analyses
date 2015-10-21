@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = 'D:\DATA\Analyzed Data\150611_clusteredBehavior';
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/151013_vogel_netEvBehavDist';
 
 %get list of datasets 
 procList = getProcessedList();
@@ -11,18 +11,21 @@ for dSet = 1:nDataSets
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
     
     %load in data
-    loadProcessed(procList{dSet}{:});
+    loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
     %cluster 
     [~,~,clusterIDs,~] = getClusteredMarkovMatrix(imTrials);
     
     %get leftTurns
-    leftTurns = getCellVals(imTrials,'result.leftTurn');
+%     leftTurns = getCellVals(imTrials,'result.leftTurn');
+    netEv = getNetEvidence(imTrials);
     
     %get behavioral distribution
-    out = clusterBehavioralDistribution(clusterIDs(:,10),leftTurns);    
+    for i = 2:7
+        out{i-1} = clusterBehavioralDistribution(clusterIDs(:,i),netEv(:,i-1));
+    end
     
     %save 
-    saveName = fullfile(saveFolder,sprintf('%s_%s_clusterBehavDist.mat',procList{dSet}{:}));
+    saveName = fullfile(saveFolder,sprintf('%s_%s_netEvClusterBehavDist.mat',procList{dSet}{:}));
     save(saveName,'out');
 end

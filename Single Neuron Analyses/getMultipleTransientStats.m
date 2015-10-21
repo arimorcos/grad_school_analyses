@@ -38,11 +38,11 @@ for mouseInd = 1:nMice
 %     load(filePath,'imTrials');
     
     dataCell = loadBehaviorData(mice{mouseInd},dates{mouseInd});
-    dataCell = thresholdDataCell(dataCell);
+%     dataCell = thresholdDataCell(dataCell);
     imTrials = getTrials(dataCell,'imaging.imData==1;maze.crutchTrial==0');
     
     %get stats
-    allStats(mouseInd) = getTransientStats(imTrials);
+    allStats(mouseInd) = getTransientStats(imTrials,'traceType','deconv');
     
 end
 

@@ -20,10 +20,11 @@ for mouseInd = 1:nMice
     %predict error
     [handles,errorMat{mouseInd},out] = predictError({leftTrials, rightTrials},...
         'clusterperc', clusterPerc, 'handles', handles, 'showNTrials',...
-        false, 'showPValue', false,'tracetype','deconv');
+        false, 'showPValue', false,'tracetype','dFF');
     
     %save 
-    saveFolder = '/Users/arimorcos/Data/Analyzed Data/150908_vogel_first4Same';
+%     saveFolder = '/Users/arimorcos/Data/Analyzed Data/150908_vogel_first4Same';
+    saveFolder = '/Users/arimorcos/Data/Analyzed Data/151015_predictError_dFF';
     saveName = fullfile(saveFolder,sprintf('%s_%s_mazeStartError.mat',procList{mouseInd}{:}));
     save(saveName,'out');
    

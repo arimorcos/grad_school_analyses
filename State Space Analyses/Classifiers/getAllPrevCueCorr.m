@@ -1,5 +1,5 @@
 %saveFolder 
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/151008_prevCueCorr/Controlled prevTurn';
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/151015_prevCueCorr_dfFF';
 
 %get list of datasets 
 procList = getProcessedList();
@@ -21,7 +21,8 @@ for dSet = 1:nDataSets
     %% cosine
     % get prevCueCorr
     out = calcPrevCueCorr(imTrials,'useCosine',true, ...
-        'controlPrevTurn', controlPrevTurn, 'intraOnlyPrevTurn',intraOnlyPrevTurn);
+        'controlPrevTurn', controlPrevTurn, 'intraOnlyPrevTurn',intraOnlyPrevTurn,...
+        'traceType','dff');
     
     %save 
     saveName = fullfile(saveFolder,sprintf(....
@@ -32,7 +33,8 @@ for dSet = 1:nDataSets
     %% corr 
     % get prevCueCorr
     out = calcPrevCueCorr(imTrials,'useCosine',false, ...
-        'controlPrevTurn',controlPrevTurn,'intraOnlyPrevTurn', intraOnlyPrevTurn);
+        'controlPrevTurn',controlPrevTurn,'intraOnlyPrevTurn', intraOnlyPrevTurn,...
+        'tracetype','dff');
     
     %save 
     saveName = fullfile(saveFolder,sprintf(....

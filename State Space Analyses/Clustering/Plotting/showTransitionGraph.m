@@ -54,6 +54,8 @@ if nargin > 1 || ~isempty(varargin)
         switch lower(varargin{argInd})
             case 'sizescale'
                 sizeScale = varargin{argInd+1};
+            case 'totalwidth'
+                totalWidth = varargin{argInd+1};
             case 'pointlabels'
                 pointLabels = varargin{argInd+1};
             case 'colorby'
