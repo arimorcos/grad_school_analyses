@@ -80,4 +80,7 @@ for trialInd = 1:nTrials
     end
     
 end
+
+dataCell{1}.imaging.filterDFFTrace = dataCell{1}.imaging.completeDFFTrace(shouldKeep,:);
+dataCell{1}.imaging.filterDeconvTrace = dataCell{1}.imaging.completeDeconvTrace(shouldKeep,:);
         
