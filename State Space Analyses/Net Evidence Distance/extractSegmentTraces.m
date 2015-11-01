@@ -268,6 +268,8 @@ switch lower(traceType)
         traces = dataCell{trialInd}.imaging.projDFF{whichFactor}(:,segIndicesToUse);
     case 'dgrfactor'
         traces = dataCell{trialInd}.imaging.projDGR{1}{whichFactor}(:,segIndicesToUse);
+    case 'behavior'
+        traces = dataCell{trialInd}.imaging.dataFrames{1}(2:6,segIndicesToUse);
     otherwise
         error('Cannot process trace type');
 end

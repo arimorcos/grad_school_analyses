@@ -21,13 +21,32 @@ useBehavior = false;
 shuffleInitial = false;
 perc = 10;
 whichNeurons = [];
-traceType = 'dFF';
+traceType = 'deconv';
+filterAutoCorr = false;
+filterAutoCorrThresh = 0.05;
+filterAutoCorrLag = 2;
+filterAutoCorrRemoveRandom = false;
+binarize = false;
+binarizeThresh = 0.5;
+
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
         error('Must provide a name and value for each argument');
     end
     for argInd = 1:2:length(varargin) %for each argument
         switch lower(varargin{argInd})
+            case 'binarize'
+                binarize = varargin{argInd+1};
+            case 'binarizethresh'
+                binarizeThresh = varargin{argInd+1};
+            case 'filterautocorrremoverandom'
+                filterAutoCorrRemoveRandom = varargin{argInd+1};
+            case 'filterautocorr'
+                filterAutoCorr = varargin{argInd+1};
+            case 'filterautocorrthresh'
+                filterAutoCorrThresh = varargin{argInd+1};
+            case 'filterautocorrlag'
+                filterAutoCorrLag = varargin{argInd+1};
             case 'nshuffles'
                 nShuffles = varargin{argInd+1};
             case 'usebehavior'
@@ -85,7 +104,36 @@ nRightTrials = size(rightTraces,3);
 
 leftPoints = getMazePoints(leftTraces,yPosBins);
 rightPoints = getMazePoints(rightTraces,yPosBins);
+allPoints = getMazePoints(cat(3,leftTraces,rightTraces),yPosBins);
 nPoints = size(leftPoints,2);
+
+%%%%%%%%%% Filter based on auto corr 
+if filterAutoCorr
+    
+    %get auto corr 
+    autoCorr = calcEpochAutoCorr(allPoints);
+    
+    %crop to appropriate lag 
+    autoCorr = autoCorr(:,11-filterAutoCorrLag);
+    
+    %get neurons to keep 
+    keepInd = autoCorr <= filterAutoCorrThresh;
+    if filterAutoCorrRemoveRandom
+        keepInd = shuffleArray(keepInd);
+    end
+    
+    %filter 
+    leftPoints = leftPoints(keepInd,:,:);
+    rightPoints = rightPoints(keepInd,:,:);
+    
+end
+
+if binarize
+    leftPoints(leftPoints >= binarizeThresh) = 1;
+    leftPoints(leftPoints < binarizeThresh) = 0;
+    rightPoints(rightPoints >= binarizeThresh) = 1;
+    rightPoints(rightPoints < binarizeThresh) = 0;
+end
 
 %%%%%%%%%%%% cluster 
 
