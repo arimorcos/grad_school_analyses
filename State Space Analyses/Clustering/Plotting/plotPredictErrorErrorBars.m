@@ -13,7 +13,8 @@ function handles = plotPredictErrorErrorBars(folder,fileStr,nBins)
 if nargin < 3 || isempty(nBins)
     nBins = 10;
 end
-plotShuffle = false;
+plotShuffle = true;
+subtractShuffle = true;
 
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
@@ -103,8 +104,14 @@ hold(handles.ax,'on');
 
 colors = lines(2);
 
-meanVals = mean(fracError);
-semVals = calcSEM(fracError);
+if subtractShuffle
+    fracErrorSub = bsxfun(@minus,fracError, mean(allShuffleError));
+    meanVals = mean(fracErrorSub);
+    semVals = calcSEM(fracErrorSub);
+else
+    meanVals = mean(fracError);
+    semVals = calcSEM(fracError);
+end
 xVals = 1:nBins;
 errH = shadedErrorBar(xVals,meanVals,semVals);
 errH.mainLine.Color = colors(1,:);
@@ -115,8 +122,14 @@ errH.edge(2).Color = colors(1,:);
 
 %plot shuffle
 if plotShuffle
-    meanShuffle = mean(allShuffleError);
-    semShuffle = calcSEM(allShuffleError);
+    if subtractShuffle
+        meanSubAllShuffleError = bsxfun(@minus,allShuffleError,mean(allShuffleError));
+        meanShuffle = mean(meanSubAllShuffleError);
+        semShuffle = calcSEM(meanSubAllShuffleError);
+    else
+        meanShuffle = mean(allShuffleError);
+        semShuffle = calcSEM(allShuffleError);
+    end
     xVals = 1:nBins;
     errH = shadedErrorBar(xVals,meanShuffle,semShuffle);
     errH.mainLine.Color = colors(2,:);
@@ -136,7 +149,11 @@ axis(handles.ax,'square');
 
 %label axes
 handles.ax.XLabel.String = 'Binned cluster number';
-handles.ax.YLabel.String = 'Probability of incorrect behavioral choice';
+if subtractShuffle
+    handles.ax.YLabel.String = 'Difference from expected error rate';
+else
+    handles.ax.YLabel.String = 'Probability of incorrect behavioral choice';
+end
 handles.ax.XLabel.FontSize = 30;
 handles.ax.YLabel.FontSize = 30;
 handles.ax.FontSize = 20;

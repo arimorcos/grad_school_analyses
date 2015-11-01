@@ -30,6 +30,8 @@ xVals = 0:0.1:1;
 predictions = nan(nFiles,length(xVals));
 slope = nan(nFiles,9);
 corrCoef = nan(nFiles,9);
+allTransMatVec = [];
+allClusterCorrVec = [];
 for file = 1:nFiles
     
     overlapIndex = allOverlapIndex{file};
@@ -76,6 +78,12 @@ for file = 1:nFiles
             tempCorr = corrcoef(transMatVec(keepInd), clusterCorrVec(keepInd));
             corrCoef(file,delta-1) = tempCorr(1,2);
         end
+        
+        if delta==5
+            %group
+            allClusterCorrVec = cat(1,allClusterCorrVec, clusterCorrVec(keepInd));
+            allTransMatVec = cat(1,allTransMatVec, transMatVec(keepInd));
+        end
     end
     
     % calculate slope and get predictions
@@ -86,7 +94,11 @@ for file = 1:nFiles
     end
     
     
+    
 end
+
+%% get correlation and p value
+[corr,pVal] = corrcoef(allTransMatVec,allClusterCorrVec);
 
 
 %% create figure and plot

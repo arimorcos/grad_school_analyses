@@ -13,8 +13,8 @@ function [acc, shuffleAcc] = plotIndDatasetsPrevCue(folder,fileStr)
 %
 %ASM 10/15
 
-showCDF = true;
-groupAll = false;
+showCDF = ~true;
+groupAll = ~true;
 showAcc = true;
 
 %get list of files in folder
@@ -131,6 +131,7 @@ if showAcc
     accError = line([1 1], [meanAcc - semAcc, meanAcc + semAcc]);
     accScatter = scatter(1,meanAcc);
     blue = lines(1);
+    accScatter.Marker = 'o';
     accScatter.MarkerFaceColor = blue;
     accScatter.MarkerEdgeColor = blue;
     accScatter.SizeData = 150;
@@ -155,7 +156,7 @@ if showAcc
     
     %label 
     axH.YLabel.String = 'Classification accuracy of previous cue';
-    axH.YLim = [35 65];
+    axH.YLim = [30 70];
     axH.XLim = [0 2];
     axH.XTick = [];
     

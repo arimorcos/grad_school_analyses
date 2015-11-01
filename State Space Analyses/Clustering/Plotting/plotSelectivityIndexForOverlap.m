@@ -86,7 +86,7 @@ hold(axSel,'on');
 % plotH.LineStyle = 'none';
 [barH, errH] = barwitherr([calcSEM(overlappingSelInd) calcSEM(nonOverlappingSelInd)],...
     [1 2],[mean(overlappingSelInd) mean(nonOverlappingSelInd)]);
-errH.LineWidth = 3;
+% errH.LineWidth = 3;
 
 %calculate stats 
 [~,pVal] = ttest2(overlappingSelInd, nonOverlappingSelInd);
@@ -113,9 +113,11 @@ hold(axVar,'on');
 % plotH.MarkerFaceColor = 'b';
 % plotH.LineWidth = 2;
 % plotH.LineStyle = 'none';
+overlappingVarCoeff = 1 - overlappingVarCoeff;
+nonOverlappingVarCoeff = 1 - nonOverlappingVarCoeff;
 [barH, errH] = barwitherr([calcSEM(overlappingVarCoeff) calcSEM(nonOverlappingVarCoeff)],...
     [1 2],[mean(overlappingVarCoeff) mean(nonOverlappingVarCoeff)]);
-errH.LineWidth = 3;
+% errH.LineWidth = 3;
 
 %calculate stats 
 [~,pVal] = ttest2(overlappingVarCoeff, nonOverlappingVarCoeff);
@@ -128,7 +130,7 @@ beautifyPlot(figH, axVar);
 axVar.XTick = [1 2];
 axVar.XTickLabel = {'Overlapping','Non-overlapping'};
 axVar.XTickLabelRotation = -45;
-axVar.YLabel.String = 'Trial-Trial Variability Index';
+axVar.YLabel.String = 'Pairwise trial-trial correlation';
 
 %% plot nTransPerMin
 axNTrans = subplot(2,2,3); 
@@ -145,7 +147,7 @@ hold(axNTrans,'on');
 [barH, errH] = barwitherr([calcSEM(overlappingNTrans) calcSEM(nonOverlappingNTrans) ...
     calcSEM(oneClusterNTrans)],1:3,[mean(overlappingNTrans) ...
     mean(nonOverlappingNTrans) mean(oneClusterNTrans)]);
-errH.LineWidth = 3;
+% errH.LineWidth = 3;
 
 %calculate stats 
 [~,pVal(1)] = ttest2(overlappingNTrans, nonOverlappingNTrans);

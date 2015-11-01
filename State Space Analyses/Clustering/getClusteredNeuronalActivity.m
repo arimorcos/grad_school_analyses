@@ -16,6 +16,7 @@ function [clustTraces,trialTraces,clustCounts] = getClusteredNeuronalActivity(da
 
 sortBy = 'leftTurn';
 shouldShuffle = false;
+meanSubtract = false;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -28,12 +29,25 @@ if nargin > 1 || ~isempty(varargin)
                 sortBy = varargin{argInd+1};
             case 'shouldshuffle'
                 shouldShuffle = varargin{argInd+1};
+            case 'meansubtract'
+                meanSubtract = varargin{argInd+1};
         end
     end
 end
 
 %get traces
-[~,traces] = catBinnedTraces(dataCell);
+useDeconv = true;
+if useDeconv
+    traces = catBinnedDeconvTraces(dataCell);
+else 
+    [~,traces] = catBinnedTraces(dataCell);
+end
+
+%mean subtract 
+if meanSubtract
+    meanTrace = mean(traces,3);
+    traces = bsxfun(@minus, traces, meanTrace);
+end
 
 %get yPosBins
 yPosBins = dataCell{1}.imaging.yPosBins;
@@ -57,6 +71,7 @@ if shouldShuffle
     for point = 1:nPoints
         clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
     end
+    clusterIDs = shuffleClusterIDs(clusterIDs);
 end
 
 %get cluster sort order

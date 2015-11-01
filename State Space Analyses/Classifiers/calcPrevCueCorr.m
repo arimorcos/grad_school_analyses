@@ -34,6 +34,7 @@ controlPrevTurn = false;
 intraOnlyPrevTurn = false;
 shouldShuffle = true;
 nShuffles = 500;
+whichCues = 3:6;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -56,6 +57,8 @@ if nargin > 1 || ~isempty(varargin)
                 nShuffles = varargin{argInd+1};
             case 'shouldshuffle'
                 shouldShuffle = varargin{argInd+1};
+            case 'whichcues'
+                whichCues = varargin{argInd+1};
         end
     end
 end
@@ -91,14 +94,14 @@ if controlPrevTurn
         allInterRightPrevLeft, allGuessPrevLeft, allLabelPrevLeft,...
         allGuessShufflePrevLeft, allLabelShufflePrevLeft] =...
         getTrialCorrelations(mazePatterns(prevTurn,:), tracePoints(:,:,prevTurn),...
-        distForm, trialMatch, shouldShuffle, nShuffles);
+        distForm, trialMatch, shouldShuffle, nShuffles, whichCues);
     
     %run for prevRight
     [allIntraLeftPrevRight, allIntraRightPrevRight, allInterLeftPrevRight,...
         allInterRightPrevRight, allGuessPrevRight, allLabelPrevRight,...
         allGuessShufflePrevRight, allLabelShufflePrevRight] =...
         getTrialCorrelations(mazePatterns(~prevTurn,:), tracePoints(:,:,~prevTurn),...
-        distForm, trialMatch, shouldShuffle, nShuffles);
+        distForm, trialMatch, shouldShuffle, nShuffles, whichCues);
     
     %combine
     allIntraLeft = cat(1, allIntraLeftPrevLeft, allIntraLeftPrevRight);
@@ -114,13 +117,13 @@ if controlPrevTurn
     if intraOnlyPrevTurn
         [~, ~, allInterLeft, allInterRight] =...
             getTrialCorrelations(mazePatterns, tracePoints, distForm, trialMatch,...
-            shouldShuffle, nShuffles);
+            shouldShuffle, nShuffles, whichCues);
     end
 else
     [allIntraLeft, allIntraRight, allInterLeft, allInterRight, allGuess, allLabel,...
         allGuessShuffle, allLabelShuffle] =...
         getTrialCorrelations(mazePatterns, tracePoints, distForm, trialMatch,...
-        shouldShuffle, nShuffles);
+        shouldShuffle, nShuffles, whichCues);
 end
 
 out.allIntraLeft = allIntraLeft;
@@ -140,7 +143,7 @@ end
 function [allIntraLeft, allIntraRight, allInterLeft, allInterRight,...
     allGuess, allLabel, allGuessShuffle, allLabelShuffle] =...
     getTrialCorrelations(mazePatterns, tracePoints, distForm, trialMatch,...
-    shouldShuffle, nShuffles)
+    shouldShuffle, nShuffles, whichCues)
 
 thresh = 2;
 
@@ -154,7 +157,7 @@ allLabel = [];
 allGuessShuffle = [];
 allLabelShuffle = [];
 
-for segNum = 3:6
+for segNum = whichCues
     
     % get matching trial pairs
     [LRLTrials, RLLTrials, RLRTrials, LRRTrials] = ...

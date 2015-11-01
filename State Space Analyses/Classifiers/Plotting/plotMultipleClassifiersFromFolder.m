@@ -109,3 +109,7 @@ end
 %maximize 
 handles.fig.Units = 'normalized';
 handles.fig.OuterPosition = [0 0 1 1];
+
+if ~isempty(strfind(fileStr,'orrect'))
+    handles.ax.YLim = [80 100];
+end
