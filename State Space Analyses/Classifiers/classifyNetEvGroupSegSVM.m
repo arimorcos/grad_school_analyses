@@ -28,6 +28,12 @@ leftViewAngle = true;
 viewAngleRange = 5;
 whichNeurons = [];
 trainInd = [];
+viewAngleSwap = false;
+useBehaviorOnly = false;
+useBehaviorAndNeuron = false;
+C = 2;
+epsilon = 0.6;
+gamma = 0.6;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -36,6 +42,10 @@ if nargin > 1 || ~isempty(varargin)
     end
     for argInd = 1:2:length(varargin) %for each argument
         switch lower(varargin{argInd})
+            case 'usebehavioronly'
+                useBehaviorOnly = varargin{argInd+1};
+            case 'usebehaviorandneuron'
+                useBehaviorAndNeuron = varargin{argInd+1};
             case 'nshuffles'
                 nShuffles = varargin{argInd+1};
             case 'shouldshuffle'
@@ -62,6 +72,14 @@ if nargin > 1 || ~isempty(varargin)
                 whichNeurons = varargin{argInd+1};
             case 'trainind'
                 trainInd = varargin{argInd+1};
+            case 'viewangleswap'
+                viewAngleSwap = varargin{argInd+1};
+            case 'epsilon'
+                epsilon = varargin{argInd+1};
+            case 'gamma'
+                gamma = varargin{argInd+1};
+            case 'c'
+                C = varargin{argInd+1};
         end
     end
 end
@@ -76,8 +94,19 @@ for condInd = 1:length(conditions)
     nTrials = length(dataSub);
     
     %get segTraces
-    [segTraces,~,netEv,segNum,numLeft,~,~,~,viewAngle] = extractSegmentTraces(dataSub,'usebins',true,...
-        'tracetype',traceType,'whichFactor',whichFactor);
+    if useBehaviorOnly
+        [segTraces,~,netEv,segNum,numLeft,~,~,~,viewAngle] = extractSegmentTraces(dataSub,'usebins',true,...
+            'tracetype','behavior','whichFactor',whichFactor);
+    elseif useBehaviorAndNeuron
+        [segTraces,~,netEv,segNum,numLeft,~,~,~,viewAngle] = extractSegmentTraces(dataSub,'usebins',true,...
+            'tracetype',traceType,'whichFactor',whichFactor);
+        behavTraces= extractSegmentTraces(dataSub,'usebins',true,...
+            'tracetype','behavior','whichFactor',whichFactor);
+        segTraces = cat(1,segTraces,behavTraces);
+    else
+        [segTraces,~,netEv,segNum,numLeft,~,~,~,viewAngle] = extractSegmentTraces(dataSub,'usebins',true,...
+            'tracetype',traceType,'whichFactor',whichFactor);
+    end
     
     %get nSeg
     nSeg = max(segNum);
@@ -105,6 +134,30 @@ for condInd = 1:length(conditions)
     else 
         nTrials = nTrials*nSeg;
     end
+    
+    %view angle swap 
+    if viewAngleSwap 
+        
+        swapGroup1 = 1:round(nTrials/2);
+        swapGroup2 = swapGroup1(end)+1:nTrials;
+        minDiff = nan(length(swapGroup1),1);
+        for swap = swapGroup1
+            testViewAngle = viewAngle(swap);
+            diffViewAngle = abs(testViewAngle - viewAngle(swapGroup2));
+            [minDiff(swap), minInd] = min(diffViewAngle);
+            minIndTotal = swapGroup2(minInd);
+            
+            %swap 
+            tempNetEv = netEv(swap);
+            netEv(swap) = netEv(minIndTotal);
+            netEv(minIndTotal) = tempNetEv;
+            
+        end
+    else
+        minDiff = [];
+        
+    end
+    
     
     %get view angle
     if binViewAngle
@@ -156,7 +209,7 @@ for condInd = 1:length(conditions)
     
     %calculate actual accuracy
     [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
-        realClass, trainFrac, trainInd);
+        realClass, trainFrac, trainInd, epsilon, gamma, C);
     
     %shuffle
     if shouldShuffle
@@ -173,7 +226,8 @@ for condInd = 1:length(conditions)
             
             [shuffleGuess(:,shuffleInd), shuffleTestClass(:,shuffleInd),...
                 shuffleMSE(shuffleInd),shuffleCorrCoef(shuffleInd)] =...
-                getNetEvGroupSegData(segTraces,randClass,trainFrac,trainInd);
+                getNetEvGroupSegData(segTraces,randClass,trainFrac,trainInd,...
+                epsilon, gamma, C);
         end
     else
         shuffleMSE = [];
@@ -195,14 +249,16 @@ for condInd = 1:length(conditions)
     classifierOut(condInd).binViewAngle = binViewAngle;
     classifierOut(condInd).leftViewAngle = leftViewAngle;
     classifierOut(condInd).viewAngleRange = viewAngleRange;
+    classifierOut(condInd).minDiff = minDiff;
 end
 
 function [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
-    realClass, trainFrac, trainInd)
+    realClass, trainFrac, trainInd, epsilon, gamma, C)
 
 %calculate accuracy
 [guess,mse,testClass,corrCoef] =...
     getSVMAccuracy(segTraces,realClass,...
-    'svmType', 'e-SVR', 'C',50,'epsilon',0.004,'gamma',0.04,'kFold',1,...
+    'svmType', 'e-SVR', 'C',C,'epsilon',epsilon,'gamma',gamma,'kFold',1,...
     'trainFrac',trainFrac,'trainind',trainInd);
+
 

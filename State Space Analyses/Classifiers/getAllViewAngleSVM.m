@@ -1,5 +1,5 @@
 %saveFolder
-saveFolder = 'D:\DATA\Analyzed Data\150910_vogel_viewAngleSVR';
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/150910_vogel_viewAngleSVR';
 
 %get list of datasets
 procList = getProcessedList();

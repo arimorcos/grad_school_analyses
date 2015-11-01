@@ -27,7 +27,7 @@ for fileInd = 1:length(matchFiles)
     nSTD(fileInd,:) = currFileData.deltaPoint.meanNSTD;
     nUnique(fileInd) = currFileData.nUnique;
 end
-save(fullfile(folder,strrep(fileStr,'.*','')),'nUnique');
+% save(fullfile(folder,strrep(fileStr,'.*','')),'nUnique');
 
 %nFiles
 nFiles = length(matchFiles);

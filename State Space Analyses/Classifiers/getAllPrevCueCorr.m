@@ -1,12 +1,13 @@
 %saveFolder 
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/151015_prevCueCorr_dfFF';
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/151026_vogel_prevCueCorr_cues56';
 
 %get list of datasets 
 procList = getProcessedList();
 nDataSets = length(procList);
 
-controlPrevTurn = true;
+controlPrevTurn = false;
 intraOnlyPrevTurn = false;
+whichCues = [5 6];
 
 %get deltaPLeft
 for dSet = 1:nDataSets
@@ -22,7 +23,7 @@ for dSet = 1:nDataSets
     % get prevCueCorr
     out = calcPrevCueCorr(imTrials,'useCosine',true, ...
         'controlPrevTurn', controlPrevTurn, 'intraOnlyPrevTurn',intraOnlyPrevTurn,...
-        'traceType','dff');
+        'traceType','deconv','whichCues',whichCues);
     
     %save 
     saveName = fullfile(saveFolder,sprintf(....
@@ -34,7 +35,7 @@ for dSet = 1:nDataSets
     % get prevCueCorr
     out = calcPrevCueCorr(imTrials,'useCosine',false, ...
         'controlPrevTurn',controlPrevTurn,'intraOnlyPrevTurn', intraOnlyPrevTurn,...
-        'tracetype','dff');
+        'tracetype','deconv','whichCues',whichCues);
     
     %save 
     saveName = fullfile(saveFolder,sprintf(....
