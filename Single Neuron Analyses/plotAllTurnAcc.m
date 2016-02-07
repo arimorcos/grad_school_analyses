@@ -5,7 +5,9 @@ hold(axH,'on');
 minVal = min(cat(1,peakAcc,meanShuffleAcc));
 maxVal = max(cat(1,peakAcc,meanShuffleAcc));
 nBins = 30;
+maxVal = 60;
 binEdges = linspace(minVal,maxVal,nBins+1);
+binEdges(end) = 100;
 
 %shaded version
 

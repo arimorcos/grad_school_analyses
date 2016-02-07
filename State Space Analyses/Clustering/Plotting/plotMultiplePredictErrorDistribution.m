@@ -12,6 +12,7 @@ function handles = plotMultiplePredictErrorDistribution(folder,fileStr)
 %ASM 10/15
 
 showCDF = true;
+nBins = 50;
 
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
@@ -50,7 +51,7 @@ hold(axH,'on');
 
 minVal = min(cat(1,realErrorRates,shuffleErrorRates));
 maxVal = max(cat(1,realErrorRates,shuffleErrorRates));
-nBins = 30;
+
 binEdges = linspace(minVal,maxVal,nBins+1);
 xVals = binEdges(1:end) + mean(diff(binEdges));
 

@@ -160,7 +160,7 @@ else %if grouping all segments together
         
         %take mean for each neuron and store
         actNetEv(condInd,:) = nanmean(traceSub,3)';
-        tempSTD = std(traceSub,0,3)';
+        tempSTD = nanstd(traceSub,0,3)';
         tempSTD = tempSTD/sqrt(size(traceSub,3));
         actNetEvErr(condInd,:) = tempSTD;
         

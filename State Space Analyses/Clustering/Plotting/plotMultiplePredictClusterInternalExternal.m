@@ -11,6 +11,8 @@ function handles = plotMultiplePredictClusterInternalExternal(folder,fileStr)
 %
 %ASM 8/15
 
+showSig = true;
+
 %get list of files in folder 
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
 files = allNames(~isDirs);
@@ -48,6 +50,43 @@ for i = 1:4
     barH(i).FaceColor = colors(i,:);
 end
 
+% add significance 
+if showSig
+    numCues = size(barInfo, 1);
+    nBars = 4;
+    delta = 0.14;
+    for cue = 1:numCues
+        positions = [cue - 2*delta, cue - 1*delta,...
+            cue + 1*delta, cue + 2*delta];
+        groups = {};
+        pVal = [];
+        for group_1 = 1:4
+            for group_2 = group_1+1:4
+%             for group_2 = 4:4
+                if group_1 == group_2 
+                    continue
+                end
+                
+                groups = cat(1,groups,positions([group_1, group_2]));
+                
+                [~,tempPVal] = ttest2(squeeze(barInfo(cue,group_1,:)),...
+                    squeeze(barInfo(cue,group_2,:)));
+                pVal = cat(1,pVal,tempPVal);
+                
+%                 if group_1== 1 && group_2 == 2
+%                     fprintf('Cue: %d, chance/cue sig: %.3e\n',cue,tempPVal);
+%                 end
+                if group_1== 2 && group_2 == 3
+                    fprintf('Cue: %d, cue/internal sig: %.3e\n',cue,tempPVal);
+                end
+                
+            end
+        end
+        
+        sigstar(groups,pVal,false,false);
+    end
+end
+
 %beautify
 beautifyPlot(figH,axH);
 
@@ -56,4 +95,4 @@ axH.XLabel.String = 'Cue number';
 axH.YLabel.String = 'Prediction accuracy';
 
 %legend
-legH = legend('No information','External only','Internal only','Internal + External');
+% legH = legend('No information','External only','Internal only','Internal + External');

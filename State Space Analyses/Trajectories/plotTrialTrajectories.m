@@ -26,6 +26,7 @@ markersPerTrace = 2;
 timeColor = false;
 colorIndividually = false;
 highlightTrial = true;
+forExport = false;
 
 if nargin > 1 || ~isempty(varargin)
     if isodd(length(varargin))
@@ -33,6 +34,8 @@ if nargin > 1 || ~isempty(varargin)
     end
     for argInd = 1:2:length(varargin) %for each argument
         switch lower(varargin{argInd})
+            case 'forexport'
+                forExport = varargin{argInd+1};
             case 'whichfactorset'
                 whichFactorSet = varargin{argInd+1};
             case 'whichfactors'
@@ -62,11 +65,13 @@ for condInd = 1:nConditions
 end
 
 %get distinguishable colors
-colorsToPlot = distinguishable_colors(nConditions);
+colorsToPlot = lines(nConditions);
 
 %check whichFactors
 if length(whichFactors) == 2
-    whichFactors(3) = whichFactors(2) + 1;
+    if ~forExport
+        whichFactors(3) = whichFactors(2) + 1;
+    end
     view3D = false;
 else
     view3D = true;
@@ -108,10 +113,16 @@ for condInd = 1:nConditions
         else
             
             %plot trial trace
-            plotH{condInd}(trialInd) =...
-                plot3(condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(1),:),...
-                condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(2),:),...
-                condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(3),:));
+            if length(whichFactors) == 3
+                plotH{condInd}(trialInd) =...
+                    plot3(condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(1),:),...
+                    condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(2),:),...
+                    condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(3),:));
+            else
+                plotH{condInd}(trialInd) =...
+                    plot(condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(1),:),...
+                    condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(2),:));
+            end
             
             if ~colorIndividually
                 %set color based on condition
@@ -124,9 +135,14 @@ for condInd = 1:nConditions
             markerPos = linspace(1,nPoints,markersPerTrace);
             
             %plot
-            scatH = scatter3(condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(1),markerPos),...
-                condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(2),markerPos),...
-                condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(3),markerPos));
+            if length(whichFactors) == 3
+                scatH = scatter3(condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(1),markerPos),...
+                    condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(2),markerPos),...
+                    condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(3),markerPos));
+            else
+                scatH = scatter(condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(1),markerPos),...
+                    condSub{condInd}{trialInd}.imaging.projDFF{whichFactorSet}(whichFactors(2),markerPos));
+            end
             scatH.Marker = 'o';
             scatH.SizeData = 200;
             scatH.CData = markerColors;
@@ -135,7 +151,7 @@ for condInd = 1:nConditions
     
     %store legend label
     legendLabels(condInd) = plotH{condInd}(1);
-       
+    
 end
 
 %determine view
@@ -151,6 +167,8 @@ axH.YLabel.String = sprintf('Factor %d',whichFactors(2));
 if length(whichFactors) == 3
     axH.ZLabel.String = sprintf('Factor %d',whichFactors(3));
 end
+
+beautifyPlot(figH, axH);
 
 %create legend
 if nConditions > 1
@@ -177,11 +195,6 @@ end
 function cb_keypress(src,evnt,dataCell,conditions,whichFactorSet,whichFactors,legendLabels)
 %highlights single trace in black based on arrow keys
 
-%check if trace exists already
-if ishandle(src.UserData.Handle)
-    delete(src.UserData.Handle);
-end
-
 %get trace to plot
 switch evnt.Key
     case 'rightarrow'
@@ -196,6 +209,13 @@ switch evnt.Key
             src.UserData.currTrace = 0;
             return;
         end
+    otherwise
+        return
+end
+
+%check if trace exists already
+if ishandle(src.UserData.Handle)
+    delete(src.UserData.Handle);
 end
 
 %plot trace
@@ -206,7 +226,7 @@ src.UserData.Handle =...
 src.UserData.Handle.LineWidth = 2;
 src.UserData.Handle.Color = 'k';
 
-%update legend 
+%update legend
 
 delete(src.Children(1)); %delete current legend
 currCond = conditions(cellfun(@(x) findTrials(dataCell(src.UserData.currTrace),x),conditions));

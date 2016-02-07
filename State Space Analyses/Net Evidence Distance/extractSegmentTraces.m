@@ -136,7 +136,8 @@ for segInd = 1:nSeg
             end
             
             %get traces
-            traces = getTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh);
+%             traces = getTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh);
+            traces = getBinnedTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh);
             
             %concatenate temporary traces
             segTraces = cat(3,segTraces,traces);
@@ -192,7 +193,8 @@ if getDelay
             whichBins{nSeg+1} = find(segIndicesToUse);
             
             %get traces
-            traces = getTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh);
+%             traces = getTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh);
+            traces = getBinnedTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh);
             
             %cat
             delayTraces = cat(3,delayTraces,traces);
@@ -270,6 +272,31 @@ switch lower(traceType)
         traces = dataCell{trialInd}.imaging.projDGR{1}{whichFactor}(:,segIndicesToUse);
     case 'behavior'
         traces = dataCell{trialInd}.imaging.dataFrames{1}(2:6,segIndicesToUse);
+    otherwise
+        error('Cannot process trace type');
+end
+end
+
+function traces = getBinnedTraces(dataCell,traceType,segIndicesToUse,trialInd,whichFactor,pcaThresh)
+
+%extract traces
+switch lower(traceType)
+    case 'dgr'
+        traces = dataCell{trialInd}.imaging.dGRTraces{1}(:,segIndicesToUse);
+    case 'dff'
+        traces = dataCell{trialInd}.imaging.binnedDFFTraces{1}(:,segIndicesToUse);
+    case 'deconv'
+        traces = dataCell{trialInd}.imaging.binnedDeconvTraces{1}(:,segIndicesToUse);
+    case 'dffpca'
+        traces = dataCell{trialInd}.imaging.dFFPCA{1}(1:find(dataCell{1}.imaging.dFFPCA{1}>pcaThresh,1,'first'),segIndicesToUse);
+    case 'dgrpca'
+        traces = dataCell{trialInd}.imaging.dGRPCA{1}(1:find(dataCell{1}.imaging.dGRPCA{1}>pcaThresh,1,'first'),segIndicesToUse);
+    case 'dfffactor'
+        traces = dataCell{trialInd}.imaging.projDFF{whichFactor}(:,segIndicesToUse);
+    case 'dgrfactor'
+        traces = dataCell{trialInd}.imaging.projDGR{1}{whichFactor}(:,segIndicesToUse);
+    case 'behavior'
+        traces = dataCell{trialInd}.imaging.binnedDataFrames(3,segIndicesToUse);
     otherwise
         error('Cannot process trace type');
 end
