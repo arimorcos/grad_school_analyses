@@ -1,4 +1,5 @@
-function [figHandle,info] = makeLeftRightSeq(dataCell,normInd,conditions,sortFirst,gCells,axToPlot)
+function [figHandle,info] = makeLeftRightSeq(dataCell,...
+    normInd,conditions,sortFirst,gCells,axToPlot)
 %makeLeftRightSeq.m Creates sequence by sorting data by time of peak activity
 %
 %INPUTS
@@ -49,7 +50,8 @@ for i = 1:nCond
     end
     
     %get sequence
-    [traces{i},bins,unSortTrace,usedSortOrder{i}] = makeSeqSubset(dataCell,conditions{i},sortOrder,gCells);
+    [traces{i},bins,unSortTrace,usedSortOrder{i}] = ...
+        makeSeqSubset(dataCell,conditions{i},sortOrder,gCells);
     
     %cat unsorted trace
     unsortedTraces = cat(2,unsortedTraces,unSortTrace);

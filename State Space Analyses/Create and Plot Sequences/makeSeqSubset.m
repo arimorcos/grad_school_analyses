@@ -1,4 +1,5 @@
-function [seqTraces,bins,unSortTrace,sortInd] = makeSeqSubset(dataCell,condition,sortOrder,gCells)
+function [seqTraces,bins,unSortTrace,sortInd] = ...
+    makeSeqSubset(dataCell,condition,sortOrder,gCells)
 %makeSeqSubset.m Creates sequence by sorting data by time of peak activity 
 %
 %INPUTS
