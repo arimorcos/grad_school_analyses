@@ -19,8 +19,9 @@ shouldShuffle = false;
 traceType = 'deconv';
 whichFactor = 2;
 range = [0.5 0.75];
-conditions = {'','result.leftTurn==1','result.leftTurn==0'};
-trainFrac = 0.5;
+% conditions = {'','result.leftTurn==1','result.leftTurn==0'};
+conditions = {''};
+trainFrac = 0.75;
 classMode = 'netEv';
 trialMatch = false;
 binViewAngle = false;
@@ -28,12 +29,13 @@ leftViewAngle = true;
 viewAngleRange = 5;
 whichNeurons = [];
 trainInd = [];
+breakTrialAssociation = false;
 viewAngleSwap = false;
 useBehaviorOnly = false;
 useBehaviorAndNeuron = false;
 C = 2;
-epsilon = 0.6;
-gamma = 0.6;
+epsilon = 0.0001;
+gamma = 0.04;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -54,6 +56,8 @@ if nargin > 1 || ~isempty(varargin)
                 traceType = varargin{argInd+1};
             case 'whichfactor'
                 whichFactor = varargin{argInd+1};
+            case 'breaktrialassociation'
+                breakTrialAssociation = varargin{argInd+1};
             case 'classmode'
                 classMode = varargin{argInd+1};
             case 'range'
@@ -205,6 +209,20 @@ for condInd = 1:length(conditions)
             realClass = nSeg - numLeft;
         otherwise 
             error('Can''t interpret class mode');
+    end
+    
+    % break trial association
+    if breakTrialAssociation
+        unique_classes = unique(realClass);
+        num_classes = length(unique_classes);
+        num_neurons = size(segTraces, 1);
+        for class = 1:num_classes
+            sub_ind = find(realClass == unique_classes(class));
+            for neuron = 1:num_neurons
+                segTraces(neuron, :, sub_ind) = segTraces(neuron, :, shuffleArray(sub_ind));
+            end
+        end
+        
     end
     
     %calculate actual accuracy

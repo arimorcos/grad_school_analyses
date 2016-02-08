@@ -19,7 +19,7 @@ classOut = classOut(1);
 
 %get vals
 testClass = classOut.testClass;
-guess = classOut.guess;
+guess = 1.5*classOut.guess;
 
 %get slope
 % mdl = fitlm(guess, testClass);

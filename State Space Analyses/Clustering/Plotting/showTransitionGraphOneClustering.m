@@ -26,9 +26,9 @@ function showTransitionGraphOneClustering(mMat,cMat,varargin)
 assert(strcmpi(cMat.mode,'one'),'Must call in one clustering mode');
 
 sizeScale = 600;
-pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
-    'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
-colorBy = 'netEv';
+pointLabels = {'Trial Start','Cue 1','Cue 2','Cue 3','Cue 4',...
+    'Cue 5','Cue 6','Early Delay','Late Delay','Turn'};
+colorBy = 'leftTurn';
 sortBy = colorBy;
 modSort = false;
 showEdges = true;

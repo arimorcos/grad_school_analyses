@@ -185,3 +185,35 @@ axStillTogether.XTick = -8:2:8;
 axStillTogether.XLabel.String = '\Delta maze epochs';
 axStillTogether.YLabel.String = 'Fraction of coactive neurons still coactive';
 legend(legEnt, 'Location', 'Best');
+
+%% number of neurons active in one epoch 
+figH = figure;
+% axWithinEpochCount = subplot(nRows, nCol, 7);
+axWithinEpochCount = axes;
+
+% get number of active
+nClustersActive = cellfun(@(x) x.nClustersWithinEpochActive(:, :, whichZThresh),...
+    allStats,'UniformOutput',false);
+nClustersActive = cat(1, nClustersActive{:});
+nClustersActive = squeeze(max(nClustersActive, [], 2));
+
+%convert to cdf 
+sortedNEpochsActive = sort(nClustersActive);
+
+% plot 
+fracNeurons = [1:size(nClustersActive,1)]/size(nClustersActive,1);
+nTrialsH = plot(sortedNEpochsActive, fracNeurons);
+
+%beautify 
+beautifyPlot(figH, axWithinEpochCount);
+
+%label 
+axWithinEpochCount.XLabel.String = 'Number of clusters within an epoch active';
+axWithinEpochCount.YLabel.String = 'Cumulative fraction of neurons';
+
+%legend 
+legEnt = cell(length(whichZThresh),1);
+for ent = 1:length(whichZThresh)
+    legEnt{ent} = sprintf('%.1f',allStats{1}.zThresh(whichZThresh(ent)));
+end
+legend(nTrialsH, legEnt, 'Location', 'SouthEast');

@@ -86,6 +86,15 @@ for threshInd = 1:nThresh
     nEpochsActive(:,threshInd) = sum(isAct(:,:,threshInd),2);
 end
 
+% get number of clusters within an epoch a given neuron is active in 
+nClustersWithinEpochActive = nan(nNeurons, nPoints, nThresh);
+for threshInd = 1:nThresh
+    for point = 1:nPoints
+        nClustersWithinEpochActive(:, point, threshInd) = sum(actNeurons{threshInd, point}, 2);
+    end
+    
+end
+
 %get number of clusters for one clustering vs ind clustering
 nUniqueEachPoint = arrayfun(@(x) length(unique(clusterIDs(:,x))),1:nPoints);
 nUniqueTotalInd = sum(nUniqueEachPoint);
@@ -175,6 +184,9 @@ stats.relNClustersIndOne = relNClustersIndOne;
 
 %epochs active
 stats.nEpochsActive = nEpochsActive;
+
+% number of clusters active within epoch 
+stats.nClustersWithinEpochActive = nClustersWithinEpochActive;
 
 %number of active neurons
 stats.nActiveCat = nActiveCat;

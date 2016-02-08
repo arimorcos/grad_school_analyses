@@ -8,6 +8,8 @@ switch computer
         filePath = '/Users/arimorcos/Data/Analyzed Data/Mice/oldDeconv_smooth10';
     case 'PCWIN64'
         filePath = 'W:\\Mice\\';
+    case 'GLNXA64'
+        filePath = '/media/arimorcos/SSD2/Mice/oldDeconv_smooth10';
 end
 
 %get list of files 

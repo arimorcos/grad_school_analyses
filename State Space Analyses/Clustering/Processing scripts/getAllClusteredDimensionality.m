@@ -1,5 +1,5 @@
 %
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/151011_vogel_clusterStats';
+saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160129_vogel_cluster_dim';
 
 % get list of datasets
 procList = getProcessedList();
@@ -14,10 +14,10 @@ for dSet = 1:nDataSets
     loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
 
     %process
-    stats = getClusterStats(imTrials);
+    out = getClusteredDimensionality(imTrials);
     
     %save
-    saveName = fullfile(saveFolder,sprintf('%s_%s_clusterStats.mat',procList{dSet}{:}));
-    save(saveName,'stats');
+    saveName = fullfile(saveFolder,sprintf('%s_%s_cluster_dim.mat',procList{dSet}{:}));
+    save(saveName,'out');
     
 end

@@ -10,17 +10,21 @@ function showClusteredNeurons(dataCell,clusterIDs,cMat,varargin)
 %
 %ASM 4/15
 
-pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
-    'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
+pointLabels = {'Maze Start','Cue 1','Cue 2','Cue 3','Cue 4',...
+    'Cue 5','Cue 6','Early Delay','Late Delay','Turn'};
 whichNeurons = [];
 showThresholded = false;
-zThresh = 0.5;
+zThresh = 0.2;
 sortBy = 'leftTurn';
-showAllPoints = true;
-whichPoints = 8;
+showAllPoints = false;
+whichPoints = 6;
 showIndTrials = false;
 capActivity = true;
 sortTraces = false;
+sortTracesBy = 1;
+filterNeurons = true;
+neuronMinMean = 0.001;
+groupEpochs = true;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -49,6 +53,14 @@ if nargin > 1 || ~isempty(varargin)
                 capActivity = varargin{argInd+1};  
             case 'sorttraces'
                 sortTraces = varargin{argInd+1};
+            case 'sorttracesby'
+                sortTracesBy = varargin{argInd+1};
+            case 'filterneurons'
+                filterNeurons = varargin{argInd+1};
+            case 'neuronminmean'
+                neuronMinMean = varargin{argInd+1};
+            case 'groupepochs'
+                groupEpochs = varargin{argInd+1};
         end
     end
 end
@@ -71,12 +83,11 @@ figH = figure;
 if showAllPoints
     whichPoints = 1:nPoints;
 end
-nShowPoints = length(whichPoints);
-
-%get min and max value
-% allTraces = cat(2,clustTraces{whichPoints});
-% minVal = min(allTraces(:));
-% maxVal = max(allTraces(:));
+if groupEpochs
+    nShowPoints = 1;
+else
+    nShowPoints = length(whichPoints);
+end
 
 [nRow,nCol] = calcNSubplotRows(nShowPoints);
 for point = 1:nShowPoints
@@ -85,36 +96,64 @@ for point = 1:nShowPoints
     axH = subplot(nRow,nCol,point);
     
     %get trace to show
-    if showIndTrials
-        traceToShow = trialTraces{whichPoints(point)}(whichNeurons,:);
-        xVal = 1:size(traceToShow,2);
+    if groupEpochs
+        if showIndTrials
+            traceToShow = [];
+            epoch_boundaries = nan(length(whichPoints), 1);
+            for curr_point = 1:length(whichPoints)
+                traceToShow = cat(2, traceToShow, ...
+                    trialTraces{whichPoints(curr_point)}(whichNeurons,:));
+                epoch_boundaries(curr_point) = size(traceToShow, 2);
+            end
+            xVal = 1:size(traceToShow,2);
+        else
+            traceToShow = [];
+            epoch_boundaries = nan(length(whichPoints), 1);
+            for curr_point = 1:length(whichPoints)
+                traceToShow = cat(2, traceToShow, ...
+                    clustTraces{whichPoints(curr_point)}(whichNeurons,:));
+                epoch_boundaries(curr_point) = size(traceToShow, 2);
+            end
+            xVal = 1:size(traceToShow,2);
+        end
     else
-        traceToShow = clustTraces{whichPoints(point)}(whichNeurons,:);
-        xVal = 1:nUnique(whichPoints(point));
+        if showIndTrials
+            traceToShow = trialTraces{whichPoints(point)}(whichNeurons,:);
+            xVal = 1:size(traceToShow,2);
+        else
+            traceToShow = clustTraces{whichPoints(point)}(whichNeurons,:);
+            xVal = 1:nUnique(whichPoints(point));
+        end
     end
+    
+    % filter neurons 
+    if filterNeurons 
+        keepNeurons = mean(traceToShow, 2) >= neuronMinMean;
+        traceToShow = traceToShow(keepNeurons, :);
+    end
+    
+    %threshold 
     if showThresholded
         traceToShow = double(traceToShow >= zThresh);
     end
     
     %sort traces 
     if sortTraces
-        totalDiff = sum(abs(diff(clustTraces{whichPoints(point)}(whichNeurons,:),1,2)),2);
-        [~,sortOrder] = sort(totalDiff,'descend');
-        traceToShow = traceToShow(sortOrder,:);
+        [~, sortOrder] = sort(traceToShow(:, sortTracesBy), 'descend');
+        traceToShow = traceToShow(sortOrder, :);
     end
     
     %show
-    if capActivity
-        valRange = prctile(traceToShow(:),[2.5 97.5]);
-        imagescnan(xVal,1:length(whichNeurons),traceToShow,valRange);
+    if capActivity && ~showThresholded
+        valRange = [min(traceToShow(:)), zThresh];
+        imagescnan(xVal,1:size(traceToShow, 1),traceToShow,valRange);
     else
-        imagescnan(xVal,1:length(whichNeurons),traceToShow);
+        imagescnan(xVal,1:size(traceToShow,1),traceToShow);
     end
-    %     imagescnan(1:nUnique(point),1:nNeurons,clustTraces{point},[minVal maxVal]);
     
     %if label ytick if necessary
-    if length(whichNeurons) < 20
-        axH.YTick = 1:length(whichNeurons);
+    if size(traceToShow, 1) < 20
+        axH.YTick = 1:size(traceToShow, 1);
     end
     
     %add lines
@@ -134,7 +173,7 @@ for point = 1:nShowPoints
         axH.XTick = xTickArray;
         axH.XTickLabel = 1:nUnique(whichPoints(point));
     else
-        axH.XTick = 1:nUnique(whichPoints(point));
+        axH.XTick = 1:size(traceToShow,2);
     end
     
     %label axes
@@ -148,10 +187,33 @@ for point = 1:nShowPoints
         cBar.TickLabels = {'Below Threshold','Above Threshold'};
         cBar.FontSize = 20;
     end
+    cBar.TickLabels = num2cell(cBar.Ticks);
+    if capActivity
+        cBar.TickLabels{end} = sprintf('%s+', cBar.TickLabels{end});
+    end
     if nShowPoints < 3
         axH.FontSize = 20;
     end
     axis(axH,'square');
+    
+    % add epoch divider 
+    if groupEpochs
+        num_boundaries = length(epoch_boundaries)-1;
+        epoch_dividers = gobjects(num_boundaries);
+        for boundary = 1:num_boundaries
+            epoch_dividers(boundary) = line(...
+                0.5 + [epoch_boundaries(boundary), epoch_boundaries(boundary)],...
+                axH.YLim, 'Color', 'k', 'LineWidth', 2);
+        end
+        
+        % change title 
+%         new_title = '';
+%         for curr_point = 1:length(whichPoints)
+%             new_title = cat(2, new_title, ' / ', pointLabels{whichPoints(curr_point)});
+%         end
+        new_title = strjoin(pointLabels(whichPoints), ' / ');
+        axH.Title.String = new_title;
+    end
     
 end
 

@@ -217,7 +217,7 @@ for binInd = 1:nBins
     else
         if isempty(trainInd)
             %get training and testing ind
-            trainInd = randsample(nTrials,round(nTrials*trainFrac));
+            trainInd = randsample(nTrials,nTrials - nTest);
         end
         testInd = setdiff(1:nTrials,trainInd);
         

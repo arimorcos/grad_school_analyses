@@ -29,9 +29,19 @@ switch computer
         if isempty(subFolder)
             filePath = sprintf('W:\\Mice\\%s_%s_processed.mat',mouse,date);
         else
-            filePath = sprintf('W:\\Mice\\%s\\%s_%s_processed.mat',subFolder,mouse,date);
+            filePath = sprintf('W:\\Mice\\%s\\%s_%s_processed.mat',...
+                subFolder, mouse, date);
+        end
+    case 'GLNXA64'
+        if isempty(subFolder)
+            filePath = sprintf('/media/arimorcos/SSD2/Mice/%s_%s_processed.mat',...
+                mouse, date);
+        else
+            filePath = sprintf('/media/arimorcos/SSD2/Mice/%s/%s_%s_processed.mat',...
+                subFolder, mouse, date);
         end
 end
+
 load(filePath,'imTrials');
 leftTrials = getTrials(imTrials,'maze.leftTrial==1');
 rightTrials = getTrials(imTrials,'maze.leftTrial==0');

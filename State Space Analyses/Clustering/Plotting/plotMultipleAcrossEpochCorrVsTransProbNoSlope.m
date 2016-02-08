@@ -1,4 +1,4 @@
-function plotMultipleAcrossEpochCorrVsTransProb(folder,fileStr)
+function plotMultipleAcrossEpochCorrVsTransProbNoSlope(folder,fileStr)
 %plotMultipleAcrossEpochCorrVsTransProb.m Plots the across epoch
 %correlation for clusters vs. the transition probability
 %
@@ -32,6 +32,13 @@ slope = nan(nFiles,9);
 corrCoef = nan(nFiles,9);
 allTransMatVec = [];
 allClusterCorrVec = [];
+
+num_bins = 10;
+bin_edges = linspace(0, 1, num_bins + 1);
+binned_corr_means = nan(nFiles, 9, num_bins);
+binned_corr_sem = nan(nFiles, 9, num_bins);
+
+
 for file = 1:nFiles
     
     overlapIndex = allOverlapIndex{file};
@@ -63,40 +70,23 @@ for file = 1:nFiles
     nDelta = length(whichDelta);
     
     % loop through and get mean for each
-    overlapDelta = nan(nDelta,1);
-    meanCorrDelta = nan(nDelta,1);
-    maxCorrDelta = nan(nDelta,1);
-    transProbLM = cell(nDelta,1);
-    for delta = 1:nDelta
-        keepInd = deltaEpochVec == whichDelta(delta);
-        overlapDelta(delta) = nanmean(overlapVec(keepInd));
-        meanCorrDelta(delta) = nanmean(clusterCorrVec(keepInd));
-        maxCorrDelta(delta) = max(clusterCorrVec(keepInd));
-        
-        if delta > 1
-            transProbLM{delta} = fitlm(transMatVec(keepInd), clusterCorrVec(keepInd));
-            tempCorr = corrcoef(transMatVec(keepInd), clusterCorrVec(keepInd));
-            corrCoef(file,delta-1) = tempCorr(1,2);
-        end
-        
-        if delta==5
-            %group
-            allClusterCorrVec = cat(1,allClusterCorrVec, clusterCorrVec(keepInd));
-            allTransMatVec = cat(1,allTransMatVec, transMatVec(keepInd));
-        end
-    end
-    
-    % calculate slope and get predictions
-    
-    predictions(file,:) = predict(transProbLM{3}, xVals');
+
     for delta = 2:nDelta
-        slope(file,delta-1) = transProbLM{delta}.Coefficients.Estimate(2);
+        keepInd = deltaEpochVec == whichDelta(delta);
+        
+        for bin = 1:num_bins
+            bin_vec = transMatVec >= bin_edges(bin) & transMatVec <= bin_edges(bin+1);
+            use_vec = keepInd & bin_vec;
+            binned_corr_means(file, delta-1, bin) = nanmean(clusterCorrVec(use_vec));
+            binned_corr_sem(file, delta-1, bin) = calcSEM(clusterCorrVec(use_vec));
+        end
     end
+     
     
 end
 
 %% get correlation and p value
-[corr,pVal] = corrcoef(allTransMatVec,allClusterCorrVec)
+% [corr,pVal] = corrcoef(allTransMatVec,allClusterCorrVec)
 
 
 %% create figure and plot
@@ -104,11 +94,20 @@ figH = figure;
 
 %% plot corr vs. trans probability
 
-axLeft = subplot(1, 2, 1);
+which_delta = 2;
+binned_corr_means = squeeze(nanmean(binned_corr_means(:, which_delta, :), 2));
+
+axH = axes;
 
 %calculate mean and sem
-meanVal = mean(predictions);
-semVal = calcSEM(predictions);
+% meanVal = nanmean(squeeze(binned_corr_means(:, which_delta, :)));
+% semVal = calcSEM(squeeze(binned_corr_means(:, which_delta, :)));
+meanVal = nanmean(binned_corr_means);
+semVal = calcSEM(binned_corr_means);
+meanVal = cat(2, meanVal(1), meanVal);
+semVal = cat(2, semVal(1), semVal);
+% xVals = bin_edges(1:end-1) + mean(diff(bin_edges));
+xVals = bin_edges;
 
 errH = shadedErrorBar(xVals,meanVal,semVal);
 color = [0    0.4470    0.7410];
@@ -117,40 +116,6 @@ errH.patch.FaceColor = color;
 errH.patch.FaceAlpha = 0.3;
 errH.edge(1).Color = color;
 errH.edge(2).Color = color;
-
-beautifyPlot(figH, axLeft);
-axLeft.XLabel.String = 'Transition probability';
-axLeft.YLabel.String = 'Correlation coefficient';
-axLeft.YLim = [0 1];
-axLeft.XLim = [0 1];
-
-%% plot distribution of slopes vs. delta epochs
-
-axRight = subplot(1, 2, 2);
-
-%calculate mean and sem
-meanVal = mean(slope);
-semVal = calcSEM(slope);
-meanVal = mean(corrCoef);
-semVal = calcSEM(corrCoef);
-
-errH = shadedErrorBar(whichDelta(2:end),meanVal,semVal);
-color = [0    0.4470    0.7410];
-errH.mainLine.Color = color;
-errH.patch.FaceColor = color;
-errH.patch.FaceAlpha = 0.3;
-errH.edge(1).Color = color;
-errH.edge(2).Color = color;
-
-beautifyPlot(figH, axRight);
-axRight.XLabel.String = '\Delta epochs';
-axRight.YLabel.String = 'Corr. coef. vs. trans. prob. slope';
-
-%% plot ind lines 
-figH = figure;
-axH = axes;
-
-plot(xVals, predictions');
 
 beautifyPlot(figH, axH);
 axH.XLabel.String = 'Transition probability';

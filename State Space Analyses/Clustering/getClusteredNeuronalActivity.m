@@ -1,4 +1,5 @@
-function [clustTraces,trialTraces,clustCounts] = getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,varargin)
+function [clustTraces,trialTraces,clustCounts] = ...
+    getClusteredNeuronalActivity(dataCell,clusterIDs,cMat,varargin)
 %getClusteredNeuronalActivity.m Gets the average z-scored activity of each neuron
 %in each cluster 
 %
@@ -40,7 +41,7 @@ useDeconv = true;
 if useDeconv
     traces = catBinnedDeconvTraces(dataCell);
 else 
-    [~,traces] = catBinnedTraces(dataCell);
+    [~, traces] = catBinnedTraces(dataCell);
 end
 
 %mean subtract 

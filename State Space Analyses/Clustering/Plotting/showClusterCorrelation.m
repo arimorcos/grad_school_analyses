@@ -15,10 +15,10 @@ function meanCorr = showClusterCorrelation(dataCell,clusterIDs,cMat,varargin)
 %
 %ASM 4/15
 
-pointLabels = {'Maze Start','Segment 1','Segment 2','Segment 3','Segment 4',...
-    'Segment 5','Segment 6','Early Delay','Late Delay','Turn'};
+pointLabels = {'Maze Start','Cue 1','Cue 2','Cue 3','Cue 4',...
+    'Cue 5','Cue 6','Early Delay','Late Delay','Turn'};
 sortBy = 'leftTurn';
-showAllPoints = true;
+showAllPoints = false;
 whichPoints = 8;
 nShuffles = 200;
 

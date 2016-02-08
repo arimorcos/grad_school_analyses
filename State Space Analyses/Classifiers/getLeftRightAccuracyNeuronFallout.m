@@ -1,4 +1,5 @@
-function acc = getLeftRightAccuracyNeuronFallout(dataCell, sortOrder, shuffleTraces, increment, useClass)
+function acc = getLeftRightAccuracyNeuronFallout(dataCell, sortOrder, ...
+    shuffleTraces, increment, useClass)
 %getLeftRightAccuracyNeuronFallout.m Calculates svm accuracy at predicting
 %left-right turn with increasing number of neurons. Adds neurons according
 %to the sortOrder array starting from top.
@@ -26,7 +27,7 @@ if nargin < 3 || isempty(shuffleTraces)
 end
 
 if shuffleTraces
-    traces = breakTrialAssociationForClassifier(dataCell);
+    traces = breakTrialAssociationForClassifier(dataCell, useDeconv);
 else
     %get traces
     if useDeconv

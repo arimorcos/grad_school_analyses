@@ -1,5 +1,5 @@
 function classifierOut = getNetEvidenceNeuronAddIn(dataCell, ...
-    sortOrder, shuffleTraces, increment)
+    sortOrder, shuffleTraces, increment, breakTrialCorr)
 %getNetEvidenceNeuronAddIn.m Calculates svm accuracy at predicting
 %net evidence turn with increasing number of neurons. Adds neurons according
 %to the sortOrder array starting from top.
@@ -12,6 +12,11 @@ function classifierOut = getNetEvidenceNeuronAddIn(dataCell, ...
 %acc - nNeurons x nBins array of svm accuracy
 %
 %ASM 7/15
+
+if nargin < 5 || isempty(breakTrialCorr)
+    breakTrialCorr = false;
+end
+
 if nargin < 4 || isempty(increment)
     increment = 1;
 end
@@ -42,6 +47,6 @@ classifierOut = cell(nNeurons, 1);
 for neuronCount = 2:increment:nNeurons
     
     classifierOut{neuronCount} = classifyNetEvGroupSegSVM(dataCell,'whichNeurons',...
-        sortOrder(1:neuronCount));
+        sortOrder(1:neuronCount), 'breakTrialCorr', breakTrialCorr);
     
 end

@@ -7,7 +7,7 @@ nDataSets = length(procList);
 
 
 %get deltaPLeft
-for dSet = 1:nDataSets
+for dSet = 3:nDataSets
 % for dSet = 8;
     %dispProgress
     dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
