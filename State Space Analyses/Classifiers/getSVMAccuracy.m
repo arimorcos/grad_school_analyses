@@ -148,12 +148,13 @@ else
     probEst = nan(nTrials - round(nTrials*trainFrac), nBins);
 end
 
+
+if isempty(trainInd)
+    nTest = floor(nTrials*(1-trainFrac));
+else
+    nTest = nTrials - length(trainInd);
+end
 if svmType ~= 0
-    if isempty(trainInd)
-        nTest = floor(nTrials*(1-trainFrac));
-    else
-        nTest = nTrials - length(trainInd);
-    end
     guess = nan(1,nBins);
     accuracy = nan(nTest,nBins);
     classes = nan(nTest,nBins);

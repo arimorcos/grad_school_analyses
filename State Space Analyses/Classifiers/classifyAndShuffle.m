@@ -81,7 +81,7 @@ end
 %shuffle
 shuffleAccuracy = nan(nShuffles,length(accuracy));
 shuffleGuess = nan(size(classGuess,1),size(classGuess,2),nShuffles);
-parfor shuffleInd = 1:nShuffles
+for shuffleInd = 1:nShuffles
     %display progress
     if ~silent
         dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);

@@ -4,6 +4,8 @@ function plotMultipleClusteredDimensionality(folder,fileStr)
 %
 %ASM 10/15
 
+ind_lines = true;
+
 %get list of files in folder
 [allNames, ~, ~, ~, isDirs] = dir2cell(folder);
 files = allNames(~isDirs);
@@ -30,15 +32,25 @@ sem_val = calcSEM(all_frac_explored);
 %% plot 
 figH = figure;
 axH = axes;
+hold(axH, 'on');
 
-colors = lines(2);
-errH = shadedErrorBar(1:10,mean_val, sem_val);
-color = colors(1,:);
-errH.mainLine.Color = color;
-errH.patch.FaceColor = color;
-errH.patch.FaceAlpha = 0.3;
-errH.edge(1).Color = color;
-errH.edge(2).Color = color;
+if ind_lines
+    plotH = plot(1:10, all_frac_explored);
+    
+    % add mean 
+    meanH = plot(1:10, mean_val);
+    meanH.Color = 'k';
+    meanH.LineWidth = 2;
+else
+    colors = lines(2);
+    errH = shadedErrorBar(1:10,mean_val, sem_val);
+    color = colors(1,:);
+    errH.mainLine.Color = color;
+    errH.patch.FaceColor = color;
+    errH.patch.FaceAlpha = 0.3;
+    errH.edge(1).Color = color;
+    errH.edge(2).Color = color;
+end
 
 %beautify 
 beautifyPlot(figH, axH);
