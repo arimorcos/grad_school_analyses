@@ -1,21 +1,22 @@
 %saveFolder
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/160214_vogel_single_neuron_SVM_classbalance';
+saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160216_vogel_single_neuron_SVM_classbalance';
 
 %get list of datasets
 procList = getProcessedList();
 nDataSets = length(procList);
-nDataSets = 1;
+% nDataSets = 1;
 
 %get deltaPLeft
 for dSet = 1:nDataSets
     % for dSet = 7
     %dispProgress
-    dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
+    fprintf('Dataset %d/%d \n', dSet, nDataSets);
     
     %load in data
     loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
     
     sub = trials60;
+    sub = binFramesByYPos(sub, 50);
     
     %get traces
     deconvTraces = catBinnedDeconvTraces(sub);
@@ -55,13 +56,19 @@ for dSet = 1:nDataSets
         % classify
         accuracy(neuronInd,:) = getSVMAccuracy(...
             deconvTraces(neuronInd,:,:),...
-            leftTurns, 'leaveOneOut', true);
+            leftTurns, 'leaveOneOut', false,...
+            'kernel', 'rbf', 'kFold', 10);
         shuffleAccuracy(neuronInd,:) = getSVMAccuracy(...
             deconvTraces(neuronInd,:,:),...
-            shuffleArray(leftTurns), 'leaveOneOut', true);
+            shuffleArray(leftTurns), 'leaveOneOut', false,...
+            'kernel', 'rbf', 'kFold', 10);
+        dispProgress('Neuron %d/%d', neuronInd, neuronInd, nNeurons);
     end
+    fprintf('\n');    
     
     %save
     saveName = fullfile(saveFolder,sprintf('%s_%s_upcomingTurn_deconv.mat',procList{dSet}{:}));
     save(saveName,'accuracy','shuffleAccuracy','yPosBins');
 end
+
+getPeakAccuracyAndSig;

@@ -1,4 +1,5 @@
-function [fig1, fig2] = plotClusterDistances(clusterCenters,cMat,sortBy,plotPoint)
+function [fig1, fig2] = plotClusterDistances(clusterCenters,...
+    cMat,sortBy,plotPoint,useCosine)
 %plotClusterDistances.m Calculates the distances between clusters and sorts
 %by a given variable 
 %
@@ -33,7 +34,11 @@ if ~strcmpi(sortBy,'none') && ~isempty(cMat)
 end
 
 %calculate distance
-distMat = squareform(pdist(clusterCenters{plotPoint}'));
+if useCosine
+    distMat = squareform(pdist(clusterCenters{plotPoint}', 'cosine'));
+else
+    distMat = squareform(pdist(clusterCenters{plotPoint}'));
+end
 nClusters = length(distMat);
 
 %% plot fig 1
@@ -84,7 +89,11 @@ axis(axH,'square');
 
 %add colorbar 
 cBar = colorbar;
-cBar.Label.String = 'Euclidean distance';
+if useCosine
+    cBar.Label.String = 'Cosine distance';
+else
+    cBar.Label.String = 'Euclidean distance';
+end
 cBar.Label.FontSize = 30;
 
 maxfig(fig1, 1);
@@ -114,7 +123,11 @@ beautifyPlot(fig2, axH);
 
 %label 
 axH.XLabel.String = sprintf('\\Delta %s', sortBy);
-axH.YLabel.String = 'Mean pairwise euclidean distance';
+if useCosine
+    axH.YLabel.String = 'Mean pairwise cosine distance';
+else
+    axH.YLabel.String = 'Mean pairwise euclidean distance';
+end
 
 % print significance 
 [corr, p] = corrcoef(cluster_val_dist, mean_dist);

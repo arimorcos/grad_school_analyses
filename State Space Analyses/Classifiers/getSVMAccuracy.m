@@ -56,7 +56,7 @@ if nargin > 1 || ~isempty(varargin)
             case 'dontcomparesame'
                 shouldntCompareSame = true;
                 sameClass = varargin{argInd+1};
-            case 'cParam'
+            case 'cparam'
                 cParam = varargin{argInd+1};
             case 'gamma'
                 gamma = varargin{argInd+1};
@@ -190,7 +190,7 @@ for binInd = 1:nBins
     elseif leaveOneOut
         
         %loop through every trial
-        for testInd = 1:nTrials
+        parfor testInd = 1:nTrials
             %get trainInd
             trainInd = setdiff(1:nTrials,testInd);
             
