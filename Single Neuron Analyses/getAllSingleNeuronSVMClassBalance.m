@@ -4,6 +4,7 @@ saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160216_vogel_single_neuro
 %get list of datasets
 procList = getProcessedList();
 nDataSets = length(procList);
+nShuffles = 1;
 % nDataSets = 1;
 
 %get deltaPLeft
@@ -50,20 +51,23 @@ for dSet = 1:nDataSets
     
     %initialize
     accuracy = nan(nNeurons,nBins);
-    shuffleAccuracy = nan(nNeurons, nBins);
+    shuffleAccuracy = nan(nShuffles, nNeurons, nBins);
     
     for neuronInd = 1:nNeurons
         % classify
         accuracy(neuronInd,:) = getSVMAccuracy(...
             deconvTraces(neuronInd,:,:),...
             leftTurns, 'leaveOneOut', false,...
-            'kernel', 'rbf', 'kFold', 10);
-        shuffleAccuracy(neuronInd,:) = getSVMAccuracy(...
-            deconvTraces(neuronInd,:,:),...
-            shuffleArray(leftTurns), 'leaveOneOut', false,...
-            'kernel', 'rbf', 'kFold', 10);
+            'kernel', 'rbf', 'kFold', 5);
+        for shuffleInd = 1:nShuffles
+            shuffleAccuracy(shuffleInd, neuronInd, :) = getSVMAccuracy(...
+                deconvTraces(neuronInd,:,:),...
+                shuffleArray(leftTurns), 'leaveOneOut', false,...
+                'kernel', 'rbf', 'kFold', 5);
+        end
         dispProgress('Neuron %d/%d', neuronInd, neuronInd, nNeurons);
     end
+    shuffleAccuracy = squeeze(mean(shuffleAccuracy, 1));
     fprintf('\n');    
     
     %save

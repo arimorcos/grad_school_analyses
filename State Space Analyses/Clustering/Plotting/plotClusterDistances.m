@@ -1,5 +1,5 @@
 function [fig1, fig2] = plotClusterDistances(clusterCenters,...
-    cMat,sortBy,plotPoint,useCosine)
+    cMat,sortBy,plotPoint,metric)
 %plotClusterDistances.m Calculates the distances between clusters and sorts
 %by a given variable 
 %
@@ -14,7 +14,7 @@ function [fig1, fig2] = plotClusterDistances(clusterCenters,...
 
 min_trials = 10;
 
-pointLabels = {'Maze Start','Cue 1','Cue 2','Cue 3','Cue 4',...
+pointLabels = {'Trial Start','Cue 1','Cue 2','Cue 3','Cue 4',...
     'Cue 5','Cue 6','Early Delay','Late Delay','Turn'};
 nPoints = length(clusterCenters);
 
@@ -34,10 +34,16 @@ if ~strcmpi(sortBy,'none') && ~isempty(cMat)
 end
 
 %calculate distance
-if useCosine
-    distMat = squareform(pdist(clusterCenters{plotPoint}', 'cosine'));
-else
-    distMat = squareform(pdist(clusterCenters{plotPoint}'));
+switch metric
+    case 'cosine'
+        distMat = squareform(pdist(clusterCenters{plotPoint}', 'cosine'));
+    case 'correlation'
+        distMat = squareform(1 - pdist(clusterCenters{plotPoint}', 'correlation'));
+        distMat(logical(eye(length(distMat)))) = 1;
+    case 'euclidean'
+        distMat = squareform(pdist(clusterCenters{plotPoint}'));
+    otherwise 
+        error('Can''t interpret %s', metric);
 end
 nClusters = length(distMat);
 
@@ -89,10 +95,15 @@ axis(axH,'square');
 
 %add colorbar 
 cBar = colorbar;
-if useCosine
-    cBar.Label.String = 'Cosine distance';
-else
-    cBar.Label.String = 'Euclidean distance';
+switch metric
+    case 'cosine'
+        cBar.Label.String = 'Cosine distance';
+    case 'correlation'
+        cBar.Label.String = 'Population correlation';
+    case 'euclidean'
+        cBar.Label.String = 'Euclidean distance';
+    otherwise 
+        error('Can''t interpret %s', metric);
 end
 cBar.Label.FontSize = 30;
 
@@ -104,6 +115,9 @@ maxfig(fig1, 1);
 cluster_val_dist = pdist2(clusterVals{plotPoint}, clusterVals{plotPoint});
 cluster_val_dist = cluster_val_dist(:);
 mean_dist = distMat(:);
+remove_ind = mean_dist == 0;
+cluster_val_dist(remove_ind) = [];
+mean_dist(remove_ind) = [];
 
 %plot scatter 
 fig2 = figure;
@@ -123,10 +137,15 @@ beautifyPlot(fig2, axH);
 
 %label 
 axH.XLabel.String = sprintf('\\Delta %s', sortBy);
-if useCosine
-    axH.YLabel.String = 'Mean pairwise cosine distance';
-else
-    axH.YLabel.String = 'Mean pairwise euclidean distance';
+switch metric
+    case 'cosine'
+        axH.YLabel.String = 'Mean pairwise cosine distance';
+    case 'correlation'
+        axH.YLabel.String = 'Mean pairwise correlation coefficient';
+    case 'euclidean'
+        axH.YLabel.String = 'Mean pairwise euclidean distance';
+    otherwise 
+        error('Can''t interpret %s', metric);
 end
 
 % print significance 

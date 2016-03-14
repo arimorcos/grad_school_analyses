@@ -3,8 +3,9 @@ figH = figure;
 axH = axes;
 hold(axH,'on');
 minVal = min(cat(1,peakAcc,meanShuffleAcc));
+% minVal = 48;
 maxVal = max(cat(1,peakAcc,meanShuffleAcc));
-nBins = 30;
+nBins = 17;
 maxVal = 60;
 binEdges = linspace(minVal,maxVal,nBins+1);
 binEdges(end) = 100;
@@ -31,3 +32,5 @@ axH.YLabel.String = 'Fraction of neurons';
 
 %add legend
 legH = legend([histReal, histShuffle],{'Real','Shuffled'},'Location','NorthEast');
+
+% axH.XLim = [49.5 60];

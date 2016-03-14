@@ -7,7 +7,8 @@ function plotMultipleConditionalDistances(folder,fileStr, which_point)
 %
 %ASM 2/16
 
-plot_cosine = true;
+plot_cosine = ~true;
+plot_correlation = true;
 
 if nargin < 3 || isempty(which_point)
     which_point = 5;
@@ -36,6 +37,7 @@ end
 % get condition labels
 cond_labels = allOut{1}.conditions;
 cond_labels = {'All correct trials',...
+    'Different choice',...
     'Same choice',...
     'Same 6-0 choice', ...
     '6-0, curr & prev choice',...
@@ -52,6 +54,9 @@ all_distance = cat(3, all_distance{:});
 all_cosine_distance = cellfun(@(x) x.mean_cosine_distance, allOut, 'uniformoutput', false);
 all_cosine_distance = cat(3, all_cosine_distance{:});
 
+all_correlation = cellfun(@(x) x.mean_correlation, allOut, 'uniformoutput', false);
+all_correlation = cat(3, all_correlation{:});
+
 % normalize each variable
 all_variance = bsxfun(@rdivide, all_variance, all_variance(:, 1, :));
 all_distance = bsxfun(@rdivide, all_distance, all_distance(:, 1, :));
@@ -67,6 +72,9 @@ sem_distance = calcSEM(all_distance, 3);
 mean_cosine_distance = nanmean(all_cosine_distance, 3);
 sem_cosine_distance = calcSEM(all_cosine_distance, 3);
 
+mean_correlation = nanmean(all_correlation, 3);
+sem_correlation = calcSEM(all_correlation, 3);
+
 % calculate sig
 p_val = nan(10, num_conditions, num_conditions);
 for point = which_point
@@ -76,6 +84,10 @@ for point = which_point
                 [~, p_val(point, cond_1, cond_2)] = ttest2(...
                     all_cosine_distance(point, cond_1, :),...
                     all_cosine_distance(point, cond_2, :));
+            elseif plot_correlation
+                [~, p_val(point, cond_1, cond_2)] = ttest2(...
+                    all_correlation(point, cond_1, :),...
+                    all_correlation(point, cond_2, :));                
             else
                 [~, p_val(point, cond_1, cond_2)] = ttest2(...
                     all_distance(point, cond_1, :),...
@@ -90,10 +102,12 @@ figH = figure;
 axH = axes;
 hold(axH,'on');
 
+start = linspace(0.8, 1.2, 5);
+
 if ~plot_multiple
     % plot
     marker = 'o';
-    scat_var = errorbar(0.8:1:num_conditions-0.2, mean_variance(which_point, :),...
+    scat_var = errorbar(start(1):1:num_conditions-(1 - start(1)), mean_variance(which_point, :),...
         sem_variance(which_point, :));
     scat_var.Marker = marker;
     scat_var.LineStyle = 'none';
@@ -101,7 +115,7 @@ if ~plot_multiple
     scat_var.MarkerSize = 20;
     scat_var.MarkerFaceColor = scat_var.MarkerEdgeColor;
     
-    scat_dist = errorbar(1:1:num_conditions, mean_distance(which_point, :),...
+    scat_dist = errorbar(start(2):1:num_conditions - (1 - start(2)), mean_distance(which_point, :),...
         sem_distance(which_point, :));
     scat_dist.Marker = marker;
     scat_dist.LineStyle = 'none';
@@ -109,13 +123,21 @@ if ~plot_multiple
     scat_dist.MarkerSize = 20;
     scat_dist.MarkerFaceColor = scat_dist.MarkerEdgeColor;
     
-    scat_cosine = errorbar(1.2:1:num_conditions+0.2, mean_cosine_distance(which_point, :),...
+    scat_cosine = errorbar(start(3):1:num_conditions - (1 - start(3)), mean_cosine_distance(which_point, :),...
         sem_cosine_distance(which_point, :));
     scat_cosine.Marker = marker;
     scat_cosine.LineStyle = 'none';
     scat_cosine.LineWidth = 2;
     scat_cosine.MarkerSize = 20;
     scat_cosine.MarkerFaceColor = scat_cosine.MarkerEdgeColor;
+    
+    scat_corr = errorbar(start(4):1:num_conditions - (1-start(4)), mean_correlation(which_point, :),...
+        sem_correlation(which_point, :));
+    scat_corr.Marker = marker;
+    scat_corr.LineStyle = 'none';
+    scat_corr.LineWidth = 2;
+    scat_corr.MarkerSize = 20;
+    scat_corr.MarkerFaceColor = scat_corr.MarkerEdgeColor;
     
     
     % label
@@ -125,9 +147,9 @@ if ~plot_multiple
     axH.XTickLabelRotation = -45;
     axH.Title.String = pointLabels{which_point};
     
-    legH = legend([scat_var, scat_dist, scat_cosine], ...
+    legH = legend([scat_var, scat_dist, scat_cosine, scat_corr], ...
         {'Variance', 'Mean pairwise Euclidean distance',...
-        'Mean pairwise cosine distance'},...
+        'Mean pairwise cosine distance', 'Mean pairwise correlation'},...
         'Location', 'Southwest');
 else
     % plot
@@ -142,6 +164,10 @@ else
             scat_h(plot_ind) = errorbar(x_vals, ...
                 mean_cosine_distance(which_point(plot_ind), :),...
                 sem_cosine_distance(which_point(plot_ind), :));
+        elseif plot_correlation
+            scat_h(plot_ind) = errorbar(x_vals, ...
+                mean_correlation(which_point(plot_ind), :),...
+                sem_correlation(which_point(plot_ind), :));
         else
             scat_h(plot_ind) = errorbar(x_vals, ...
                 mean_distance(which_point(plot_ind), :),...
@@ -160,14 +186,19 @@ else
     axH.XTickLabels = cond_labels;
     axH.XTickLabelRotation = -45;
     if plot_cosine
-        axH.YLabel.String = 'Cosine distance';
+        axH.YLabel.String = 'Normalized cosine distance';
+    elseif plot_correlation
+        axH.YLabel.String = 'Correlation';
     else
-        axH.YLabel.String = 'Euclidean distance';
+        axH.YLabel.String = 'Normalized Euclidean distance';
     end
     
     legH = legend(scat_h, ...
         pointLabels(which_point),...
         'Location', 'Southwest');
+    if plot_correlation
+        legH.Location = 'NorthWest';
+    end
 end
 
 % print sig

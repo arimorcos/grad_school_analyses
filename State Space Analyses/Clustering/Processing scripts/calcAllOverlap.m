@@ -1,11 +1,12 @@
-useZThresh = [0.3 0.4];
+useZThresh = [0.3];
 
 %saveFolder
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/150909_vogel_overlap_all';
+saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160217_vogel_thresh_overlap';
 
 %get list of datasets
 procList = getProcessedList();
 nDataSets = length(procList);
+minClusterSize = [15:30];
 
 %get deltaPLeft
 for dSet = 1:nDataSets
@@ -14,16 +15,29 @@ for dSet = 1:nDataSets
     
     %load in data
     loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
+    sub = correctRight60;
     
-    [~,cMat,clusterIDs,~]=getClusteredMarkovMatrix(correctLeft60,'traceType','deconv');
+    [~,cMatLeft,clusterIDsLeft,~]=getClusteredMarkovMatrix(correctLeft60,'traceType','deconv');
+    [~,cMatRight,clusterIDsRight,~]=getClusteredMarkovMatrix(correctRight60,'traceType','deconv');
     
     for thresh = 1:length(useZThresh)
-        meanOverlap = showClusterOverlap(correctLeft60,clusterIDs,cMat,'zThresh',useZThresh(thresh));
+        for size = 1:length(minClusterSize)
+            meanOverlap = showClusterOverlap(correctLeft60,clusterIDsLeft,cMatLeft,...
+                'zThresh',useZThresh(thresh),'minClusterSize',minClusterSize(size),'nshuffles',5);
+            
+            saveName = fullfile(saveFolder,sprintf('%s_%s_left_shuffleCell_z%.1f_minCluster_%d.mat',...
+                procList{dSet}{:},useZThresh(thresh),minClusterSize(size)));
+            save(saveName,'meanOverlap');
+            
+            meanOverlap = showClusterOverlap(correctRight60,clusterIDsRight,cMatRight,...
+                'zThresh',useZThresh(thresh),'minClusterSize',minClusterSize(size),'nshuffles',5);
+            saveName = fullfile(saveFolder,sprintf('%s_%s_right_shuffleCell_z%.1f_minCluster_%d.mat',...
+                procList{dSet}{:},useZThresh(thresh),minClusterSize(size)));
+            save(saveName,'meanOverlap');
+        end
         
         %save
-        saveName = fullfile(saveFolder,sprintf('%s_%s_OverlapIndex_correct_shuffleCell_z%.1f.mat',...
-            procList{dSet}{:},useZThresh(thresh)));
-        save(saveName,'meanOverlap');
+        
     end
 end
 
