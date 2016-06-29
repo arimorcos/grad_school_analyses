@@ -46,12 +46,10 @@ matchFiles = files(~cellfun(@isempty,regexp(files,fileStr)));
 
 %loop through each file and create array 
 allAcc = cell(length(matchFiles),1);
-allShuffle = cell(size(allAcc));
 allxVals = cell(size(allAcc));
 for fileInd = 1:length(matchFiles)
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
     allAcc{fileInd} = currFileData.accuracy(2:end-2);
-    allShuffle{fileInd} = currFileData.shuffleAccuracy(:,2:end-2);
     allxVals{fileInd} = currFileData.yPosBins(2:end-2);
 end
 
@@ -60,10 +58,8 @@ minBins = min(cellfun(@length, allAcc));
 maxBins = max(cellfun(@length, allAcc));
 cropAcc = cellfun(@(x) x(end-minBins+1:end),allAcc,'UniformOutput',false);
 cropXVals = cellfun(@(x) x(end-minBins+1:end),allxVals,'UniformOutput',false);
-cropShuffle = cellfun(@(x) x(:,end-minBins+1:end),allShuffle,'UniformOutput',false);
 catAcc =cat(2,cropAcc{:})';
 catXVals = cat(1,cropXVals{:});
-catShuffle = cat(1,cropShuffle{:});
 meanXVals = mean(catXVals);
 cmScale = 0.75;
 meanXVals = meanXVals*cmScale;
@@ -97,8 +93,8 @@ errH.edge(2).Color = color;
 handles.ax.YLim = [0 100];
 
 %add chance line 
-chanceVal = mean(catShuffle(:));
-% chanceVal = 50;
+% chanceVal = mean(catShuffle(:));
+chanceVal = 50;
 handles.chanceLine = line([min(meanXVals) max(meanXVals)],...
     [chanceVal chanceVal]);
 handles.chanceLine.Color = 'k';

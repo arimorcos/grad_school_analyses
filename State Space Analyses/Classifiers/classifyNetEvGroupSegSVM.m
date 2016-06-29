@@ -33,9 +33,11 @@ breakTrialAssociation = false;
 viewAngleSwap = false;
 useBehaviorOnly = false;
 useBehaviorAndNeuron = false;
+do_not_train_33 = false;
 C = 2;
 epsilon = 0.0001;
 gamma = 0.04;
+limitSeg = [];
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -84,6 +86,10 @@ if nargin > 1 || ~isempty(varargin)
                 gamma = varargin{argInd+1};
             case 'c'
                 C = varargin{argInd+1};
+            case 'limitseg'
+                limitSeg = varargin{argInd+1};
+            case 'do_not_train_33'
+                do_not_train_33 = varargin{argInd+1};
         end
     end
 end
@@ -99,23 +105,24 @@ for condInd = 1:length(conditions)
     
     %get segTraces
     if useBehaviorOnly
-        [segTraces,~,netEv,segNum,numLeft,~,~,~,viewAngle] = extractSegmentTraces(dataSub,'usebins',true,...
+        [segTraces,~,netEv,segNum,numLeft,~,~,leftTurn,viewAngle,~,leftTrial] = extractSegmentTraces(dataSub,'usebins',true,...
             'tracetype','behavior','whichFactor',whichFactor);
     elseif useBehaviorAndNeuron
-        [segTraces,~,netEv,segNum,numLeft,~,~,~,viewAngle] = extractSegmentTraces(dataSub,'usebins',true,...
+        [segTraces,~,netEv,segNum,numLeft,~,~,leftTurn,viewAngle,~,leftTrial] = extractSegmentTraces(dataSub,'usebins',true,...
             'tracetype',traceType,'whichFactor',whichFactor);
         behavTraces= extractSegmentTraces(dataSub,'usebins',true,...
             'tracetype','behavior','whichFactor',whichFactor);
         segTraces = cat(1,segTraces,behavTraces);
     else
-        [segTraces,~,netEv,segNum,numLeft,~,~,~,viewAngle] = extractSegmentTraces(dataSub,'usebins',true,...
+        [segTraces,~,netEv,segNum,numLeft,~,~,leftTurn,viewAngle,~,leftTrial] =...
+            extractSegmentTraces(dataSub,'usebins',true,...
             'tracetype',traceType,'whichFactor',whichFactor);
     end
     
     %get nSeg
     nSeg = max(segNum);
     
-    %filter neurons 
+    %filter neurons
     if ~isempty(whichNeurons)
         segTraces = segTraces(whichNeurons,:,:);
     end
@@ -124,23 +131,25 @@ for condInd = 1:length(conditions)
     meanBinRange = round(range*size(segTraces,2));
     segTraces = mean(segTraces(:,meanBinRange(1):meanBinRange(2),:),2);
     
-    %take subset if trial matching 
-    if trialMatch 
+    %take subset if trial matching
+    if trialMatch
         
         %generate random indices from 1:nSeg*nTrials
         keepInd = sort(randsample(nSeg*nTrials,nTrials));
         
-        %filter 
+        %filter
         segTraces = segTraces(:,:,keepInd);
         netEv = netEv(keepInd);
         segNum = segNum(keepInd);
         numLeft = numLeft(keepInd);
-    else 
+        leftTurn = leftTurn(keepInd);
+        leftTrial = leftTrial(keepInd);
+    else
         nTrials = nTrials*nSeg;
     end
     
-    %view angle swap 
-    if viewAngleSwap 
+    %view angle swap
+    if viewAngleSwap
         
         swapGroup1 = 1:round(nTrials/2);
         swapGroup2 = swapGroup1(end)+1:nTrials;
@@ -151,7 +160,7 @@ for condInd = 1:length(conditions)
             [minDiff(swap), minInd] = min(diffViewAngle);
             minIndTotal = swapGroup2(minInd);
             
-            %swap 
+            %swap
             tempNetEv = netEv(swap);
             netEv(swap) = netEv(minIndTotal);
             netEv(minIndTotal) = tempNetEv;
@@ -194,6 +203,20 @@ for condInd = 1:length(conditions)
         segNum = segNum(keepInd);
         numLeft = numLeft(keepInd);
         nTrials = sum(keepInd);
+        leftTurn = leftTurn(keepInd);
+        leftTrial = leftTrial(keepInd);
+    end
+    
+    % limit seg
+    if ~isempty(limitSeg)
+        keepInd = segNum == limitSeg;
+        segTraces = segTraces(:,:,keepInd);
+        netEv = netEv(keepInd);
+        segNum = segNum(keepInd);
+        numLeft = numLeft(keepInd);
+        nTrials = sum(keepInd);
+        leftTurn = leftTurn(keepInd);
+        leftTrial = leftTrial(keepInd);
     end
     
     %get nTest
@@ -207,7 +230,7 @@ for condInd = 1:length(conditions)
             realClass = numLeft;
         case 'numright'
             realClass = nSeg - numLeft;
-        otherwise 
+        otherwise
             error('Can''t interpret class mode');
     end
     
@@ -225,9 +248,33 @@ for condInd = 1:length(conditions)
         
     end
     
+    %specify train indices
+    num_train = round(nTrials*trainFrac);
+    allInd = shuffleArray(1:nTrials);
+    trainInd = allInd(1:num_train);
+    testInd = sort(allInd(num_train+1:end));
+    
+    %remove 3-3s from train ind
+    if do_not_train_33
+        remove_trials = find(numLeft == 3 & segNum == 6);
+        if ~isempty(remove_trials)
+            
+            trainInd(ismember(trainInd, remove_trials)) = [];
+            
+            testInd = cat(2, testInd, remove_trials');
+            testInd = sort(unique(testInd));
+        end
+    end
+    
     %calculate actual accuracy
     [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
         realClass, trainFrac, trainInd, epsilon, gamma, C);
+    
+    %subset
+    segNum = segNum(testInd);
+    leftTurn = leftTurn(testInd);
+    leftTrial = leftTrial(testInd);
+    correct = leftTurn == leftTrial;
     
     %shuffle
     if shouldShuffle
@@ -238,7 +285,7 @@ for condInd = 1:length(conditions)
         shuffleCorrCoef = nan(size(shuffleMSE));
         
         for shuffleInd = 1:nShuffles
-%             dispProgress('Performing shuffle %d/%d',shuffleInd,shuffleInd,nShuffles);
+            %             dispProgress('Performing shuffle %d/%d',shuffleInd,shuffleInd,nShuffles);
             %generate random netEv conditions
             randClass = shuffleArray(realClass);
             
@@ -268,6 +315,10 @@ for condInd = 1:length(conditions)
     classifierOut(condInd).leftViewAngle = leftViewAngle;
     classifierOut(condInd).viewAngleRange = viewAngleRange;
     classifierOut(condInd).minDiff = minDiff;
+    classifierOut(condInd).correct = correct;
+    classifierOut(condInd).leftTurn = leftTurn;
+    classifierOut(condInd).leftTrial = leftTrial;
+    classifierOut(condInd).segNum = segNum;
 end
 
 function [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
@@ -276,7 +327,8 @@ function [guess, testClass, mse, corrCoef] = getNetEvGroupSegData(segTraces,...
 %calculate accuracy
 [guess,mse,testClass,corrCoef] =...
     getSVMAccuracy(segTraces,realClass,...
-    'svmType', 'e-SVR', 'C',C,'epsilon',epsilon,'gamma',gamma,'kFold',1,...
+    'svmType', 'e-SVR', 'CParam',C,...
+    'epsilon',epsilon,'gamma',gamma,'kFold',1,...
     'trainFrac',trainFrac,'trainind',trainInd);
 
 

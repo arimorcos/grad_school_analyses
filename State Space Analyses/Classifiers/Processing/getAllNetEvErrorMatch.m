@@ -1,0 +1,29 @@
+%saveFolder 
+saveFolder = '/Users/arimorcos/Data/Analyzed Data/160312_vogel_netEv_errorMatch';
+
+%get list of datasets 
+procList = getProcessedList();
+nDataSets = length(procList);
+
+
+%get deltaPLeft
+for dSet = 1:nDataSets
+    %dispProgress
+    dispProgress('Processing dataset %d/%d',dSet,dSet,nDataSets);
+    
+    %load in data
+    loadProcessed(procList{dSet}{:},[],'oldDeconv_smooth10');
+    
+    %create subset 
+    num_error = length(errorTrials);
+    keep_correct = shuffleArray(1:length(correctTrials));
+    correctTrials = correctTrials(keep_correct(1:num_error));
+    subset = shuffleArray(cat(2, correctTrials, errorTrials));
+    
+    %process
+    classifierOut = classifyNetEvGroupSegSVM(subset);
+    
+    %save 
+    saveName = fullfile(saveFolder,sprintf('%s_%s_netEvErrorMatch.mat',procList{dSet}{:}));
+    save(saveName,'classifierOut');
+end 

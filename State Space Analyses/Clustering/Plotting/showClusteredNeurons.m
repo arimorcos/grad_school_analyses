@@ -7,14 +7,13 @@ function showClusteredNeurons(dataCell,clusterIDs,cMat,varargin)
 %clusterIDs - clusterIDs output by getClusteredMarkovMatrix
 %cMat - CMat output by getClusteredMarkovMatrix
 %
-%
 %ASM 4/15
 
 pointLabels = {'Maze Start','Cue 1','Cue 2','Cue 3','Cue 4',...
     'Cue 5','Cue 6','Early Delay','Late Delay','Turn'};
 whichNeurons = [];
 showThresholded = false;
-zThresh = 0.2;
+zThresh = 1.5;
 sortBy = 'leftTurn';
 showAllPoints = false;
 whichPoints = 6;
@@ -151,6 +150,9 @@ for point = 1:nShowPoints
         imagescnan(xVal,1:size(traceToShow,1),traceToShow);
     end
     
+    % set colormap
+    colormap(b2r(valRange(1), valRange(2)));
+    
     %if label ytick if necessary
     if size(traceToShow, 1) < 20
         axH.YTick = 1:size(traceToShow, 1);
@@ -231,6 +233,8 @@ else
 end
 % tLab = suplabel(sprintf('Sorted by %s',sortBy),'t',supAxes);
 % tLab.FontSize = 30;
+
+axis equal;
 
 maxfig(figH,1);
 

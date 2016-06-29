@@ -8,7 +8,7 @@ nDataSets = length(procList);
 perc = [10];
 
 %get deltaPLeft
-for dSet = 8:nDataSets
+for dSet = 1:nDataSets
     for percVal = perc
         % for dSet = 7
         %dispProgress

@@ -25,7 +25,11 @@ nUnique = nan(length(matchFiles),1);
 for fileInd = 1:length(matchFiles)
     currFileData = load(fullfile(folder,matchFiles{fileInd}));
     nSTD(fileInd,:) = currFileData.deltaPoint.meanNSTD;
-    nUnique(fileInd) = currFileData.nUnique;
+    if length(currFileData.nUnique) > 1
+        nUnique(fileInd) = mean(currFileData.nUnique);
+    else
+        nUnique(fileInd) = currFileData.nUnique;
+    end
 end
 % save(fullfile(folder,strrep(fileStr,'.*','')),'nUnique');
 

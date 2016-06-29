@@ -51,6 +51,7 @@ if showErrorBars
         end
     end
     
+    meanGuess = 1.5*meanGuess;
     % get mean and sem
     meanAllMice = nanmean(meanGuess);
     semAllMice = calcSEM(meanGuess);
@@ -114,30 +115,30 @@ if showLegend
     legend(handles.errMean,strrep(matchFiles,'_','\_'),'Location','BestOutside');
 end
 
-%% mean squared error
-%plot
-handles = [];
-for mouseInd = 1:length(matchFiles)
-    handles = plotSVRNetEvidence(allClassOut{mouseInd},handles,2);
-end
-
-%label axes
-handles.ax.XLabel.FontSize = 30;
-handles.ax.YLabel.FontSize = 30;
-handles.ax.FontSize = 20;
-
-%maximize
-handles.fig.Units = 'normalized';
-handles.fig.OuterPosition = [0 0 1 1];
-
-%set axis to square
-axis(handles.ax,'square');
-
-%add legend
-if showLegend
-    tempHandles = gobjects(length(handles.scatH),1);
-    for i = 1:length(handles.scatH)
-        tempHandles(i) = handles.scatH{i}(1);
-    end
-    legend(tempHandles,strrep(matchFiles,'_','\_'),'Location','BestOutside');
-end
+% %% mean squared error
+% %plot
+% handles = [];
+% for mouseInd = 1:length(matchFiles)
+%     handles = plotSVRNetEvidence(allClassOut{mouseInd},handles,2);
+% end
+% 
+% %label axes
+% handles.ax.XLabel.FontSize = 30;
+% handles.ax.YLabel.FontSize = 30;
+% handles.ax.FontSize = 20;
+% 
+% %maximize
+% handles.fig.Units = 'normalized';
+% handles.fig.OuterPosition = [0 0 1 1];
+% 
+% %set axis to square
+% axis(handles.ax,'square');
+% 
+% %add legend
+% if showLegend
+%     tempHandles = gobjects(length(handles.scatH),1);
+%     for i = 1:length(handles.scatH)
+%         tempHandles(i) = handles.scatH{i}(1);
+%     end
+%     legend(tempHandles,strrep(matchFiles,'_','\_'),'Location','BestOutside');
+% end

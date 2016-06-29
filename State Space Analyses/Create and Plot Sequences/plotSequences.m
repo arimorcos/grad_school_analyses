@@ -67,7 +67,7 @@ for i = 1:nTraces
     
     %plot
     if normInd
-        imagesc(binLabels,1:size(traces{i},1),traces{i});
+        imagesc(binLabels,1:size(traces{i},1),flipud(traces{i}));
     else
         imagesc(binLabels,1:size(traces{i},1),traces{i},cLims);
     end

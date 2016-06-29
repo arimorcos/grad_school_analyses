@@ -7,7 +7,7 @@ function plotMultipleConditionalDistances(folder,fileStr, which_point)
 %
 %ASM 2/16
 
-plot_cosine = true;
+plot_cosine = ~true;
 
 if nargin < 3 || isempty(which_point)
     which_point = 5;
@@ -51,6 +51,9 @@ all_distance = cat(3, all_distance{:});
 
 all_cosine_distance = cellfun(@(x) x.mean_cosine_distance, allOut, 'uniformoutput', false);
 all_cosine_distance = cat(3, all_cosine_distance{:});
+
+all_corr = cellfun(@(x) x.mean_correlation, allOut, 'uniformoutput', false);
+all_corr = cat(3, all_corr{:});
 
 % normalize each variable
 all_variance = bsxfun(@rdivide, all_variance, all_variance(:, 1, :));

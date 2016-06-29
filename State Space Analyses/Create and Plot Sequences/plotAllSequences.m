@@ -22,6 +22,10 @@ allTraces = allTraces(sortOrder,:);
 cutoff = 3;
 allTraces(allTraces > cutoff) = cutoff;
 
+% filter cells 
+remove_thresh = 0.7;
+remove_cells = mean(allTraces, 2) > remove_thresh;
+allTraces(remove_cells, :) = [];
 
 %plot 
 figH = plotSequences({allTraces},seqInfo{ind}.bins,...

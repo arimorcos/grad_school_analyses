@@ -34,7 +34,8 @@ if version == 1
         semVal(i) = calcSEM(classOut(1).guess(classOut(1).testClass==uniqueVals(i)));
     end
     
-    errMean = errorbar(uniqueVals+0.1*randn(size(uniqueVals)),meanVal,semVal);
+    errMean = errorbar(uniqueVals+0.1*randn(size(uniqueVals)),...
+        meanVal,semVal);
     % errMean = plot(uniqueVals,meanVal);
     errMean.MarkerEdgeColor = 'b';
     errMean.MarkerFaceColor = 'b';

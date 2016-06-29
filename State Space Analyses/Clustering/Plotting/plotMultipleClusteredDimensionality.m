@@ -22,7 +22,7 @@ for fileInd = 1:nFiles
 end
 
 % combine all frac_explored
-all_frac_explored = cellfun(@(x) x.frac_explored', allOut, 'UniformOutput', false);
+all_frac_explored = cellfun(@(x) x.frac_explored, allOut, 'UniformOutput', false);
 all_frac_explored = cat(1, all_frac_explored{:});
 
 % take mean and sem 

@@ -56,7 +56,7 @@ if nargin > 1 || ~isempty(varargin)
             case 'dontcomparesame'
                 shouldntCompareSame = true;
                 sameClass = varargin{argInd+1};
-            case 'cParam'
+            case 'cparam'
                 cParam = varargin{argInd+1};
             case 'gamma'
                 gamma = varargin{argInd+1};
@@ -140,20 +140,21 @@ end
 
 %initialize
 accuracy = nan(nBins,1);
+if isempty(trainInd)
+    nTest = nTrials - round(nTrials*trainFrac);
+else
+    nTest = nTrials - length(trainInd);
+end
 if kFold > 2
     guess = [];
     probEst = [];
 else
-    guess = nan(nTrials - round(nTrials*trainFrac), nBins);
-    probEst = nan(nTrials - round(nTrials*trainFrac), nBins);
+    guess = nan(nTest, nBins);
+    probEst = nan(nTest, nBins);
 end
 
 
-if isempty(trainInd)
-    nTest = floor(nTrials*(1-trainFrac));
-else
-    nTest = nTrials - length(trainInd);
-end
+
 if svmType ~= 0
     guess = nan(1,nBins);
     accuracy = nan(nTest,nBins);

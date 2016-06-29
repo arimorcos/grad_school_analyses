@@ -1,5 +1,6 @@
-function [acc,sigMat,deltaPoint,nUnique] = calcTrajPredictabilityUnified(dataCell,varargin)
-%calcTrajPredictabilityUnified.m Quantifies the variability due to internal
+function [acc,sigMat,deltaPoint,nUnique] = ...
+    calcTrajPredictabilityAllTrials(dataCell,varargin)
+%calcTrajPredictabilityAllTrials.m Quantifies the variability due to internal
 %at each segment. Asks given knowledge of the current cluster, can you
 %predict the the next cluster? What about the n+2 cluster?
 %
@@ -68,11 +69,6 @@ end
 %get yPosBins
 yPosBins = dataCell{1}.imaging.yPosBins;
 
-%subset to 6-0 trials
-dataCell = getTrials(dataCell,'maze.numLeft==0,6');
-leftCell = getTrials(dataCell,'maze.numLeft==6');
-rightCell = getTrials(dataCell,'maze.numLeft==0');
-
 if useBehavior
     traces = catBinnedDataFrames(dataCell);
     keepVar = 2:6; %2 - xPos, 3 - yPos, 4 - view angle, 5 - xVel, 6 - yVel
@@ -81,31 +77,25 @@ else
     switch lower(traceType)
         case 'dff'
             %get traces
-            [~,leftTraces] = catBinnedTraces(leftCell);
-            [~,rightTraces] = catBinnedTraces(rightCell);
+            [~,traces] = catBinnedTraces(dataCell);
         case 'deconv'
-            leftTraces = catBinnedDeconvTraces(leftCell);
-            rightTraces = catBinnedDeconvTraces(rightCell);
+            traces = catBinnedDeconvTraces(dataCell);
         otherwise 
             error('Can''t interpret trace type');
     end
 end
 
 if ~isempty(whichNeurons)
-    leftTraces = leftTraces(whichNeurons,:,:);
-    rightTraces = rightTraces(whichNeurons,:,:);
+    traces = traces(whichNeurons,:,:);
 end
 
 %get nNeurons
-nLeftTrials = size(leftTraces,3);
-nRightTrials = size(rightTraces,3);
+nTrials = size(traces,3);
 
 %%%%%%%%% Create matrix of values at each point in the maze
 
-leftPoints = getMazePoints(leftTraces,yPosBins);
-rightPoints = getMazePoints(rightTraces,yPosBins);
-allPoints = getMazePoints(cat(3,leftTraces,rightTraces),yPosBins);
-nPoints = size(leftPoints,2);
+mazePoints = getMazePoints(traces,yPosBins);
+nPoints = size(mazePoints,2);
 
 %%%%%%%%%% Filter based on auto corr 
 if filterAutoCorr
@@ -123,89 +113,55 @@ if filterAutoCorr
     end
     
     %filter 
-    leftPoints = leftPoints(keepInd,:,:);
-    rightPoints = rightPoints(keepInd,:,:);
+    mazePoints = mazePoints(keepInd,:,:);
     
 end
 
 if binarize
-    leftPoints(leftPoints >= binarizeThresh) = 1;
-    leftPoints(leftPoints < binarizeThresh) = 0;
-    rightPoints(rightPoints >= binarizeThresh) = 1;
-    rightPoints(rightPoints < binarizeThresh) = 0;
+    mazePoints(mazePoints >= binarizeThresh) = 1;
+    mazePoints(mazePoints < binarizeThresh) = 0;
 end
 
 %%%%%%%%%%%% cluster 
 
 %% left 
 if oneClustering
-    reshapePoints = reshape(leftPoints,size(leftPoints,1),...
-        size(leftPoints,2)*size(leftPoints,3));
+    reshapePoints = reshape(mazePoints,size(mazePoints,1),...
+        size(mazePoints,2)*size(mazePoints,3));
     allClusterIDs = apClusterNeuronalStates(reshapePoints, perc);
-    clusterIDsLeft = reshape(allClusterIDs,size(leftPoints,3),size(leftPoints,2));
+    clusterIDs = reshape(allClusterIDs,size(mazePoints,3),size(mazePoints,2));
 else
-    clusterIDsLeft = nan(nLeftTrials,nPoints);
+    clusterIDs = nan(nTrials,nPoints);
     for point = 1:nPoints
-        clusterIDsLeft(:,point) = apClusterNeuronalStates(squeeze(leftPoints(:,point,:)),perc);
+        clusterIDs(:,point) = apClusterNeuronalStates(squeeze(mazePoints(:,point,:)),perc);
         if shuffleInitial
-            clusterIDsLeft(:,point) = shuffleArray(clusterIDsLeft(:,point));
+            clusterIDs(:,point) = shuffleArray(clusterIDs(:,point));
         end
     end
 end
 
 %%% get unique clusters 
-uniqueClustersLeft = cell(nPoints,1);
-clusterCountsLeft = cell(nPoints,1);
+uniqueClusters = cell(nPoints,1);
+clusterCounts = cell(nPoints,1);
 for point = 1:nPoints
-    [uniqueClustersLeft{point},clusterCountsLeft{point}] = count_unique(clusterIDsLeft(:,point));
+    [uniqueClusters{point},clusterCounts{point}] = ...
+        count_unique(clusterIDs(:,point));
 end
-nUniqueLeft = cellfun(@length,uniqueClustersLeft);
-
-%% right 
-
-if oneClustering
-    reshapePoints = reshape(rightPoints,size(rightPoints,1),...
-        size(rightPoints,2)*size(rightPoints,3));
-    allClusterIDs = apClusterNeuronalStates(reshapePoints, perc);
-    clusterIDsRight = reshape(allClusterIDs,size(rightPoints,3),size(rightPoints,2));
-else
-    clusterIDsRight = nan(nRightTrials,nPoints);
-    for point = 1:nPoints
-        clusterIDsRight(:,point) = apClusterNeuronalStates(squeeze(rightPoints(:,point,:)),perc);
-        if shuffleInitial
-            clusterIDsRight(:,point) = shuffleArray(clusterIDsRight(:,point));
-        end
-    end
-end
-
-%%% get unique clusters 
-uniqueClustersRight = cell(nPoints,1);
-clusterCountsRight = cell(nPoints,1);
-for point = 1:nPoints
-    [uniqueClustersRight{point},clusterCountsRight{point}] = count_unique(clusterIDsRight(:,point));
-end
-nUniqueRight = cellfun(@length,uniqueClustersRight);
-
-nUnique = round(mean([sum(nUniqueRight),sum(nUniqueLeft)]));
+nUnique = cellfun(@length,uniqueClusters);
 
 %% calculate accuracy 
-isGuessCorrectLeft = getAccuracy(nPoints,nLeftTrials,uniqueClustersLeft,clusterIDsLeft,nUniqueLeft);
-isGuessCorrectRight = getAccuracy(nPoints,nRightTrials,uniqueClustersRight,clusterIDsRight,nUniqueRight);
-acc = combineAcc(isGuessCorrectLeft,isGuessCorrectRight);
+acc = getAccuracy(nPoints,nTrials,uniqueClusters,clusterIDs,nUnique);
+acc = combineAcc(acc);
 
 %% shuffle 
 shuffleAcc = nan(nPoints,nPoints,nShuffles);
 for shuffleInd = 1:nShuffles
-    shuffleClustersLeft = clusterIDsLeft;
-    shuffleClustersRight = clusterIDsRight;
+    shuffleClusters = clusterIDs;
     for point = 1:nPoints
-        shuffleClustersLeft(:,point) = shuffleArray(shuffleClustersLeft(:,point));
-        shuffleClustersRight(:,point) = shuffleArray(shuffleClustersRight(:,point));
+        shuffleClusters(:,point) = shuffleArray(shuffleClusters(:,point));
     end
-    tempLeft = getAccuracy(nPoints,nLeftTrials,uniqueClustersLeft,shuffleClustersLeft,nUniqueLeft);
-    tempRight = getAccuracy(nPoints,nRightTrials,uniqueClustersRight,shuffleClustersRight,nUniqueRight);
-    shuffleAcc(:,:,shuffleInd) = combineAcc(tempLeft,tempRight);
-%     dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
+    tempAcc = getAccuracy(nPoints,nTrials,uniqueClusters,shuffleClusters,nUnique);
+    shuffleAcc(:,:,shuffleInd) = combineAcc(tempAcc);
 end
 
 %% get significance 
@@ -335,6 +291,23 @@ for startPoint = 1:nPoints
 end
 end
 
+function acc = combineAcc(left)
 
+acc = nan(size(left));
 
-
+nPoints = size(left,1);
+for startPoint = 1:nPoints
+    for endPoint = 1:nPoints
+        
+        if startPoint == endPoint
+            acc(startPoint,endPoint) = NaN;
+            continue;
+        end
+        
+        allTrials = left{startPoint,endPoint};
+        
+        acc(startPoint,endPoint) = 100*sum(allTrials)/length(allTrials);
+        
+    end
+end
+end

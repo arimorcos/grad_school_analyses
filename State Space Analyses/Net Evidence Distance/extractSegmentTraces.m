@@ -1,4 +1,5 @@
-function [segTraces,segId,netEv,segNum,numLeft,runSpeed,delayTraces,turn,viewAngle,whichBins] =...
+function [segTraces,segId,netEv,segNum,numLeft,runSpeed,...
+    delayTraces,turn,viewAngle,whichBins,leftTrial] =...
     extractSegmentTraces(dataCell,varargin)
 %extractSegmentTraces.m Extracts traces for each segment and returns along
 %with segment identity (left/right or white/black), net evidence (left -
@@ -28,7 +29,7 @@ function [segTraces,segId,netEv,segNum,numLeft,runSpeed,delayTraces,turn,viewAng
 
 %initialize
 segRanges = 0:80:480;
-traceType = 'dFF';
+traceType = 'deconv';
 segMeanRange = [0.5 1];
 pcaThresh = 0.8;
 useBins = false;
@@ -102,6 +103,7 @@ nTrials = length(dataCell);
 
 %get turn 
 turn = getCellVals(dataCell,'result.leftTurn')';
+leftTrial = getCellVals(dataCell,'maze.leftTrial')';
 
 %initialize outputs
 segTraces = [];
@@ -111,6 +113,7 @@ segNum = repmat(1:nSeg,nTrials,1);
 segNum = segNum(:);
 numLeft = repmat(sum(mazePatterns,2),nSeg,1);
 turn = repmat(turn,nSeg,1);
+leftTrial = repmat(leftTrial,nSeg,1);
 runSpeed = zeros(size(segId));
 runInd = 1;
 viewAngle = nan(size(segNum));
@@ -245,6 +248,7 @@ if outputTrials
     numLeft = cumsum(mazePatterns,2);
     runSpeed = reshape(runSpeed,nTrials,nSeg)';
     turn = reshape(turn,nTrials,nSeg);
+    leftTrial = reshape(leftTrial,nTrials,nSeg);
     viewAngle = reshape(viewAngle,nTrials,nSeg);
     
 end
