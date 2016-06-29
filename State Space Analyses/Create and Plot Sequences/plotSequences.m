@@ -66,8 +66,13 @@ for i = 1:nTraces
     segRanges = segRanges*cmScale;
     
     %plot
+    traces{i} = flipud(traces{i});
     if normInd
+<<<<<<< HEAD
         imagesc(binLabels,1:size(traces{i},1),flipud(traces{i}));
+=======
+        imagesc(binLabels,1:size(traces{i},1),traces{i}, [0, 0.5]);
+>>>>>>> 068817252fe7854dec931269ae40082b559c0bfd
     else
         imagesc(binLabels,1:size(traces{i},1),traces{i},cLims);
     end

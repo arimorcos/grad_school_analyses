@@ -191,7 +191,7 @@ for binInd = 1:nBins
     elseif leaveOneOut
         
         %loop through every trial
-        for testInd = 1:nTrials
+        parfor testInd = 1:nTrials
             %get trainInd
             trainInd = setdiff(1:nTrials,testInd);
             

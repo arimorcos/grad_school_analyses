@@ -22,6 +22,7 @@ showAllPoints = true;
 whichPoints = 8;
 zThresh = 1;
 nShuffles = 200;
+minClusterSize = 10;
 
 %process varargin
 if nargin > 1 || ~isempty(varargin)
@@ -40,12 +41,16 @@ if nargin > 1 || ~isempty(varargin)
                 whichPoints = varargin{argInd+1};
             case 'zthresh'
                 zThresh = varargin{argInd+1};
+            case 'minclustersize'
+                minClusterSize = varargin{argInd+1};
+            case 'nshuffles'
+                nShuffles = varargin{argInd+1};
         end
     end
 end
 
 %% get clustered traces
-overlapIndex = calculateClusterOverlap(dataCell,clusterIDs,cMat,'sortBy',...
+[overlapIndex, ~,~, ~, totalSize,~] = calculateClusterOverlap(dataCell,clusterIDs,cMat,'sortBy',...
     sortBy,'zThresh',zThresh);
 nPoints = length(overlapIndex);
 nClusters = cellfun(@length,overlapIndex);
@@ -55,14 +60,18 @@ if nargout > 0
     meanOverlap.offDiag = nan(nPoints,1);
     meanOverlap.diag = nan(nPoints,1);
     for point = 1:nPoints
-        meanOverlap.offDiag(point) = nanmean(overlapIndex{point}(logical(tril(ones(size(overlapIndex{point})),-1))));
-        meanOverlap.diag(point) = nanmean(diag(overlapIndex{point}));
+        temp_overlap_offdiag = overlapIndex{point}(logical(tril(ones(size(overlapIndex{point})),-1)));
+        temp_overlap_ondiag = diag(overlapIndex{point});
+        temp_size_offdiag = totalSize{point}(logical(tril(ones(size(overlapIndex{point})),-1)));
+        temp_size_diag = diag(totalSize{point});        
+        meanOverlap.offDiag(point) = nanmean(temp_overlap_offdiag(temp_size_offdiag >= minClusterSize));
+        meanOverlap.diag(point) = nanmean(temp_overlap_ondiag(temp_size_diag >= minClusterSize));
     end
     
     %shuffle 
     shuffleOffDiag = nan(nShuffles,nPoints);
     shuffleDiag = nan(nShuffles,nPoints);
-    for shuffleInd = 1:nShuffles
+    parfor shuffleInd = 1:nShuffles
         shuffleIndex = calculateClusterOverlap(dataCell,clusterIDs,cMat,'sortBy',...
             sortBy,'zThresh',zThresh,'shouldShuffle',true);
         for point = 1:nPoints
@@ -70,7 +79,7 @@ if nargout > 0
             shuffleDiag(shuffleInd,point) = nanmean(diag(shuffleIndex{point}));
         end
         %         dispProgress('Shuffling %d/%d',shuffleInd,shuffleInd,nShuffles);
-        fprintf('Shuffle %d/%d\n',shuffleInd,nShuffles);
+%         fprintf('Shuffle %d/%d\n',shuffleInd,nShuffles);
     end
     
     %store 

@@ -1,4 +1,5 @@
-function [fig1, fig2] = plotPairwiseClusterDistances(dataCell, clusterIDs, cMat,sortBy,plotPoint)
+function [fig1, fig2] = plotPairwiseClusterDistances(dataCell, ...
+    clusterIDs, cMat,sortBy,plotPoint, useCosine)
 %plotClusterDistances.m Calculates the distances between clusters and sorts
 %by a given variable 
 %
@@ -53,12 +54,23 @@ for cluster_1 = 1:num_clusters
         % check if intra or inter 
         if cluster_1 == cluster_2 % intra 
             % do pdist  
-            dist_cell{cluster_1, cluster_2} = pdist(...
-                trialTraces(:, clust_trials(cluster_1, 1):clust_trials(cluster_1, 2))');
+            if useCosine
+                dist_cell{cluster_1, cluster_2} = pdist(...
+                    trialTraces(:, clust_trials(cluster_1, 1):clust_trials(cluster_1, 2))',...
+                    'cosine');
+            else
+                dist_cell{cluster_1, cluster_2} = pdist(...
+                    trialTraces(:, clust_trials(cluster_1, 1):clust_trials(cluster_1, 2))');
+            end
         else
             sub_1 = trialTraces(:, clust_trials(cluster_1, 1):clust_trials(cluster_1, 2));
             sub_2 = trialTraces(:, clust_trials(cluster_2, 1):clust_trials(cluster_2, 2));
-            dist_cell{cluster_1, cluster_2} = reshape(pdist2(sub_1', sub_2'), 1, []);
+            if useCosine
+                dist_cell{cluster_1, cluster_2} = reshape(pdist2(sub_1', sub_2',...
+                    'cosine'), 1, []);
+            else
+                dist_cell{cluster_1, cluster_2} = reshape(pdist2(sub_1', sub_2'), 1, []);
+            end
             dist_cell{cluster_2, cluster_1} = dist_cell{cluster_1, cluster_2};
         end     
     end
@@ -128,7 +140,11 @@ axis(axH,'square');
 
 %add colorbar 
 cBar = colorbar;
-cBar.Label.String = 'Euclidean distance';
+if useCosine
+    cBar.Label.String = 'Cosine distance';
+else
+    cBar.Label.String = 'Euclidean distance';
+end
 cBar.Label.FontSize = 30;
 
 maxfig(fig1, 1);
@@ -158,7 +174,11 @@ beautifyPlot(fig2, axH);
 
 %label 
 axH.XLabel.String = sprintf('\\Delta %s', sortBy);
-axH.YLabel.String = 'Mean pairwise euclidean distance';
+if useCosine
+    axH.YLabel.String = 'Mean pairwise cosine distance';
+else
+    axH.YLabel.String = 'Mean pairwise euclidean distance';
+end
 
 % print significance 
 [corr, p] = corrcoef(cluster_val_dist, mean_dist);
