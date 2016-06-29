@@ -18,7 +18,7 @@ function stats = getClusterStats(dataCell,varargin)
 %ASM 8/15
 
 traceType = 'deconv';
-zThresh = [0:0.1:1];
+zThresh = [0:0.25:2];
 range = [0.5 0.75];
 perc = 10;
 clusterIDs = [];

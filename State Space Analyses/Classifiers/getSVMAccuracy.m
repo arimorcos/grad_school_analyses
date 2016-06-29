@@ -1,4 +1,4 @@
-function [accuracy,guess,classes,probEst,testClass] = ...
+function [accuracy,guess,classes,probEst,testClass,svmModel] = ...
     getSVMAccuracy(traces,realClass,varargin)
 %getSVMAccuracy Trains a cross-validated svm
 %
@@ -165,6 +165,8 @@ end
 %convert realClass to double
 realClass = double(realClass);
 
+svmModel = cell(nBins, 1);
+
 %loop through each bin
 for binInd = 1:nBins
     
@@ -230,7 +232,7 @@ for binInd = 1:nBins
         testClass = realClass(testInd);
         
         %train model
-        svmModel = svmtrain_libsvm(trainClass, trainSet, svmOptions);
+        svmModel{binInd} = svmtrain_libsvm(trainClass, trainSet, svmOptions);
         
         %test model
         if quietMode
@@ -240,10 +242,12 @@ for binInd = 1:nBins
         end
         
         if svmType == 0
-            [guess(:,binInd),~,probEst(:,binInd)] = svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
+            [guess(:,binInd),~,probEst(:,binInd)] = svmpredict_libsvm(testClass, testSet,...
+                svmModel{binInd}, svmPredictOptions);
             accuracy(binInd) = 100*sum(guess(:,binInd) == testClass)/numel(testClass);
         else
-            [accuracy(:,binInd),vals,~] = svmpredict_libsvm(testClass, testSet, svmModel, svmPredictOptions);
+            [accuracy(:,binInd),vals,~] = svmpredict_libsvm(testClass,...
+                testSet, svmModel{binInd}, svmPredictOptions);
             guess(binInd) = vals(2); %mean squared error
             probEst(binInd) = vals(3); %R^2
             classes(:,binInd) = testClass;

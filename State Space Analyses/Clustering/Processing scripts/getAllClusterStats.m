@@ -1,5 +1,5 @@
 %
-saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160129_vogel_clusterStats';
+saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160324_vogel_new_cluster_stats';
 
 % get list of datasets
 procList = getProcessedList();

@@ -14,7 +14,7 @@ function [start,stop] = findContinuousRegions(data,thresh)
 
 %set thresh if not provided
 if nargin < 2 || isempty(thresh)
-    thresh = 0;
+    thresh = 0.000001;
 end
 
 %set values below thresh to 0 

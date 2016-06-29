@@ -23,7 +23,7 @@ figH = figure;
 nRows = 2;
 nCol = 3;
 
-whichZThresh = find(allStats{1}.zThresh >= 0.2 & allStats{1}.zThresh <=0.7);
+whichZThresh = find(allStats{1}.zThresh >= 0.5 & allStats{1}.zThresh <=3);
 
 %% plot the fraction of self-transitions
 axSelfTrans = subplot(nRows, nCol, 1);
@@ -137,6 +137,8 @@ axEpochCount = subplot(nRows, nCol, 5);
 % get number of active 
 nEpochsActive = cellfun(@(x) x.nEpochsActive(:,whichZThresh),allStats,'UniformOutput',false);
 nEpochsActive = cat(1,nEpochsActive{:});
+nEpochsActive = nEpochsActive -1;
+nEpochsActive(nEpochsActive < 0) = 0;
 
 %convert to cdf 
 sortedNEpochsActive = sort(nEpochsActive);
@@ -196,6 +198,8 @@ nClustersActive = cellfun(@(x) x.nClustersWithinEpochActive(:, :, whichZThresh),
     allStats,'UniformOutput',false);
 nClustersActive = cat(1, nClustersActive{:});
 nClustersActive = squeeze(max(nClustersActive, [], 2));
+nClustersActive = nClustersActive - 1;
+nClustersActive(nClustersActive < 0) = 0;
 
 %convert to cdf 
 sortedNEpochsActive = sort(nClustersActive);

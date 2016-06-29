@@ -1,12 +1,12 @@
-useZThresh = [0.3];
+useZThresh = [2];
 
 %saveFolder
-saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160217_vogel_thresh_overlap';
+saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160324_vogel_overlap_new_z';
 
 %get list of datasets
 procList = getProcessedList();
 nDataSets = length(procList);
-minClusterSize = [15:30];
+minClusterSize = [30];
 
 %get deltaPLeft
 for dSet = 1:nDataSets

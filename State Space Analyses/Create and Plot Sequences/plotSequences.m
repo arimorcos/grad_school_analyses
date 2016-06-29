@@ -61,18 +61,24 @@ for i = 1:nTraces
     end
     
     %scale
-    cmScale = 0.75;
-    binLabels = cmScale*binLabels;
-    segRanges = segRanges*cmScale;
+    if i == 1
+        cmScale = 0.75;
+        binLabels = cmScale*binLabels;
+        segRanges = segRanges*cmScale;
+    end
     
     %plot
     traces{i} = flipud(traces{i});
     if normInd
+<<<<<<< Updated upstream
 <<<<<<< HEAD
         imagesc(binLabels,1:size(traces{i},1),flipud(traces{i}));
 =======
         imagesc(binLabels,1:size(traces{i},1),traces{i}, [0, 0.5]);
 >>>>>>> 068817252fe7854dec931269ae40082b559c0bfd
+=======
+        imagesc(binLabels,1:size(traces{i},1),traces{i}, [0, 1]);
+>>>>>>> Stashed changes
     else
         imagesc(binLabels,1:size(traces{i},1),traces{i},cLims);
     end
@@ -98,24 +104,24 @@ for i = 1:nTraces
     for segRangeInd = 1:length(segRanges)
         line(repmat(segRanges(segRangeInd),1,2),[0 size(traces{i},1)],'Color','w','LineStyle','--');
     end
-%     
-%     %add segment label
-%     segLabel = text(axH.XLim(1),...
-%         axH.YLim(1) - 0.02*range(axH.YLim),'Segment: ');
-%     segLabel.FontSize = 20;
-%     segLabel.HorizontalAlignment = 'Right';
-%     segLabel.VerticalAlignment = 'Bottom';
-%     segLabel.FontWeight = 'bold';
-%     
-%     %add segment numbers
-%     for segInd = 1:length(segRanges)-1
-%         segText = text(mean(segRanges(segInd:segInd+1)),...
-%             axH.YLim(1) - 0.02*range(axH.YLim),sprintf('%d',segInd));
-%         segText.HorizontalAlignment = 'Center';
-%         segText.VerticalAlignment = 'Bottom';
-%         segText.FontSize = 20;
-%         segText.FontWeight = 'bold';
-%     end
+    %
+    %     %add segment label
+    %     segLabel = text(axH.XLim(1),...
+    %         axH.YLim(1) - 0.02*range(axH.YLim),'Segment: ');
+    %     segLabel.FontSize = 20;
+    %     segLabel.HorizontalAlignment = 'Right';
+    %     segLabel.VerticalAlignment = 'Bottom';
+    %     segLabel.FontWeight = 'bold';
+    %
+    %     %add segment numbers
+    %     for segInd = 1:length(segRanges)-1
+    %         segText = text(mean(segRanges(segInd:segInd+1)),...
+    %             axH.YLim(1) - 0.02*range(axH.YLim),sprintf('%d',segInd));
+    %         segText.HorizontalAlignment = 'Center';
+    %         segText.VerticalAlignment = 'Bottom';
+    %         segText.FontSize = 20;
+    %         segText.FontWeight = 'bold';
+    %     end
     
 end
 

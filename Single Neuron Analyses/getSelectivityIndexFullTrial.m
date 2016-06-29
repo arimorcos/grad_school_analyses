@@ -1,4 +1,4 @@
-function selInd = getSelectivityIndex(dataCell,shuffle)
+function selInd = getSelectivityIndexFullTrial(dataCell,shuffle)
 %getSelectivityIndex.m Returns a nNeurons x nBins selectivity index based
 %on left and right 6-0 trials 
 %
@@ -10,8 +10,6 @@ function selInd = getSelectivityIndex(dataCell,shuffle)
 %   right preference
 %
 %ASM 7/15
-
-epsilon = 0;
 
 if nargin < 2 || isempty(shuffle)
     shuffle = false;
@@ -31,10 +29,8 @@ if shuffle
 end
 
 %get binned traces 
-[~,leftTraces] = catBinnedTraces(left60);
-% leftTraces = catBinnedDeconvTraces(left60);
-[~,rightTraces] = catBinnedTraces(right60);
-% rightTraces = catBinnedDeconvTraces(right60);
+leftTraces = catBinnedDeconvTraces(left60);
+rightTraces = catBinnedDeconvTraces(right60);
 
 %make positive 
 % convToPos = @(x) x + abs(min(x(:)));
@@ -47,13 +43,13 @@ if any(rightTraces(:) < 0)
 end
 
 %normalize 
-maxVals = max(max(cat(3,leftTraces,rightTraces),[],3),[],2);
-leftTraces = bsxfun(@rdivide, leftTraces, maxVals);
-rightTraces = bsxfun(@rdivide, rightTraces, maxVals);
+% maxVals = max(max(cat(3,leftTraces,rightTraces),[],3),[],2);
+% leftTraces = bsxfun(@rdivide, leftTraces, maxVals);
+% rightTraces = bsxfun(@rdivide, rightTraces, maxVals);
 
-%take mean across trials for each neuron 
-meanLeftTraces = mean(leftTraces,3);
-meanRightTraces = mean(rightTraces,3);
+%take mean across bins and then trials for each neuron 
+meanLeftTraces = nanmean(nanmean(leftTraces, 2), 3);
+meanRightTraces = nanmean(nanmean(rightTraces, 2) ,3);
 
 %get selectivity index
-selInd = (meanLeftTraces - meanRightTraces)./(meanLeftTraces + meanRightTraces + epsilon);
+selInd = (meanLeftTraces - meanRightTraces)./(meanLeftTraces + meanRightTraces);

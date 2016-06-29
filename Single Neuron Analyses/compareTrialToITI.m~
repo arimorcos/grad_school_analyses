@@ -1,0 +1,52 @@
+function out = compareTrialToITI(dataCell)
+%compareTrialToITI.m Calculates the mean activity during each trial and
+%the mean activity during the iti and performs statistics
+%
+%INPUTS
+%dataCell - dataCell containing imaging data
+%
+%OUTPUTS
+%out - structure containing: 
+%   p_vals - num_cells x 1 array of p_vals from one-tailed t-test
+%   mean_trial - num_cells x num_trials array of mean deconv activity
+%       during trial
+%   mean_iti - num_cells x num_trials array of mean deconv activity
+%       during iti
+%
+%ASM 6/16
+
+%filter 
+dataCell = filterROIGroups(dataCell, 1);
+
+% get deconv trace 
+deconvTrace = dataCell{1}.filterDeconvTrace; 
+
+%get unique trials 
+unique_trials = unique(dataCell{1}.imaging.trialIDs(2*planeNum-1,...
+    logical(dataCell{1}.imaging.trialIDs(2*planeNum,:))));
+num_trials = length(unique_trials);
+
+% get num_neurons 
+num_neurons = size(deconvTrace, 1);
+
+%initialize 
+out.p_vals = nan(num_neurons, 1);
+out.mean_trial = nan(num_neurons, num_trials);
+out.mean_iti = nan(num_neurons, num_trials);
+
+% loop through 
+for trial_ind = 1:num_trials
+    
+    %get frameInd corresponding to trial
+    frameInd = dataCell{1}.imaging.trialIDs(1,:) == unique_trials(trialInd);
+    
+    out.mean_trial = 
+    
+    %store dFFTraces subset in dataCell
+    dataCell{uniqueTrials(trialInd)}.imaging.dFFTraces{planeNum} =...
+        dFFThresh{planeNum}(:,frameInd);
+    
+    %change imData to true
+    dataCell{uniqueTrials(trialInd)}.imaging.imData = true;
+    
+end

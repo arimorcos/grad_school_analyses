@@ -55,6 +55,10 @@ yPosBins = dataCell{1}.imaging.yPosBins;
 
 %zScore traces 
 zTraces = zScoreTraces(traces);
+<<<<<<< Updated upstream
+=======
+% zTraces = traces;
+>>>>>>> Stashed changes
 
 %get maze points
 mazePoints = getMazePoints(zTraces,yPosBins);

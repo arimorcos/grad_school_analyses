@@ -73,7 +73,7 @@ assignin('base','medTrials',medTrials);
 if ~isempty(request)
     varargout = cell(length(request),1);
     for i = 1:length(request)
-        if strcmpi(request,'dataCell')
+        if strcmpi(request{i},'dataCell')
             load(filePath,'dataCell');
         end
         eval(sprintf('varargout{i} = %s;',request{i}));

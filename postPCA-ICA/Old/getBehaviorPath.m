@@ -1,6 +1,10 @@
 function [vCellFile,vMatFile] = getBehaviorPath(mouseName,date)
 
-vPath = 'D:\Data\Ari\';
+if strcmpi(computer, 'glnxa64')
+    vPath = '/mnt/7A08079708075215/DATA/Ari';
+else
+    vPath = 'D:\Data\Ari\';
+end
 if exist(fullfile(vPath,'Archived Mice',mouseName),'dir') %check if directory is in current, archived or neither
     currStr = 'Archived Mice';
 elseif exist(fullfile(vPath,'Current Mice',mouseName),'dir')

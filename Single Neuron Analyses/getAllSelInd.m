@@ -1,10 +1,11 @@
+
 %saveFolder 
-saveFolder = '/Users/arimorcos/Data/Analyzed Data/150907_vogel_deconv_selInd_seq';
+saveFolder = '/mnt/7A08079708075215/DATA/Analyzed Data/160616_vogel_sel_ind_epsilon';
 
 %get list of datasets 
 procList = getProcessedList();
 nDataSets = length(procList);
-nShuffles = 1000;
+nShuffles = 1;
 
 for dSet = 1:nDataSets
     
@@ -24,4 +25,4 @@ for dSet = 1:nDataSets
 end
 
 % save 
-save(fullfile(saveFolder,'selIndAll'),'selIndAll','shuffleSelIndAll');
+save(fullfile(saveFolder,'selIndAll_eps_0.5'),'selIndAll','shuffleSelIndAll');
